@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index &#8212; Probably  documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" />
+    <link rel="stylesheet" type="text/css" href="_static/katex-math.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js"></script>
+    <script src="_static/katex_autorenderer.js"></script>
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" />
+    
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:ital,wght@0,300;0,400;1,400&family=Source+Serif+Pro:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font: 15px/1.4 "Source Sans Pro",sans-serif;
+        }
+        h1, h2, h3, h5, h6, h6 {
+            font-family: "Source Sans Pro",sans-serif;
+        }
+        p {
+            font-family: "Source Serif Pro",serif;
+        }
+        .py, .field-list p, pre, code {
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        /* fix navbar overlaying contents when clicking on anchors */
+        :target::before {
+            content: "";
+            display: block;
+            height: 60px; /* fixed header height*/
+            margin: -60px 0 0; /* negative fixed header height */
+            background: none;
+        }
+
+        /* hack to limit the yellow highlight to the the children of the target,
+           because of the above hack the target's highlight would be way too large */
+        dt:target {
+            background-color: transparent;
+        }
+        dt:target > * {
+            background-color: #fbe54e;
+        }
+
+        /* spacing adjustments */
+        .section {
+            margin-bottom: 10rem;
+            margin-top: 6rem;
+        }
+        div.body > .section:first-of-type {
+            margin-top: 0rem;
+        }
+        .class, .function, .data {
+            margin-top: 5rem;
+            margin-bottom: 7rem;
+            border-left: 1px solid #eee;
+            padding-left: 1rem;
+        }
+        dl.attribute > dd, dl.class > dd, dl.function > dd, dl.method > dd {
+            margin-left: 30px;
+        }
+        p {
+            margin-top: 1.05em;
+            margin-bottom: 1.05em;
+            text-align: justify;
+        }
+        .field-list p, li p {
+            text-align: left;
+        }
+        /* adjust font sizes */
+        dl.field-list, dl.attribute {
+            font-size: 90%;
+        }
+        .math {
+            font-size: 90.09%;
+        }
+    </style>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          Probably</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="https://github.com/Philipp15b/probably">GitHub Repository</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Contents <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="pgcl.html"><code class="docutils literal notranslate"><span class="pre">probably.pgcl</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pgcl.html#compiler-frontend">Compiler Frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pgcl.html#ast">AST</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pgcl.html#program">Program</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pgcl.html#types">Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pgcl.html#declarations">Declarations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pgcl.html#expressions">Expressions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pgcl.html#instructions">Instructions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pgcl.html#superclasses">Superclasses</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pgcl.html#weakest-pre-expectations">Weakest Pre-Expectations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pgcl.html#loop-free">Loop-Free</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pgcl.html#transformers">Transformers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pgcl.html#loops">Loops</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pgcl.html#program-shapes">Program Shapes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pgcl.html#linearity">Linearity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pgcl.html#one-big-loop">One Big Loop</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pgcl.html#parser">Parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pgcl.html#walking-asts">Walking ASTs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pgcl.html#type-checking">Type Checking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pgcl.html#variable-substitution">Variable Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pgcl.html#expression-simplification">Expression Simplification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pgcl.html#control-flow-graph">Control-Flow Graph</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pysmt.html"><code class="docutils literal notranslate"><span class="pre">probably.pysmt</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pysmt.html#translation-context">Translation Context</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pysmt.html#expression-translation">Expression Translation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="util.html"><code class="docutils literal notranslate"><span class="pre">probably.util</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="util.html#mutable-references">Mutable References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html#lark-expression-parser">Lark Expression Parser</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary">
+<h4 style="padding: 5px 20px">Contents</h4>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pgcl.html"><code class="docutils literal notranslate"><span class="pre">probably.pgcl</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="pysmt.html"><code class="docutils literal notranslate"><span class="pre">probably.pysmt</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="util.html"><code class="docutils literal notranslate"><span class="pre">probably.util</span></code></a></li>
+</ul>
+
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+
+<h1 id="index">Index</h1>
+
+<div class="genindex-jumpbox">
+ <a href="#_"><strong>_</strong></a>
+ | <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#J"><strong>J</strong></a>
+ | <a href="#K"><strong>K</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
+ 
+</div>
+<h2 id="_">_</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.DeclClass.__str__">__str__() (probably.pgcl.ast.DeclClass method)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.ast.ExprClass.__str__">(probably.pgcl.ast.ExprClass method)</a>
+</li>
+        <li><a href="pgcl.html#probably.pgcl.ast.InstrClass.__str__">(probably.pgcl.ast.InstrClass method)</a>
+</li>
+        <li><a href="pgcl.html#probably.pgcl.ast.Program.__str__">(probably.pgcl.ast.Program method)</a>
+</li>
+      </ul></li>
+      <li><a href="substitute_internals.html#probably.pgcl.substitute._bind_substs">_bind_substs() (in module probably.pgcl.substitute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="substitute_internals.html#probably.pgcl.substitute._Binder">_Binder (class in probably.pgcl.substitute)</a>
+</li>
+      <li><a href="pgcl_grammar.html#probably.pgcl.parser._doc_parser_grammar">_doc_parser_grammar() (in module probably.pgcl.parser)</a>
+</li>
+      <li><a href="cfg_internals.html#probably.pgcl.cfg._expand_region">_expand_region() (in module probably.pgcl.cfg)</a>
+</li>
+      <li><a href="cfg_internals.html#probably.pgcl.cfg._join_regions">_join_regions() (in module probably.pgcl.cfg)</a>
+</li>
+      <li><a href="cfg_internals.html#probably.pgcl.cfg._Region">_Region (class in probably.pgcl.cfg)</a>
+</li>
+      <li><a href="substitute_internals.html#probably.pgcl.substitute._Subst">_Subst (class in probably.pgcl.substitute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cfg_internals.html#probably.pgcl.cfg._Region.add_block">add_block() (probably.pgcl.cfg._Region method)</a>
+</li>
+      <li><a href="substitute_internals.html#probably.pgcl.substitute._Subst.add_bound">add_bound() (probably.pgcl.substitute._Subst method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Program.add_variable">add_variable() (probably.pgcl.ast.Program method)</a>
+</li>
+      <li><a href="util.html#probably.util.ref.Mut.alloc">alloc() (probably.util.ref.Mut static method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Binop.AND">AND (probably.pgcl.ast.Binop attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="substitute_internals.html#probably.pgcl.substitute._Subst.apply">apply() (probably.pgcl.substitute._Subst method)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.wp.ExpectationTransformer.apply">(probably.pgcl.wp.ExpectationTransformer method)</a>
+</li>
+      </ul></li>
+      <li><a href="pgcl.html#probably.pgcl.ast.AsgnInstr">AsgnInstr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.BasicBlock.assignments">assignments (probably.pgcl.cfg.BasicBlock attribute)</a>
+</li>
+      <li><a href="util.html#probably.util.lark_expr_parser.Assoc">Assoc (class in probably.util.lark_expr_parser)</a>
+</li>
+      <li><a href="util.html#probably.util.lark_expr_parser.atom">atom() (in module probably.util.lark_expr_parser)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.cfg.BasicBlock">BasicBlock (class in probably.pgcl.cfg)</a>
+</li>
+      <li><a href="substitute_internals.html#probably.pgcl.substitute._Binder.bind">bind() (probably.pgcl.substitute._Binder method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Binop">Binop (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.BinopExpr">BinopExpr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.BlockType">BlockType (class in probably.pgcl.cfg)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.WhileInstr.body">body (probably.pgcl.ast.WhileInstr attribute)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.wp.LoopExpectationTransformer.body">(probably.pgcl.wp.LoopExpectationTransformer attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.cfg.TerminatorKind.BOOLEAN">BOOLEAN (probably.pgcl.cfg.TerminatorKind attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.BoolLitExpr">BoolLitExpr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.BoolType">BoolType (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Bounds">Bounds (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.NatType.bounds">bounds (probably.pgcl.ast.NatType attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.Terminator.branch">branch() (probably.pgcl.cfg.Terminator static method)</a>
+</li>
+      <li><a href="util.html#probably.util.lark_expr_parser.build_expr_parser">build_expr_parser() (in module probably.util.lark_expr_parser)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.ExprClass.cast">cast() (probably.pgcl.ast.ExprClass method)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.ast.InstrClass.cast">(probably.pgcl.ast.InstrClass method)</a>
+</li>
+      </ul></li>
+      <li><a href="pgcl.html#probably.pgcl.ast.CategoricalExpr">CategoricalExpr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.check.check_expectation">check_expectation() (in module probably.pgcl.check)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.check.check_expression">check_expression() (in module probably.pgcl.check)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.check.check_instr">check_instr() (in module probably.pgcl.check)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.syntax.check_is_linear_expr">check_is_linear_expr() (in module probably.pgcl.syntax)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.syntax.check_is_linear_program">check_is_linear_program() (in module probably.pgcl.syntax)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.syntax.check_is_one_big_loop">check_is_one_big_loop() (in module probably.pgcl.syntax)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.check.check_program">check_program() (in module probably.pgcl.check)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.check.CheckFail">CheckFail (class in probably.pgcl.check)</a>
+</li>
+      <li><a href="cfg_internals.html#probably.pgcl.cfg._Region.child">child() (probably.pgcl.cfg._Region static method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.cfg.Terminator.choice">choice() (probably.pgcl.cfg.Terminator static method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.ChoiceInstr">ChoiceInstr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.compiler.compile_expectation">compile_expectation() (in module probably.pgcl.compiler)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.compiler.compile_expr">compile_expr() (in module probably.pgcl.compiler)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.compiler.compile_pgcl">compile_pgcl() (in module probably.pgcl.compiler)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.IfInstr.cond">cond (probably.pgcl.ast.IfInstr attribute)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.ast.WhileInstr.cond">(probably.pgcl.ast.WhileInstr attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.Terminator.condition">condition (probably.pgcl.cfg.Terminator attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Program.constants">constants (probably.pgcl.ast.Program attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.ConstDecl">ConstDecl (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.ControlFlowGraph">ControlFlowGraph (class in probably.pgcl.cfg)</a>
+</li>
+      <li><a href="substitute_internals.html#probably.pgcl.substitute._Subst.copy">copy() (probably.pgcl.substitute._Subst method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.Decl">Decl (in module probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Program.declarations">declarations (probably.pgcl.ast.Program attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.DeclClass">DeclClass (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="util.html#probably.util.dedup_list">dedup_list() (in module probably.util)</a>
+</li>
+      <li><a href="util.html#probably.util.ref.Mut.dict_items">dict_items() (probably.util.ref.Mut static method)</a>
+</li>
+      <li><a href="util.html#probably.util.ref.Mut.dict_values">dict_values() (probably.util.ref.Mut static method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.CategoricalExpr.distribution">distribution() (probably.pgcl.ast.CategoricalExpr method)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.ast.UniformExpr.distribution">(probably.pgcl.ast.UniformExpr method)</a>
+</li>
+      </ul></li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Binop.DIVIDE">DIVIDE (probably.pgcl.ast.Binop attribute)</a>
+</li>
+      <li><a href="cfg_internals.html#probably.pgcl.cfg._Region.dominates_successor">dominates_successor() (probably.pgcl.cfg._Region method)</a>
+</li>
+      <li><a href="cfg_internals.html#probably.pgcl.cfg._Region.dominator_id">dominator_id (probably.pgcl.cfg._Region attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.wp.LoopExpectationTransformer.done">done (probably.pgcl.wp.LoopExpectationTransformer attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.walk.Walk.DOWN">DOWN (probably.pgcl.walk.Walk attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.UniformExpr.end">end (probably.pgcl.ast.UniformExpr attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.ControlFlowGraph.entry_id">entry_id (probably.pgcl.cfg.ControlFlowGraph attribute)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.cfg.JumpTable.entry_id">(probably.pgcl.cfg.JumpTable attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Binop.EQ">EQ (probably.pgcl.ast.Binop attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.JumpTable.error_id">error_id (probably.pgcl.cfg.JumpTable attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.wp.ExpectationTransformer.expectation">expectation (probably.pgcl.wp.ExpectationTransformer attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.wp.ExpectationTransformer">ExpectationTransformer (class in probably.pgcl.wp)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.check.CheckFail.expected_numeric_got">expected_numeric_got() (probably.pgcl.check.CheckFail static method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.check.CheckFail.expected_type_got">expected_type_got() (probably.pgcl.check.CheckFail static method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Expr">Expr (in module probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.SubstExpr.expr">expr (probably.pgcl.ast.SubstExpr attribute)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.ast.TickExpr.expr">(probably.pgcl.ast.TickExpr attribute)</a>
+</li>
+        <li><a href="pgcl.html#probably.pgcl.ast.TickInstr.expr">(probably.pgcl.ast.TickInstr attribute)</a>
+</li>
+        <li><a href="pgcl.html#probably.pgcl.ast.UnopExpr.expr">(probably.pgcl.ast.UnopExpr attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="pysmt.html#probably.pysmt.expr.expr_to_pysmt">expr_to_pysmt() (in module probably.pysmt.expr)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.ExprClass">ExprClass (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.CategoricalExpr.exprs">exprs (probably.pgcl.ast.CategoricalExpr attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.IfInstr.false">false (probably.pgcl.ast.IfInstr attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.JumpTable.finalize">finalize() (probably.pgcl.cfg.JumpTable method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.BinopExpr.flatten">flatten() (probably.pgcl.ast.BinopExpr method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.Terminator.flip">flip() (probably.pgcl.cfg.Terminator method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.FloatLitExpr">FloatLitExpr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.FloatType">FloatType (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.check.CheckFail.fmap">fmap() (probably.pgcl.check.CheckFail static method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.BlockType.FORWARD">FORWARD (probably.pgcl.cfg.BlockType attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.ControlFlowGraph.fresh_block">fresh_block() (probably.pgcl.cfg.ControlFlowGraph method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.ControlFlowGraph.from_instructions">from_instructions() (probably.pgcl.cfg.ControlFlowGraph static method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.from_iverson">from_iverson() (probably.pgcl.simplify.SnfExpectationTransformer static method)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.from_iverson">(probably.pgcl.simplify.SnfExpectationTransformerProduct static method)</a>
+</li>
+      </ul></li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Program.from_parse">from_parse() (probably.pgcl.ast.Program static method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.from_prob">from_prob() (probably.pgcl.simplify.SnfExpectationTransformer static method)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.from_prob">(probably.pgcl.simplify.SnfExpectationTransformerProduct static method)</a>
+</li>
+      </ul></li>
+      <li><a href="pysmt.html#probably.pysmt.context.TranslationContext.from_program">from_program() (probably.pysmt.context.TranslationContext static method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.from_subst">from_subst() (probably.pgcl.simplify.SnfExpectationTransformer static method)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.from_subst">(probably.pgcl.simplify.SnfExpectationTransformerProduct static method)</a>
+</li>
+      </ul></li>
+      <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.from_ticks">from_ticks() (probably.pgcl.simplify.SnfExpectationTransformer static method)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.from_ticks">(probably.pgcl.simplify.SnfExpectationTransformerProduct static method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.wp.general_wp_transformer">general_wp_transformer() (in module probably.pgcl.wp)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.check.get_type">get_type() (in module probably.pgcl.check)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.cfg.Terminator.goto">goto() (probably.pgcl.cfg.Terminator static method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.guard">guard (probably.pgcl.simplify.SnfExpectationTransformerProduct attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pysmt.html#probably.pysmt.context.TranslationContext.id_subst">id_subst (probably.pysmt.context.TranslationContext attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.BasicBlock.ident">ident (probably.pgcl.cfg.BasicBlock attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.Terminator.if_false">if_false (probably.pgcl.cfg.Terminator attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.Terminator.if_true">if_true (probably.pgcl.cfg.Terminator attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.IfInstr">IfInstr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pysmt.html#probably.pysmt.context.TranslationContext.infinity">infinity (probably.pysmt.context.TranslationContext attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.FloatLitExpr.infinity">infinity() (probably.pgcl.ast.FloatLitExpr static method)</a>
+</li>
+      <li><a href="util.html#probably.util.lark_expr_parser.infixl">infixl() (in module probably.util.lark_expr_parser)</a>
+</li>
+      <li><a href="util.html#probably.util.lark_expr_parser.infixr">infixr() (in module probably.util.lark_expr_parser)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.wp.LoopExpectationTransformer.init">init (probably.pgcl.wp.LoopExpectationTransformer attribute)</a>
+</li>
+      <li><a href="cfg_internals.html#probably.pgcl.cfg._Region.initial">initial() (probably.pgcl.cfg._Region static method)</a>
+</li>
+      <li>
+    INPUT
+
+      <ul>
+        <li><a href="index.html#cmdoption-probably-arg-INPUT">probably command line option</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.Instr">Instr (in module probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.walk.instr_exprs">instr_exprs() (in module probably.pgcl.walk)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.InstrClass">InstrClass (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="cfg_internals.html#probably.pgcl.cfg._Region.instrs">instrs (probably.pgcl.cfg._Region attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Program.instructions">instructions (probably.pgcl.ast.Program attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Binop.is_associative">is_associative() (probably.pgcl.ast.Binop method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.check.is_compatible">is_compatible() (in module probably.pgcl.check)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.Terminator.is_goto">is_goto() (probably.pgcl.cfg.Terminator method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.FloatLitExpr.is_infinite">is_infinite() (probably.pgcl.ast.FloatLitExpr method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.BasicBlock.is_trap">is_trap() (probably.pgcl.cfg.BasicBlock method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.TickExpr.is_zero">is_zero() (probably.pgcl.ast.TickExpr method)</a>
+</li>
+      <li><a href="util.html#probably.util.ref.Mut.iterate">iterate() (probably.util.ref.Mut static method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Unop.IVERSON">IVERSON (probably.pgcl.ast.Unop attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="J">J</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.cfg.JumpTable">JumpTable (class in probably.pgcl.cfg)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="K">K</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.cfg.Terminator.kind">kind (probably.pgcl.cfg.Terminator attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.Binop.LE">LE (probably.pgcl.ast.Binop attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.Terminator.LEAF">LEAF (probably.pgcl.cfg.Terminator attribute)</a>
+</li>
+      <li><a href="util.html#probably.util.lark_expr_parser.Assoc.Left">Left (probably.util.lark_expr_parser.Assoc attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Binop.LEQ">LEQ (probably.pgcl.ast.Binop attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.AsgnInstr.lhs">lhs (probably.pgcl.ast.AsgnInstr attribute)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.ast.BinopExpr.lhs">(probably.pgcl.ast.BinopExpr attribute)</a>
+</li>
+        <li><a href="pgcl.html#probably.pgcl.ast.ChoiceInstr.lhs">(probably.pgcl.ast.ChoiceInstr attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="util.html#probably.util.ref.Mut.list">list() (probably.util.ref.Mut static method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.check.CheckFail.location">location (probably.pgcl.check.CheckFail attribute)</a>
+</li>
+      <li><a href="substitute_internals.html#probably.pgcl.substitute._Binder.lookup">lookup() (probably.pgcl.substitute._Binder method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.BlockType.LOOP_HEAD">LOOP_HEAD (probably.pgcl.cfg.BlockType attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.wp.LoopExpectationTransformer">LoopExpectationTransformer (class in probably.pgcl.wp)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.wp.loopfree_wp">loopfree_wp() (in module probably.pgcl.wp)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.wp.loopfree_wp_transformer">loopfree_wp_transformer() (in module probably.pgcl.wp)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Bounds.lower">lower (probably.pgcl.ast.Bounds attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.check.CheckFail.message">message (probably.pgcl.check.CheckFail attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Binop.MINUS">MINUS (probably.pgcl.ast.Binop attribute)</a>
+</li>
+      <li>
+    module
+
+      <ul>
+        <li><a href="index.html#module-probably.cmd">probably.cmd</a>
+</li>
+        <li><a href="pgcl.html#module-probably.pgcl">probably.pgcl</a>
+</li>
+        <li><a href="pgcl.html#module-probably.pgcl.ast">probably.pgcl.ast</a>
+</li>
+        <li><a href="pgcl.html#module-probably.pgcl.cfg">probably.pgcl.cfg</a>
+</li>
+        <li><a href="pgcl.html#module-probably.pgcl.check">probably.pgcl.check</a>
+</li>
+        <li><a href="pgcl.html#module-probably.pgcl.compiler">probably.pgcl.compiler</a>
+</li>
+        <li><a href="pgcl.html#module-probably.pgcl.parser">probably.pgcl.parser</a>
+</li>
+        <li><a href="pgcl.html#module-probably.pgcl.simplify">probably.pgcl.simplify</a>
+</li>
+        <li><a href="pgcl.html#module-probably.pgcl.substitute">probably.pgcl.substitute</a>
+</li>
+        <li><a href="pgcl.html#module-probably.pgcl.syntax">probably.pgcl.syntax</a>
+</li>
+        <li><a href="pgcl.html#module-probably.pgcl.walk">probably.pgcl.walk</a>
+</li>
+        <li><a href="pgcl.html#module-probably.pgcl.wp">probably.pgcl.wp</a>
+</li>
+        <li><a href="pysmt.html#module-probably.pysmt">probably.pysmt</a>
+</li>
+        <li><a href="pysmt.html#module-probably.pysmt.context">probably.pysmt.context</a>
+</li>
+        <li><a href="pysmt.html#module-probably.pysmt.expr">probably.pysmt.expr</a>
+</li>
+        <li><a href="util.html#module-probably.util">probably.util</a>
+</li>
+        <li><a href="util.html#module-probably.util.lark_expr_parser">probably.util.lark_expr_parser</a>
+</li>
+        <li><a href="util.html#module-probably.util.ref">probably.util.ref</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="util.html#probably.util.ref.Mut">Mut (class in probably.util.ref)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.walk.mut_expr_children">mut_expr_children() (in module probably.pgcl.walk)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.walk.mut_instr_exprs">mut_instr_exprs() (in module probably.pgcl.walk)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.NatLitExpr">NatLitExpr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.NatType">NatType (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Unop.NEG">NEG (probably.pgcl.ast.Unop attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.Node">Node (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.simplify.normalize_expectation">normalize_expectation() (in module probably.pgcl.simplify)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.simplify.normalize_expectation_transformer">normalize_expectation_transformer() (in module probably.pgcl.simplify)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.cfg.one_big_loop">one_big_loop() (in module probably.pgcl.cfg)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.wp.one_loop_wp_transformer">one_loop_wp_transformer() (in module probably.pgcl.wp)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.BinopExpr.operator">operator (probably.pgcl.ast.BinopExpr attribute)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.ast.UnopExpr.operator">(probably.pgcl.ast.UnopExpr attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="util.html#probably.util.lark_expr_parser.OperatorTable">OperatorTable (in module probably.util.lark_expr_parser)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Binop.OR">OR (probably.pgcl.ast.Binop attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.parser.parse_expectation">parse_expectation() (in module probably.pgcl.parser)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.parser.parse_expr">parse_expr() (in module probably.pgcl.parser)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.parser.parse_pgcl">parse_pgcl() (in module probably.pgcl.parser)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Binop.PLUS">PLUS (probably.pgcl.ast.Binop attribute)</a>
+</li>
+      <li><a href="util.html#probably.util.lark_expr_parser.postfix">postfix() (in module probably.util.lark_expr_parser)</a>
+</li>
+      <li><a href="util.html#probably.util.lark_expr_parser.prefix">prefix() (in module probably.util.lark_expr_parser)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.ChoiceInstr.prob">prob (probably.pgcl.ast.ChoiceInstr attribute)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.prob">(probably.pgcl.simplify.SnfExpectationTransformerProduct attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.TerminatorKind.PROBABILISTIC">PROBABILISTIC (probably.pgcl.cfg.TerminatorKind attribute)</a>
+</li>
+      <li>
+    probably command line option
+
+      <ul>
+        <li><a href="index.html#cmdoption-probably-arg-INPUT">INPUT</a>
+</li>
+      </ul></li>
+      <li>
+    probably.cmd
+
+      <ul>
+        <li><a href="index.html#module-probably.cmd">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.pgcl
+
+      <ul>
+        <li><a href="pgcl.html#module-probably.pgcl">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.pgcl.ast
+
+      <ul>
+        <li><a href="pgcl.html#module-probably.pgcl.ast">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.pgcl.cfg
+
+      <ul>
+        <li><a href="pgcl.html#module-probably.pgcl.cfg">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.pgcl.check
+
+      <ul>
+        <li><a href="pgcl.html#module-probably.pgcl.check">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.pgcl.compiler
+
+      <ul>
+        <li><a href="pgcl.html#module-probably.pgcl.compiler">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.pgcl.parser
+
+      <ul>
+        <li><a href="pgcl.html#module-probably.pgcl.parser">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    probably.pgcl.simplify
+
+      <ul>
+        <li><a href="pgcl.html#module-probably.pgcl.simplify">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.pgcl.substitute
+
+      <ul>
+        <li><a href="pgcl.html#module-probably.pgcl.substitute">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.pgcl.syntax
+
+      <ul>
+        <li><a href="pgcl.html#module-probably.pgcl.syntax">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.pgcl.walk
+
+      <ul>
+        <li><a href="pgcl.html#module-probably.pgcl.walk">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.pgcl.wp
+
+      <ul>
+        <li><a href="pgcl.html#module-probably.pgcl.wp">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.pysmt
+
+      <ul>
+        <li><a href="pysmt.html#module-probably.pysmt">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.pysmt.context
+
+      <ul>
+        <li><a href="pysmt.html#module-probably.pysmt.context">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.pysmt.expr
+
+      <ul>
+        <li><a href="pysmt.html#module-probably.pysmt.expr">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.util
+
+      <ul>
+        <li><a href="util.html#module-probably.util">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.util.lark_expr_parser
+
+      <ul>
+        <li><a href="util.html#module-probably.util.lark_expr_parser">module</a>
+</li>
+      </ul></li>
+      <li>
+    probably.util.ref
+
+      <ul>
+        <li><a href="util.html#module-probably.util.ref">module</a>
+</li>
+      </ul></li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Program">Program (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.program_one_big_loop">program_one_big_loop() (in module probably.pgcl.cfg)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="util.html#probably.util.ref.Mut.read">read (probably.util.ref.Mut attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.BinopExpr.reduce">reduce() (probably.pgcl.ast.BinopExpr static method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.reduce_cfg_to_instrs">reduce_cfg_to_instrs() (in module probably.pgcl.cfg)</a>
+</li>
+      <li><a href="util.html#probably.util.ref.Ref">Ref (in module probably.util.ref)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.ControlFlowGraph.render_dot">render_dot() (probably.pgcl.cfg.ControlFlowGraph method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="substitute_internals.html#probably.pgcl.substitute._Binder.resolve">resolve() (probably.pgcl.substitute._Binder method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.AsgnInstr.rhs">rhs (probably.pgcl.ast.AsgnInstr attribute)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.ast.BinopExpr.rhs">(probably.pgcl.ast.BinopExpr attribute)</a>
+</li>
+        <li><a href="pgcl.html#probably.pgcl.ast.ChoiceInstr.rhs">(probably.pgcl.ast.ChoiceInstr attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="util.html#probably.util.lark_expr_parser.Assoc.Right">Right (probably.util.lark_expr_parser.Assoc attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.simplify.simplifying_and">simplifying_and() (in module probably.pgcl.simplify)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.simplify.simplifying_neg">simplifying_neg() (in module probably.pgcl.simplify)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.simplify.simplifying_plus">simplifying_plus() (in module probably.pgcl.simplify)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.simplify.simplifying_subst">simplifying_subst() (in module probably.pgcl.simplify)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.simplify.simplifying_times">simplifying_times() (in module probably.pgcl.simplify)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.SkipInstr">SkipInstr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer">SnfExpectationTransformer (class in probably.pgcl.simplify)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct">SnfExpectationTransformerProduct (class in probably.pgcl.simplify)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.UniformExpr.start">start (probably.pgcl.ast.UniformExpr attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.SubstExpr.subst">subst (probably.pgcl.ast.SubstExpr attribute)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.subst">(probably.pgcl.simplify.SnfExpectationTransformerProduct attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.SubstExpr">SubstExpr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.ControlFlowGraph.substitute">substitute() (probably.pgcl.cfg.ControlFlowGraph method)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.cfg.Terminator.substitute">(probably.pgcl.cfg.Terminator method)</a>
+</li>
+        <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.substitute">(probably.pgcl.simplify.SnfExpectationTransformer method)</a>
+</li>
+        <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.substitute">(probably.pgcl.simplify.SnfExpectationTransformerProduct method)</a>
+</li>
+        <li><a href="pgcl.html#probably.pgcl.wp.ExpectationTransformer.substitute">(probably.pgcl.wp.ExpectationTransformer method)</a>
+</li>
+      </ul></li>
+      <li><a href="pgcl.html#probably.pgcl.substitute.substitute_constants">substitute_constants() (in module probably.pgcl.substitute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.substitute.substitute_constants_expr">substitute_constants_expr() (in module probably.pgcl.substitute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.substitute.substitute_expr">substitute_expr() (in module probably.pgcl.substitute)</a>
+</li>
+      <li><a href="cfg_internals.html#probably.pgcl.cfg._Region.successor_id">successor_id (probably.pgcl.cfg._Region attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.Terminator.successors">successors() (probably.pgcl.cfg.Terminator property)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.cfg.Terminator">Terminator (class in probably.pgcl.cfg)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.BasicBlock.terminator">terminator (probably.pgcl.cfg.BasicBlock attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.TerminatorKind">TerminatorKind (class in probably.pgcl.cfg)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.TickExpr">TickExpr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.TickInstr">TickInstr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.ticks">ticks (probably.pgcl.simplify.SnfExpectationTransformerProduct attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Binop.TIMES">TIMES (probably.pgcl.ast.Binop attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.FloatLitExpr.to_fraction">to_fraction() (probably.pgcl.ast.FloatLitExpr method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.ControlFlowGraph.to_networkx">to_networkx() (probably.pgcl.cfg.ControlFlowGraph method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.Program.to_skeleton">to_skeleton() (probably.pgcl.ast.Program method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.BlockType.TRAMPOLINE">TRAMPOLINE (probably.pgcl.cfg.BlockType attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.cfg.JumpTable.trampoline">trampoline() (probably.pgcl.cfg.JumpTable method)</a>
+</li>
+      <li><a href="pysmt.html#probably.pysmt.context.TranslationContext">TranslationContext (class in probably.pysmt.context)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.IfInstr.true">true (probably.pgcl.ast.IfInstr attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.VarDecl.typ">typ (probably.pgcl.ast.VarDecl attribute)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.cfg.BasicBlock.typ">(probably.pgcl.cfg.BasicBlock attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Type">Type (in module probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.TypeClass">TypeClass (class in probably.pgcl.ast)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.UniformExpr">UniformExpr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Unop">Unop (class in probably.pgcl.ast)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.UnopExpr">UnopExpr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.walk.Walk.UP">UP (probably.pgcl.walk.Walk attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Bounds.upper">upper (probably.pgcl.ast.Bounds attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="util.html#probably.util.ref.Mut.val">val() (probably.util.ref.Mut property)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.BoolLitExpr.value">value (probably.pgcl.ast.BoolLitExpr attribute)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.ast.ConstDecl.value">(probably.pgcl.ast.ConstDecl attribute)</a>
+</li>
+        <li><a href="pgcl.html#probably.pgcl.ast.FloatLitExpr.value">(probably.pgcl.ast.FloatLitExpr attribute)</a>
+</li>
+        <li><a href="pgcl.html#probably.pgcl.ast.NatLitExpr.value">(probably.pgcl.ast.NatLitExpr attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="pgcl.html#probably.pgcl.ast.ConstDecl.var">var (probably.pgcl.ast.ConstDecl attribute)</a>
+
+      <ul>
+        <li><a href="pgcl.html#probably.pgcl.ast.VarDecl.var">(probably.pgcl.ast.VarDecl attribute)</a>
+</li>
+        <li><a href="pgcl.html#probably.pgcl.ast.VarExpr.var">(probably.pgcl.ast.VarExpr attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.ast.VarDecl">VarDecl (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.VarExpr">VarExpr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.wp.ExpectationTransformer.variable">variable (probably.pgcl.wp.ExpectationTransformer attribute)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.Program.variables">variables (probably.pgcl.ast.Program attribute)</a>
+
+      <ul>
+        <li><a href="pysmt.html#probably.pysmt.context.TranslationContext.variables">(probably.pysmt.context.TranslationContext attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.walk.Walk">Walk (class in probably.pgcl.walk)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.walk.Walk.walk">walk() (probably.pgcl.walk.Walk method)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.walk.walk_expr">walk_expr() (in module probably.pgcl.walk)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.walk.walk_instr_exprs">walk_instr_exprs() (in module probably.pgcl.walk)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pgcl.html#probably.pgcl.walk.walk_instrs">walk_instrs() (in module probably.pgcl.walk)</a>
+</li>
+      <li><a href="pgcl.html#probably.pgcl.ast.WhileInstr">WhileInstr (class in probably.pgcl.ast)</a>
+</li>
+      <li><a href="util.html#probably.util.ref.Mut.wrap">wrap() (probably.util.ref.Mut static method)</a>
+</li>
+      <li><a href="util.html#probably.util.ref.Mut.write">write (probably.util.ref.Mut attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+      
+    </p>
+    <p>
+        &copy; Copyright 2021, Philipp Schröer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
