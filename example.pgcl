@@ -1,0 +1,5 @@
+bool f;
+nat c;
+while (c < 10 & f) {
+     {c := c+1} [0.8] {f:=true}
+}
