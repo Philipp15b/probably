@@ -12,7 +12,7 @@ from probably.util.ref import Mut
 
 from .ast import (AsgnInstr, Binop, BinopExpr, BoolLitExpr, BoolType,
                   CategoricalExpr, ChoiceInstr, Decl, Expr, FloatLitExpr,
-                  FloatType, IfInstr, Instr, NatLitExpr, NatType, Node,
+                  FloatType, RealLitExpr, RealType, IfInstr, Instr, NatLitExpr, NatType, Node,
                   Program, SkipInstr, Type, UniformExpr, Unop, UnopExpr, Var,
                   VarExpr, WhileInstr)
 from .walk import Walk, walk_expr
@@ -106,6 +106,9 @@ def get_type(program: Program,
     if isinstance(expr, FloatLitExpr):
         return FloatType()
 
+    if isinstance(expr, RealLitExpr):
+        return RealType(bounds=None)
+
     if isinstance(expr, UnopExpr):
         if check:
             # Currently, all unary operators take boolean operands
@@ -142,7 +145,7 @@ def get_type(program: Program,
         lhs_typ = get_type(program, expr.lhs, check=check)
         if isinstance(lhs_typ, CheckFail):
             return lhs_typ
-        if not isinstance(lhs_typ, (NatType, FloatType)):
+        if not isinstance(lhs_typ, (NatType, FloatType, RealType)):
             return CheckFail.expected_numeric_got(expr.lhs, lhs_typ)
 
         if check and expr.operator in [
@@ -152,7 +155,7 @@ def get_type(program: Program,
             rhs_typ = get_type(program, expr.rhs, check=check)
             if isinstance(rhs_typ, CheckFail):
                 return rhs_typ
-            if not isinstance(rhs_typ, (NatType, FloatType)):
+            if not isinstance(rhs_typ, (NatType, FloatType, RealType)):
                 return CheckFail.expected_numeric_got(expr.rhs, rhs_typ)
 
             if not is_compatible(lhs_typ, rhs_typ):
@@ -168,9 +171,14 @@ def get_type(program: Program,
             if isinstance(lhs_typ, NatType) and lhs_typ.bounds is not None:
                 return NatType(bounds=None)
             return lhs_typ
+        if expr.operator in [Binop.PLUS, Binop.MINUS, Binop.TIMES]:
+            # intentionally lose the bounds on RealType (see NatType documentation)
+            if isinstance(lhs_typ, RealType) and lhs_typ.bounds is not None:
+                return RealType(bounds=None)
+            return lhs_typ
 
     if isinstance(expr, UniformExpr):
-        return NatType(bounds=None)
+        return RealType(bounds=None)
 
     if isinstance(expr, CategoricalExpr):
         first_expr = expr.exprs[0][0]
@@ -218,7 +226,7 @@ def is_compatible(lhs: Type, rhs: Type) -> bool:
         >>> is_compatible(BoolType(), NatType(bounds=None))
         False
     """
-    if isinstance(lhs, NatType) and isinstance(rhs, NatType):
+    if isinstance(lhs, (NatType, FloatType, RealType)) and isinstance(rhs, (NatType, FloatType, RealType)):
         return True
     return lhs == rhs
 

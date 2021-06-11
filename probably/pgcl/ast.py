@@ -28,6 +28,7 @@ Types
 .. autoclass:: NatType
 .. autoclass:: Bounds
 .. autoclass:: FloatType
+.. autoclass:: RealType
 
 Declarations
 ############
@@ -59,6 +60,7 @@ mapping of states to *expected values*: :math:`\Sigma \to \mathbb{R}`.
 .. autoclass:: BoolLitExpr
 .. autoclass:: NatLitExpr
 .. autoclass:: FloatLitExpr
+.. autoclass:: RealLitExpr
 .. autoclass:: Unop
 .. autoclass:: UnopExpr
 .. autoclass:: Binop
@@ -164,6 +166,13 @@ class NatType(TypeClass):
 
 
 @attr.s
+class RealType(TypeClass):
+    """Real number types with optional bounds"""
+
+    bounds: Optional[Bounds] = attr.ib()
+
+
+@attr.s
 class FloatType(TypeClass):
     """Floating numbers, used for probabilities."""
 
@@ -197,6 +206,11 @@ class VarDecl(DeclClass):
             return f"bool {self.var};"
         elif isinstance(self.typ, NatType):
             res = f"nat {self.var}"
+            if self.typ.bounds is not None:
+                res += " " + str(self.typ.bounds)
+            return res + ";"
+        elif isinstance(self.typ, RealType):
+            res = f"real {self.var}"
             if self.typ.bounds is not None:
                 res += " " + str(self.typ.bounds)
             return res + ";"
@@ -275,6 +289,86 @@ class NatLitExpr(ExprClass):
 
     def __repr__(self) -> str:
         return f'NatLitExpr({self.value})'
+
+
+def _validate_real_lit_value(_object: 'RealLitExpr', _attribute: Any,
+                              value: Any):
+    if not isinstance(value, Decimal) and not isinstance(value, Fraction):
+        raise ValueError(
+            f"Expected a Decimal or Fraction value, got: {value!r}")
+
+
+def _parse_real_lit_expr(
+        value: Union[str, Decimal, Fraction]) -> Union[Decimal, Fraction]:
+    if isinstance(value, str):
+        if "/" in value:
+            return Fraction(value)
+        else:
+            res = Decimal(value)
+            assert value == str(res)
+            return res
+    return value
+
+
+@attr.s(repr=False, frozen=True)
+class RealLitExpr(ExprClass):
+    """
+    A decimal literal (used for probabilities) is an expression.
+
+    It is represented by either a :class:`Decimal` (created from decimal
+    literals), or by a :class:`Fraction` (created from a fraction of natural numbers).
+
+    Infinity is represented by ``Decimal('Infinity')``.
+
+    .. warning::
+
+        Note that the :class:`Decimal` representation is not exact under arithmetic operations.
+        That is fine if it is used just as the representation of a decimal literal.
+        For calculations, please use :meth:`to_fraction()`.
+    """
+    value: Union[Decimal,
+                 Fraction] = attr.ib(validator=_validate_real_lit_value,
+                                     converter=_parse_real_lit_expr)
+
+    @staticmethod
+    def infinity() -> 'RealLitExpr':
+        """
+        Create a new infinite value.
+
+        .. doctest::
+
+            >>> RealLitExpr.infinity().is_infinite()
+            True
+        """
+        return RealLitExpr(Decimal('Infinity'))
+
+    def is_infinite(self):
+        """
+        Whether this expression represents infinity.
+        """
+        return isinstance(self.value, Decimal) and self.value.is_infinite()
+
+    def to_fraction(self) -> Fraction:
+        """
+        Convert this value to a :class:`Fraction`.
+        Throws an exception if the value :meth:`is_infinite()`!
+
+        .. doctest::
+
+            >>> expr = RealLitExpr("0.1")
+            >>> expr.to_fraction()
+            Fraction(1, 10)
+        """
+        assert not self.is_infinite()
+        if isinstance(self.value, Fraction):
+            return self.value
+        return Fraction(self.value)
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+    def __repr__(self) -> str:
+        return f'RealLitExpr("{str(self.value)}")'
 
 
 def _validate_float_lit_value(_object: 'FloatLitExpr', _attribute: Any,

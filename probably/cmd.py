@@ -44,8 +44,8 @@ def main(input: IO):
     print()
     res = check_is_linear_program(program)
     if res is not None:
-        print("Program is NOT linear:")
+        print("Program is NOT linear:\n")
         print(f"\t{res}")
     else:
         print("Program is linear.")
-        print("\Weakest pre-expectation transformer:", str(general_wp_transformer(program)))
+        print("\nWeakest pre-expectation transformer:\n", str(general_wp_transformer(program)))

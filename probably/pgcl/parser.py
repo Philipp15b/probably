@@ -36,6 +36,7 @@ _PGCL_GRAMMAR = """
 
     declaration: "bool" var                  -> bool
                | "nat" var bounds?           -> nat
+               | "real" var bounds?          -> real
                | "const" var ":=" expression -> const
 
     bounds: "[" expression "," expression "]"
@@ -59,6 +60,7 @@ _PGCL_GRAMMAR = """
            | "false" -> false
            | INT     -> nat
            | FLOAT   -> float
+           | NUMBER  -> real
            | "∞"     -> infinity
            | "\\infty" -> infinity
 
@@ -72,6 +74,7 @@ _PGCL_GRAMMAR = """
     %import common.CNAME
     %import common.INT
     %import common.FLOAT
+    %import common.NUMBER
     %import common.WS
 """
 
@@ -165,6 +168,8 @@ def _parse_declaration(t: Tree) -> Decl:
         return VarDecl(var0(), BoolType())
     elif t.data == "nat":
         return VarDecl(var0(), NatType(_parse_bounds(opt_child1())))
+    elif t.data == "real":
+        return VarDecl(var0(), RealType(_parse_bounds(opt_child1())))
     elif t.data == "const":
         return ConstDecl(var0(), _parse_expr(_child_tree(t, 1)))
     else:
@@ -239,6 +244,8 @@ def _parse_literal(t: Tree) -> Expr:
         return NatLitExpr(int(_child_str(t, 0)))
     elif t.data == 'float':
         return FloatLitExpr(Decimal(_child_str(t, 0)))
+    elif t.data == 'real':
+        return RealLitExpr(Decimal(_child_str(t, 0)))
     elif t.data == 'infinity':
         return FloatLitExpr.infinity()
     else:
