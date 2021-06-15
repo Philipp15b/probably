@@ -65,7 +65,8 @@ mapping of states to *expected values*: :math:`\Sigma \to \mathbb{R}`.
 .. autoclass:: UnopExpr
 .. autoclass:: Binop
 .. autoclass:: BinopExpr
-.. autoclass:: UniformExpr
+.. autoclass:: DUniformExpr
+.. autoclass:: CUniformExpr
 .. autoclass:: CategoricalExpr
 .. autoclass:: SubstExpr
 .. autoclass:: TickExpr
@@ -566,7 +567,7 @@ class BinopExpr(ExprClass):
 
 
 @attr.s
-class UniformExpr(ExprClass):
+class DUniformExpr(ExprClass):
     """
     Chooses a random integer within the (inclusive) interval.
 
@@ -587,6 +588,22 @@ class UniformExpr(ExprClass):
         prob = FloatLitExpr(Fraction(1, width))
         return [(prob, NatLitExpr(i))
                 for i in range(self.start.value, self.end.value + 1)]
+
+    def __str__(self) -> str:
+        return f'unif({expr_str_parens(self.start)}, {expr_str_parens(self.end)})'
+
+
+@attr.s
+class CUniformExpr(ExprClass):
+    """
+    Chooses a random real number within the (inclusive) interval.
+
+    As *monadic expressions* (see :ref:`expressions`), uniform choice
+    expressions are only allowed as the right-hand side of an assignment
+    statement and not somewhere in a nested expression.
+    """
+    start: RealLitExpr = attr.ib()
+    end: RealLitExpr = attr.ib()
 
     def __str__(self) -> str:
         return f'unif({expr_str_parens(self.start)}, {expr_str_parens(self.end)})'
@@ -677,8 +694,8 @@ def expr_str_parens(expr: ExprClass) -> str:
         return f'({expr})'
 
 
-Expr = Union[VarExpr, BoolLitExpr, NatLitExpr, FloatLitExpr, UnopExpr,
-             BinopExpr, UniformExpr, CategoricalExpr, SubstExpr, TickExpr]
+Expr = Union[VarExpr, BoolLitExpr, NatLitExpr, FloatLitExpr, RealLitExpr, UnopExpr,
+             BinopExpr, DUniformExpr, CUniformExpr, CategoricalExpr, SubstExpr, TickExpr]
 """Union type for all expression objects. See :class:`ExprClass` for use with isinstance."""
 
 

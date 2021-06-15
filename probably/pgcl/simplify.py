@@ -16,7 +16,7 @@ from probably.util.ref import Mut
 
 from .ast import VarExpr  # pylint:disable=unused-import
 from .ast import (Binop, BinopExpr, BoolLitExpr, Expr, FloatLitExpr, FloatType,
-                  NatLitExpr, NatType, Program, SubstExpr, TickExpr, Unop,
+                  NatLitExpr, NatType, RealLitExpr, RealType, Program, SubstExpr, TickExpr, Unop,
                   UnopExpr, Var, expr_str_parens)
 from .check import CheckFail, get_type
 from .walk import Walk, walk_expr

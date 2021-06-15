@@ -53,7 +53,8 @@ _PGCL_GRAMMAR = """
 
     block: "{" instruction* "}"
 
-    rvalue: "unif" "(" expression "," expression ")" -> uniform
+    rvalue: "unif_d" "(" expression "," expression ")" -> duniform
+          | "unif_c" "(" expression "," expression ")" -> cuniform
           | expression
 
     literal: "true"  -> true
@@ -253,14 +254,22 @@ def _parse_literal(t: Tree) -> Expr:
 
 
 def _parse_rvalue(t: Tree) -> Expr:
-    if t.data == 'uniform':
+    if t.data == 'duniform':
         start = _parse_expr(_child_tree(t, 0))
         if not isinstance(start, NatLitExpr):
             raise Exception(f"{start} is not a natural number")
         end = _parse_expr(_child_tree(t, 1))
         if not isinstance(end, NatLitExpr):
             raise Exception(f"{end} is not a natural number")
-        return UniformExpr(start, end)
+        return DUniformExpr(start, end)
+    elif t.data == 'cuniform':
+        start = _parse_expr(_child_tree(t, 0))
+        if not isinstance(start, (NatLitExpr, FloatLitExpr, RealLitExpr)):
+            raise Exception(f"{start} is not a real number")
+        end = _parse_expr(_child_tree(t, 1))
+        if not isinstance(end, (NatLitExpr, FloatLitExpr, RealLitExpr)):
+            raise Exception(f"{end} is not a real number")
+        return CUniformExpr(start, end)
 
     # otherwise we have an expression, but it may contain _LikelyExprs, which we
     # need to parse.

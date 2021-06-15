@@ -13,7 +13,7 @@ from probably.util.ref import Mut
 from .ast import (AsgnInstr, Binop, BinopExpr, BoolLitExpr, BoolType,
                   CategoricalExpr, ChoiceInstr, Decl, Expr, FloatLitExpr,
                   FloatType, RealLitExpr, RealType, IfInstr, Instr, NatLitExpr, NatType, Node,
-                  Program, SkipInstr, Type, UniformExpr, Unop, UnopExpr, Var,
+                  Program, SkipInstr, Type, DUniformExpr, CUniformExpr, Unop, UnopExpr, Var,
                   VarExpr, WhileInstr)
 from .walk import Walk, walk_expr
 
@@ -177,7 +177,10 @@ def get_type(program: Program,
                 return RealType(bounds=None)
             return lhs_typ
 
-    if isinstance(expr, UniformExpr):
+    if isinstance(expr, DUniformExpr):
+        return NatType(bounds=None)
+
+    if isinstance(expr, CUniformExpr):
         return RealType(bounds=None)
 
     if isinstance(expr, CategoricalExpr):

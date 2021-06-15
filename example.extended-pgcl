@@ -1,5 +1,10 @@
-bool f;
+bool x;
 real c;
-while (c < 10.1 & f) {
-     {c := c+1} [0.8] {f:=true}
+real step;
+
+while(x)
+{
+	step := unif_c(0.1,1);
+	c := c + step;
+	{x := false} [1/2] {skip}
 }
