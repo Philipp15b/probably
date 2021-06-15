@@ -38,8 +38,10 @@ def main(input: IO):
         return
 
     print("Program instructions:")
-    for instr in program.instructions:
-        pprint.pprint(instr)
+    with open("instr", "w") as instr_file:
+        for instr in program.instructions:
+            pprint.pprint(instr)
+            pprint.pprint(instr,instr_file)
 
     print()
     res = check_is_linear_program(program)
