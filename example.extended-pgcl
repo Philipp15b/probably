@@ -2,9 +2,9 @@ bool x;
 real c;
 real step;
 
-while(x)
-{
+#while(x)
+#{
 	step := unif_c(0,1);
 	c := c + step;
 	{x := false} [1/2] {skip}
-}
+#}

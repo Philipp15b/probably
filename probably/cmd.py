@@ -18,7 +18,7 @@ import click
 import probably.pgcl.compiler as pgcl
 from probably.pgcl.check import CheckFail
 from probably.pgcl.syntax import check_is_linear_program
-from probably.pgcl.wp import general_wp_transformer
+from probably.pgcl.cf import loopfree_cf
 
 
 @click.command()
@@ -37,7 +37,7 @@ def main(input: IO):
         print("Error:", program)
         return
 
-    print("Program instructions:")
+    print("\nProgram instructions:")
     with open("instr", "w") as instr_file:
         for instr in program.instructions:
             pprint.pprint(instr)
@@ -50,4 +50,5 @@ def main(input: IO):
         print(f"\t{res}")
     else:
         print("Program is linear.")
-        print("\nWeakest pre-expectation transformer:\n", str(general_wp_transformer(program)))
+        #print("\nWeakest pre-expectation transformer:\n", str(general_wp_transformer(program)))
+        print("\nCharacteristic-function transformer:\n", str(loopfree_cf(program.instructions,1)))
