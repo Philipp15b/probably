@@ -27,6 +27,7 @@ sphinx-git = "^11.0.0"
 rope = "^0.17.0"
 pytest-cov = "^2.9.0"
 hypothesis = "^5.18.0"
+sympy = "^1.8"
 
 [tool.poetry.scripts]
 probably = "probably.cmd:main"

@@ -9,7 +9,6 @@ If you use `poetry` and do not have probably installed globally, you can use `po
    :show-nested:
 """
 
-import pprint
 import time
 from typing import IO
 
@@ -19,7 +18,9 @@ import probably.pgcl.compiler as pgcl
 from probably.pgcl.check import CheckFail
 from probably.pgcl.syntax import check_is_linear_program
 from probably.pgcl.cf import loopfree_cf
-
+from probably.pgcl.ast import *
+import sympy
+sympy.init_printing()
 
 @click.command()
 @click.argument('input', type=click.File('r'))
@@ -40,8 +41,8 @@ def main(input: IO):
     print("\nProgram instructions:")
     with open("instr", "w") as instr_file:
         for instr in program.instructions:
-            pprint.pprint(instr)
-            pprint.pprint(instr,instr_file)
+            print(instr)
+            print(instr,instr_file)
 
     print()
     res = check_is_linear_program(program)
@@ -50,5 +51,7 @@ def main(input: IO):
         print(f"\t{res}")
     else:
         print("Program is linear.")
-        #print("\nWeakest pre-expectation transformer:\n", str(general_wp_transformer(program)))
-        print("\nCharacteristic-function transformer:\n", str(loopfree_cf(program.instructions,1)))
+        sympy_vars = {}
+        for variable in program.declarations:
+            sympy_vars[variable.var] = sympy.symbols(variable.var)
+        print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions,0)))
