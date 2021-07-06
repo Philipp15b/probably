@@ -87,10 +87,12 @@ def loopfree_cf(instr: Union[Instr, Sequence[Instr]],
         raise Exception("While instruction not supported for cf generation")
 
     if isinstance(instr, IfInstr):
-        true_block = loopfree_cf(instr.true, precf)
-        false_block = loopfree_cf(instr.false, deepcopy(precf))
-        true = BinopExpr(Binop.TIMES, UnopExpr(Unop.IVERSON, instr.cond),
-                         true_block)
+        satisfying_part = prec.filter(guard)
+        non_sat_part = precf.filter(not guard)
+
+        true_block = loopfree_cf(instr.true, satisfying_part)
+        false_block = loopfree_cf(instr.false, non_sat_part)
+
         false = BinopExpr(
             Binop.TIMES, UnopExpr(Unop.IVERSON,
                                   UnopExpr(Unop.NEG, instr.cond)), false_block)
