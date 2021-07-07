@@ -19,6 +19,8 @@ from probably.pgcl.check import CheckFail
 from probably.pgcl.syntax import check_is_linear_program
 from probably.pgcl.cf import loopfree_cf
 from probably.pgcl.ast import *
+from .Analysis.generating_function import GeneratingFunction
+
 import sympy
 sympy.init_printing()
 
@@ -42,7 +44,6 @@ def main(input: IO):
     with open("instr", "w") as instr_file:
         for instr in program.instructions:
             print(instr)
-            print(instr,instr_file)
 
     print()
     res = check_is_linear_program(program)
@@ -54,4 +55,4 @@ def main(input: IO):
         sympy_vars = {}
         for variable in program.declarations:
             sympy_vars[variable.var] = sympy.symbols(variable.var)
-        print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions,0)))
+        print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions, GeneratingFunction("2/(2-c)-1"))))

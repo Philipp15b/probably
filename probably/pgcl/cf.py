@@ -13,24 +13,20 @@ You're in the right module!
 """
 import functools
 from copy import deepcopy
-from typing import Dict, List, Sequence, Union
-import sympy
-
-import attr
-
-from probably.util.ref import Mut
+from typing import Dict, Sequence, Union
 
 from .ast import (AsgnInstr, Binop, BinopExpr, CategoricalExpr, ChoiceInstr,
                   Expr, FloatLitExpr, RealLitExpr, IfInstr, Instr, Program,
                   SkipInstr, SubstExpr, TickExpr, TickInstr, DUniformExpr, CUniformExpr, Unop,
                   UnopExpr, Var, VarExpr, WhileInstr)
-from .substitute import substitute_expr
-from .syntax import check_is_one_big_loop
-from .walk import Walk, walk_expr
+
+from probably.Analysis.generating_function import GeneratingFunction
+from .syntax import check_is_linear_expr
+
 
 
 def loopfree_cf(instr: Union[Instr, Sequence[Instr]],
-                precf: Expr) -> Expr:
+                precf: GeneratingFunction) -> GeneratingFunction:
     """
     Build the characteristic function as an expression. See also
     :func:`loopfree_cf_transformer`.
@@ -87,42 +83,24 @@ def loopfree_cf(instr: Union[Instr, Sequence[Instr]],
         raise Exception("While instruction not supported for cf generation")
 
     if isinstance(instr, IfInstr):
-        satisfying_part = prec.filter(guard)
-        non_sat_part = precf.filter(not guard)
+        sat_part = precf.filter(instr.cond)
+        non_sat_part = precf - sat_part
 
-        true_block = loopfree_cf(instr.true, satisfying_part)
-        false_block = loopfree_cf(instr.false, non_sat_part)
-
-        false = BinopExpr(
-            Binop.TIMES, UnopExpr(Unop.IVERSON,
-                                  UnopExpr(Unop.NEG, instr.cond)), false_block)
-        return BinopExpr(Binop.PLUS, true, false)
+        return loopfree_cf(instr.true, sat_part) + loopfree_cf(instr.false, non_sat_part)
 
     if isinstance(instr, AsgnInstr):
-        if isinstance(instr.rhs, (DUniformExpr, CategoricalExpr)):
-            distribution = instr.rhs.distribution()
-            branches = [
-                BinopExpr(
-                    Binop.TIMES, prob,
-                    SubstExpr({instr.lhs: expr}, deepcopy(precf)))
-                for prob, expr in distribution
-            ]
-            return functools.reduce(lambda x, y: BinopExpr(Binop.PLUS, x, y),
-                                    branches)
-
-        subst: Dict[Var, Expr] = {instr.lhs: instr.rhs}
-        return SubstExpr(subst, precf)
+        if check_is_linear_expr(instr.rhs) is None:
+            variable = instr.lhs
+            return precf.linear_transformation(variable, instr.rhs)
+        else:
+            raise NotImplementedError("Currently only supporting linear instructions")
 
     if isinstance(instr, ChoiceInstr):
         lhs_block = loopfree_cf(instr.lhs, precf)
-        rhs_block = loopfree_cf(instr.rhs, deepcopy(precf))
-        lhs = BinopExpr(Binop.TIMES, lhs_block, instr.prob)
-        rhs = BinopExpr(
-            Binop.TIMES, rhs_block,
-            BinopExpr(Binop.MINUS, FloatLitExpr("1.0"), instr.prob))
-        return BinopExpr(Binop.PLUS, lhs, rhs)
+        rhs_block = loopfree_cf(instr.rhs, precf)
+        return GeneratingFunction(instr.prob) * lhs_block + GeneratingFunction("1-" + str(instr.prob)) * rhs_block
 
     if isinstance(instr, TickInstr):
-        return BinopExpr(Binop.PLUS, precf, TickExpr(instr.expr))
+        raise NotImplementedError("Dont support TickInstr in CF setting")
 
     raise Exception("illegal instruction")

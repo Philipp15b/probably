@@ -1,1 +1,1 @@
-poetry run probably example.extended-pgcl
+poetry run probably example.pgcl

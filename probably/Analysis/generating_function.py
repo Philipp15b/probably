@@ -1,48 +1,60 @@
 import sympy
 
 from probably.pgcl.ast import *
+from probably.pgcl.syntax import check_is_linear_expr
+
+
+def _is_constant_constraint(expression):  # Move this to expression checks etc.
+    if isinstance(expression.lhs, VarExpr):
+        if isinstance(expression.rhs, NatLitExpr):
+            return True
+    else:
+        return False
+
 
 class GeneratingFunction:
-
     """
     This class represents a generating function. It wraps the sympy library.
     """
 
     def __init__(self, function: str = ""):
-        self._function = sympy.S(function)
+        self._function = sympy.S(function, rational=True)
         self._dimension = len(self._function.free_symbols)
 
     def __add__(self, other):
-        result = self._function + other
-        return GeneratingFunction(result)
+        if isinstance(other, GeneratingFunction):
+            return GeneratingFunction(self._function + other._function)
+        else:
+            raise SyntaxError(f"you try to add {1} with {2}", type(self), type(other))
 
     def __sub__(self, other):
-        result = self._function - other
-        return GeneratingFunction(result)
+        raise NotImplementedError("Monus operation needs to be investigated.")
 
     def __mul__(self, other):
-        result = self._function * other
-        return GeneratingFunction(result)
+        if isinstance(other, GeneratingFunction):
+            return GeneratingFunction(self._function * other._function)
+        else:
+            raise SyntaxError(f"you try to add {1} with {2}", type(self), type(other))
 
     def __truediv__(self, other):
-        result = self._function / other
-        return GeneratingFunction(result)
+        raise NotImplementedError("Division currently not supported")
 
     def __str__(self):
         return str(self._function)
 
     def __repr__(self):
-        return str(self)
+        return self._function
 
     def __eq__(self, other):
         if not isinstance(other, GeneratingFunction):
             return False
-        return self == other
+        else:
+            return True if self._function-other._function == 0 else False
 
     def __le__(self, other):
         if not isinstance(other, GeneratingFunction):
             return False
-        return self <= other
+        return self == other or self < other
 
     def __ge__(self, other):
         if not isinstance(other, GeneratingFunction):
@@ -50,13 +62,19 @@ class GeneratingFunction:
         return self >= other
 
     def __lt__(self, other):
-        return not self >= other
+        if not isinstance(other, GeneratingFunction):
+            return False
+        else:
+            raise NotImplementedError("Not yet Implemented")
 
     def __gt__(self, other):
         return not self <= other
 
     def __ne__(self, other):
         return self != other
+
+    def diff(self, variable, k):
+        return GeneratingFunction(sympy.diff(self._function, sympy.S(variable), k))
 
     def as_series(self):
         return self._function.lseries()
@@ -120,11 +138,12 @@ class GeneratingFunction:
             else:
                 raise AssertionError("Expression must be an (in-)equation!")
         else:
-            raise AssertionError("Expression has an unkown format and/or type.")
+            raise AssertionError("Expression has an unknown format and/or type.")
 
     def filter(self, expression):
         """
-        TODO. This function filters a GF for a given guard.
+        Rough implementation of a filter. Can only handle distributions with finite support, or constant constraints on
+        infinite support distributions.
         :return:
         """
         if self.is_finite():
@@ -135,11 +154,73 @@ class GeneratingFunction:
                     monomial = 1
                     i = 0
                     for var in self._function.free_symbols:
-                        monomial *= sympy.S(var**state[i])
+                        monomial *= sympy.S(var ** state[i])
                     result += probability * monomial
             return result
         else:
-            raise NotImplementedError("Infinite GFs not supported right now.")
+            if expression.operator == Unop.NEG:
+                return GeneratingFunction(self._function - self.filter(expression.expr)._function)
+            if expression.operator == Binop.AND:
+                result = self.filter(expression.lhs)
+                return result.filter(expression.rhs)
+            if expression.operator == Binop.OR:
+                neg_lhs = UnopExpr(operator=Unop.NEG, expr=expression.lhs)
+                neg_rhs = UnopExpr(operator=Unop.NEG, expr=expression.rhs)
+                neg_conj = BinopExpr(operator=Binop.AND, lhs=neg_lhs, rhs=neg_rhs)
+                neg_expr = UnopExpr(operator=Unop.NEG, expr=neg_conj)
+                return self.filter(neg_expr)
+            if expression.operator == Binop.LE:
+                if _is_constant_constraint(expression):
+                    variable = sympy.S(str(expression.lhs))
+                    constant = expression.rhs.value
+                    result = 0
+                    for i in range(1, constant):
+                        result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).subs(
+                            variable, 0) * variable ** i
+                    return GeneratingFunction(result)
+            elif expression.operator == Binop.LEQ:
+                if _is_constant_constraint(expression):
+                    variable = sympy.S(str(expression.lhs))
+                    constant = expression.rhs.value
+                    result = 0
+                    for i in range(1, constant + 1):
+                        result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).subs(
+                            variable, 0) * variable ** i
+                    return GeneratingFunction(result)
+            elif expression.operator == Binop.EQ:
+                variable = sympy.S(str(expression.lhs))
+                constant = expression.rhs.value
+                return GeneratingFunction(
+                    (sympy.diff(self._function, variable, constant) / sympy.factorial(constant))
+                    .subs(variable, 0)
+                    * variable ** constant
+                )
+            else:
+                raise NotImplementedError("Infinite GFs not supported right now.")
 
+    def linear_transformation(self, variable, expression):
+        # Transform expression into sympy readable format
+        rhs = sympy.S(str(expression))
+        subst_var = sympy.S(str(variable))
 
+        # Check whether the expression contains the substitution variable or not
+        terms = rhs.as_coefficients_dict()
+        result = self._function
+        if subst_var not in terms.keys():
+            result = result.subs(subst_var, 1)
 
+        # Do the actual update stepwise
+        const_correction_term = 1
+        replacements = []
+        for var in terms:
+
+            # if there is a constant term, just do a multiplication
+            if var == 1:
+                const_correction_term = subst_var**terms[1]
+            # if the variable is the substitution, a different update is necessary
+            elif var == subst_var:
+                replacements.append((var, subst_var**terms[var]))
+            # otherwise always assume we do an addition on x
+            else:
+                replacements.append((var, var*subst_var**terms[var]))
+        return GeneratingFunction(result.subs(replacements) * const_correction_term)
