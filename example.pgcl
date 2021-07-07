@@ -1,5 +1,7 @@
-bool f;
+nat x;
 nat c;
-while (c < 10 & f) {
-     {c := c+1} [0.8] {f:=true}
-}
+
+x := 1;
+#while (c < 10 & x = 1) {
+     {c := c+1} [0.8] {x:=0}
+#}
