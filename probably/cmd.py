@@ -51,7 +51,7 @@ def main(input: IO):
     if res is not None:
         print("Program is NOT linear:\n")
         print(f"\t{res}")
-        print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions, GeneratingFunction("1"))))
+        print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions, GeneratingFunction("1/(2-c)", variables={"x", "c"}))))
     else:
         print("Program is linear.")
         print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions, GeneratingFunction("1/(2-c)"))))

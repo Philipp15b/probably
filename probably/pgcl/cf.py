@@ -39,6 +39,7 @@ def loopfree_cf(instr: Union[Instr, Sequence[Instr]],
         raise Exception("While instruction not supported for cf generation")
 
     if isinstance(instr, IfInstr):
+        print(precf)
         sat_part = precf.filter(instr.cond)
         non_sat_part = precf - sat_part
 
@@ -50,29 +51,31 @@ def loopfree_cf(instr: Union[Instr, Sequence[Instr]],
             variable = instr.lhs
             return precf.linear_transformation(variable, instr.rhs)
         elif precf.is_finite():
+            print(precf)
             result = sympy.S(0)
             for addend in precf.as_series():  # Take the addends of the Taylor expressions
                 term = addend.as_coefficients_dict()  # Convert them into a dict separating monomials from coefficients
-                new_monomial = sympy.S(1)  # create the updated monomial.
-                for monomial, probability in term:  # For each of these monomial probability pairs...
+                new_addend = sympy.S(addend).subs(str(instr.lhs), 1)  # create the updated monomial.
+                print(new_addend)
+                for monomial in term:  # For each of these monomial probability pairs...
                     var_powers = monomial.as_powers_dict()  # check the individual powers from the variables
-                    new_monomial = sympy.S(probability)  # take the corresponding probability and...
-                    for var in var_powers:  # for each variable check its current state
-                        new_monomial *= var ** (  # and update
-                            sympy.S(str(instr.rhs))
-                            .subs(var, var_powers[var])
-                        )
-                result += new_monomial
-            return GeneratingFunction(result)
+                    new_value = sympy.S(str(instr.rhs))
+                    for var in precf._variables:  # for each variable check its current state
+                        if var not in var_powers.keys():
+                            new_value = new_value.subs(var, 0)
+                        else:
+                            new_value = new_value.subs(var, var_powers[var])
+                    new_addend *= sympy.S(str(instr.lhs)) ** new_value  # and update
+                result += new_addend
+            return GeneratingFunction(result, variables=precf._variables)
         else:
             raise NotImplementedError("Currently only supporting linear instructions on infinite support distributions")
 
     if isinstance(instr, ChoiceInstr):
         lhs_block = loopfree_cf(instr.lhs, precf)
         rhs_block = loopfree_cf(instr.rhs, precf)
-        return GeneratingFunction(str(
-            instr.prob)) * lhs_block + GeneratingFunction(
-                "1-" + str(instr.prob)) * rhs_block
+        return GeneratingFunction(str(instr.prob), variables=precf._variables) * lhs_block + GeneratingFunction("1-" + str(instr.prob), variables=precf._variables) * rhs_block
+
 
     if isinstance(instr, TickInstr):
         raise NotImplementedError("Dont support TickInstr in CF setting")
