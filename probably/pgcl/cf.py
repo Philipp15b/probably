@@ -20,9 +20,9 @@ from .ast import (AsgnInstr, Binop, BinopExpr, CategoricalExpr, ChoiceInstr,
                   SkipInstr, SubstExpr, TickExpr, TickInstr, DUniformExpr, CUniformExpr, Unop,
                   UnopExpr, Var, VarExpr, WhileInstr)
 
-from probably.Analysis.generating_function import GeneratingFunction
+from probably.analysis.generating_function import GeneratingFunction
 from .syntax import check_is_linear_expr
-
+import sympy
 
 
 def loopfree_cf(instr: Union[Instr, Sequence[Instr]],
@@ -92,8 +92,23 @@ def loopfree_cf(instr: Union[Instr, Sequence[Instr]],
         if check_is_linear_expr(instr.rhs) is None:
             variable = instr.lhs
             return precf.linear_transformation(variable, instr.rhs)
+        elif precf.is_finite():
+            result = sympy.S(0)
+            for addend in precf.as_series():  # Take the addends of the Taylor expressions
+                term = addend.as_coefficients_dict()  # Convert them into a dict separating monomials from coefficients
+                new_monomial = sympy.S(1)  # create the updated monomial.
+                for monomial, probability in term:  # For each of these monomial probability pairs...
+                    var_powers = monomial.as_powers_dict()  # check the individual powers from the variables
+                    new_monomial = sympy.S(probability)  # take the corresponding probability and...
+                    for var in var_powers:  # for each variable check its current state
+                        new_monomial *= var ** (  # and update
+                            sympy.S(str(instr.rhs))
+                            .subs(var, var_powers[var])
+                        )
+                result += new_monomial
+            return GeneratingFunction(result)
         else:
-            raise NotImplementedError("Currently only supporting linear instructions")
+            raise NotImplementedError("Currently only supporting linear instructions on infinite support distributions")
 
     if isinstance(instr, ChoiceInstr):
         lhs_block = loopfree_cf(instr.lhs, precf)

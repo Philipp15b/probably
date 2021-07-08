@@ -12,9 +12,15 @@ def _is_constant_constraint(expression):  # Move this to expression checks etc.
         return False
 
 
+class ComparisonException(Exception):
+    pass
+
+
 class GeneratingFunction:
     """
     This class represents a generating function. It wraps the sympy library.
+    A GeneratingFunction object is designed to be immutable.
+    This class does not ensure to be in a healthy state (i.e., every coefficient is non-negative).
     """
 
     def __init__(self, function: str = ""):
@@ -28,7 +34,6 @@ class GeneratingFunction:
             raise SyntaxError(f"you try to add {1} with {2}", type(self), type(other))
 
     def __sub__(self, other):
-        #raise NotImplementedError("Monus operation needs to be investigated.")
         if isinstance(other, GeneratingFunction):
             return GeneratingFunction(self._function - other._function)
         else:
@@ -53,26 +58,39 @@ class GeneratingFunction:
         if not isinstance(other, GeneratingFunction):
             return False
         else:
-            return True if self._function-other._function == 0 else False
+            return True if self._function - other._function == 0 else False
 
     def __le__(self, other):
-        if not isinstance(other, GeneratingFunction):
-            return False
         return self == other or self < other
 
     def __ge__(self, other):
-        if not isinstance(other, GeneratingFunction):
-            return False
-        return self >= other
+        return not (self < other)
 
     def __lt__(self, other):
         if not isinstance(other, GeneratingFunction):
             return False
         else:
-            raise NotImplementedError("Not yet Implemented")
+            if self.is_finite():
+                terms = self._function.as_coefficients_dic()
+                for monomial in terms:
+                    if terms[monomial] >= other.probability_of(monomial):
+                        return False
+                return True
+            elif other.is_finite():
+                terms = other._function.as_coefficients_dict()
+                for monomial in terms:
+                    if terms[monomial] >= self.probability_of(monomial):
+                        return False
+                return True
+            else:
+                difference = (self._function - other._function)
+                if difference.is_polynomial():
+                    all(map(lambda x: x >= 0, difference.as_coefficients_dict().values()))
+                else:
+                    raise ComparisonException("Both objects have infinite support. We cannot determine the order between them.")
 
     def __gt__(self, other):
-        return not self <= other
+        return not (self <= other)
 
     def __ne__(self, other):
         return self != other
@@ -81,7 +99,13 @@ class GeneratingFunction:
         return GeneratingFunction(sympy.diff(self._function, sympy.S(variable), k))
 
     def as_series(self):
-        return self._function.lseries()
+        if self._dimension == 1:
+            return self._function.lseries()
+        else:
+            # TODO Tobias wants to implement this.
+            # Important: make this a generator, so we can query arbitrary many terms.
+            # see difference between sympy series and lseries.
+            NotImplementedError("Multivariate Taylor is needed here.")
 
     def dim(self):
         return self._dimension
@@ -220,11 +244,11 @@ class GeneratingFunction:
 
             # if there is a constant term, just do a multiplication
             if var == 1:
-                const_correction_term = subst_var**terms[1]
+                const_correction_term = subst_var ** terms[1]
             # if the variable is the substitution, a different update is necessary
             elif var == subst_var:
-                replacements.append((var, subst_var**terms[var]))
+                replacements.append((var, subst_var ** terms[var]))
             # otherwise always assume we do an addition on x
             else:
-                replacements.append((var, var*subst_var**terms[var]))
+                replacements.append((var, var * subst_var ** terms[var]))
         return GeneratingFunction(result.subs(replacements) * const_correction_term)

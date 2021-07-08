@@ -19,7 +19,7 @@ from probably.pgcl.check import CheckFail
 from probably.pgcl.syntax import check_is_linear_program
 from probably.pgcl.cf import loopfree_cf
 from probably.pgcl.ast import *
-from .Analysis.generating_function import GeneratingFunction
+from .analysis.generating_function import GeneratingFunction
 
 import sympy
 sympy.init_printing()
@@ -50,9 +50,7 @@ def main(input: IO):
     if res is not None:
         print("Program is NOT linear:\n")
         print(f"\t{res}")
+        print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions, GeneratingFunction("1"))))
     else:
         print("Program is linear.")
-        sympy_vars = {}
-        for variable in program.declarations:
-            sympy_vars[variable.var] = sympy.symbols(variable.var)
         print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions, GeneratingFunction("1/(2-c)"))))
