@@ -75,9 +75,9 @@ class GeneratingFunction:
             return False
         else:
             if self.is_finite():
-                terms = self._function.as_coefficients_dic()
+                terms = self._function.as_coefficients_dict()
                 for monomial in terms:
-                    if terms[monomial] >= other.probability_of(monomial):
+                    if terms[monomial] >= other.probability_of({monomial: terms[monomial]}):
                         return False
                 return True
             elif other.is_finite():
