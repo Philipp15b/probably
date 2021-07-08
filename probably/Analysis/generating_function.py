@@ -47,7 +47,7 @@ class GeneratingFunction:
         return str(self._function)
 
     def __repr__(self):
-        return self._function
+        return repr(self._function)
 
     def __eq__(self, other):
         if not isinstance(other, GeneratingFunction):

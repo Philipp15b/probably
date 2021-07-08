@@ -54,6 +54,7 @@ _PGCL_GRAMMAR = """
     block: "{" instruction* "}"
 
     rvalue: "unif_d" "(" expression "," expression ")" -> duniform
+          | "unif" "(" expression "," expression ")" -> duniform
           | "unif_c" "(" expression "," expression ")" -> cuniform
           | expression
 
@@ -346,7 +347,7 @@ def parse_pgcl(code: str) -> Program:
         Program(variables={}, constants={}, instructions=[AsgnInstr(lhs='x', rhs=VarExpr('y'))])
 
         >>> parse_pgcl("x := unif(5, 17)").instructions[0]
-        AsgnInstr(lhs='x', rhs=UniformExpr(start=NatLitExpr(5), end=NatLitExpr(17)))
+        AsgnInstr(lhs='x', rhs=DUniformExpr(start=NatLitExpr(5), end=NatLitExpr(17)))
 
         >>> parse_pgcl("x := x : 1/3 + y : 2/3").instructions[0]
         AsgnInstr(lhs='x', rhs=CategoricalExpr(exprs=[(VarExpr('x'), FloatLitExpr("1/3")), (VarExpr('y'), FloatLitExpr("2/3"))]))
