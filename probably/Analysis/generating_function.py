@@ -28,7 +28,11 @@ class GeneratingFunction:
             raise SyntaxError(f"you try to add {1} with {2}", type(self), type(other))
 
     def __sub__(self, other):
-        raise NotImplementedError("Monus operation needs to be investigated.")
+        #raise NotImplementedError("Monus operation needs to be investigated.")
+        if isinstance(other, GeneratingFunction):
+            return GeneratingFunction(self._function - other._function)
+        else:
+            raise SyntaxError(f"you try to subtract {2} from {1}", type(self), type(other))
 
     def __mul__(self, other):
         if isinstance(other, GeneratingFunction):
@@ -174,7 +178,7 @@ class GeneratingFunction:
                     variable = sympy.S(str(expression.lhs))
                     constant = expression.rhs.value
                     result = 0
-                    for i in range(1, constant):
+                    for i in range(0, constant):
                         result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).subs(
                             variable, 0) * variable ** i
                     return GeneratingFunction(result)
@@ -183,7 +187,7 @@ class GeneratingFunction:
                     variable = sympy.S(str(expression.lhs))
                     constant = expression.rhs.value
                     result = 0
-                    for i in range(1, constant + 1):
+                    for i in range(0, constant + 1):
                         result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).subs(
                             variable, 0) * variable ** i
                     return GeneratingFunction(result)

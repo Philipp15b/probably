@@ -2,6 +2,10 @@ nat x;
 nat c;
 
 x := 1;
-#while (c < 10 & x = 1) {
-     {c := c+1} [0.8] {x:=0}
-#}
+
+if (c <= 2){
+  skip;
+}
+else{
+  c := 0;
+}

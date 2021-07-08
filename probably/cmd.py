@@ -55,4 +55,4 @@ def main(input: IO):
         sympy_vars = {}
         for variable in program.declarations:
             sympy_vars[variable.var] = sympy.symbols(variable.var)
-        print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions, GeneratingFunction("2/(2-c)-1"))))
+        print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions, GeneratingFunction("1/(2-c)"))))
