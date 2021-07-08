@@ -22,7 +22,6 @@ class GeneratingFunction:
     A GeneratingFunction object is designed to be immutable.
     This class does not ensure to be in a healthy state (i.e., every coefficient is non-negative).
     """
-
     def __init__(self, function: str = ""):
         self._function = sympy.S(function, rational=True)
         self._dimension = len(self._function.free_symbols)
@@ -31,19 +30,22 @@ class GeneratingFunction:
         if isinstance(other, GeneratingFunction):
             return GeneratingFunction(self._function + other._function)
         else:
-            raise SyntaxError(f"you try to add {1} with {2}", type(self), type(other))
+            raise SyntaxError(f"you try to add {1} with {2}", type(self),
+                              type(other))
 
     def __sub__(self, other):
         if isinstance(other, GeneratingFunction):
             return GeneratingFunction(self._function - other._function)
         else:
-            raise SyntaxError(f"you try to subtract {2} from {1}", type(self), type(other))
+            raise SyntaxError(f"you try to subtract {2} from {1}", type(self),
+                              type(other))
 
     def __mul__(self, other):
         if isinstance(other, GeneratingFunction):
             return GeneratingFunction(self._function * other._function)
         else:
-            raise SyntaxError(f"you try to add {1} with {2}", type(self), type(other))
+            raise SyntaxError(f"you try to add {1} with {2}", type(self),
+                              type(other))
 
     def __truediv__(self, other):
         raise NotImplementedError("Division currently not supported")
@@ -96,7 +98,8 @@ class GeneratingFunction:
         return self != other
 
     def diff(self, variable, k):
-        return GeneratingFunction(sympy.diff(self._function, sympy.S(variable), k))
+        return GeneratingFunction(
+            sympy.diff(self._function, sympy.S(variable), k))
 
     def as_series(self):
         if self._dimension == 1:
@@ -145,7 +148,8 @@ class GeneratingFunction:
             if operator == Unop.NEG:
                 return not self.evaluate(expression.expr, term)
             else:
-                raise NotImplementedError("Iverson brackets are not supported.")
+                raise NotImplementedError(
+                    "Iverson brackets are not supported.")
 
         elif isinstance(expression, BinopExpr):
             lhs = expression.lhs
@@ -166,7 +170,8 @@ class GeneratingFunction:
             else:
                 raise AssertionError("Expression must be an (in-)equation!")
         else:
-            raise AssertionError("Expression has an unknown format and/or type.")
+            raise AssertionError(
+                "Expression has an unknown format and/or type.")
 
     def filter(self, expression):
         """
@@ -182,19 +187,22 @@ class GeneratingFunction:
                     monomial = 1
                     i = 0
                     for var in self._function.free_symbols:
-                        monomial *= sympy.S(var ** state[i])
+                        monomial *= sympy.S(var**state[i])
                     result += probability * monomial
             return result
         else:
             if expression.operator == Unop.NEG:
-                return GeneratingFunction(self._function - self.filter(expression.expr)._function)
+                return GeneratingFunction(
+                    self._function - self.filter(expression.expr)._function)
             if expression.operator == Binop.AND:
                 result = self.filter(expression.lhs)
                 return result.filter(expression.rhs)
             if expression.operator == Binop.OR:
                 neg_lhs = UnopExpr(operator=Unop.NEG, expr=expression.lhs)
                 neg_rhs = UnopExpr(operator=Unop.NEG, expr=expression.rhs)
-                neg_conj = BinopExpr(operator=Binop.AND, lhs=neg_lhs, rhs=neg_rhs)
+                neg_conj = BinopExpr(operator=Binop.AND,
+                                     lhs=neg_lhs,
+                                     rhs=neg_rhs)
                 neg_expr = UnopExpr(operator=Unop.NEG, expr=neg_conj)
                 return self.filter(neg_expr)
             if expression.operator == Binop.LE:
@@ -203,8 +211,9 @@ class GeneratingFunction:
                     constant = expression.rhs.value
                     result = 0
                     for i in range(0, constant):
-                        result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).subs(
-                            variable, 0) * variable ** i
+                        result += (sympy.diff(self._function, variable, i) /
+                                   sympy.factorial(i)).subs(variable,
+                                                            0) * variable**i
                     return GeneratingFunction(result)
             elif expression.operator == Binop.LEQ:
                 if _is_constant_constraint(expression):
@@ -212,19 +221,20 @@ class GeneratingFunction:
                     constant = expression.rhs.value
                     result = 0
                     for i in range(0, constant + 1):
-                        result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).subs(
-                            variable, 0) * variable ** i
+                        result += (sympy.diff(self._function, variable, i) /
+                                   sympy.factorial(i)).subs(variable,
+                                                            0) * variable**i
                     return GeneratingFunction(result)
             elif expression.operator == Binop.EQ:
                 variable = sympy.S(str(expression.lhs))
                 constant = expression.rhs.value
                 return GeneratingFunction(
-                    (sympy.diff(self._function, variable, constant) / sympy.factorial(constant))
-                    .subs(variable, 0)
-                    * variable ** constant
-                )
+                    (sympy.diff(self._function, variable, constant) /
+                     sympy.factorial(constant)).subs(variable, 0) *
+                    variable**constant)
             else:
-                raise NotImplementedError("Infinite GFs not supported right now.")
+                raise NotImplementedError(
+                    "Infinite GFs not supported right now.")
 
     def linear_transformation(self, variable, expression):
         # Transform expression into sympy readable format
@@ -250,5 +260,6 @@ class GeneratingFunction:
                 replacements.append((var, subst_var ** terms[var]))
             # otherwise always assume we do an addition on x
             else:
-                replacements.append((var, var * subst_var ** terms[var]))
-        return GeneratingFunction(result.subs(replacements) * const_correction_term)
+                replacements.append((var, var * subst_var**terms[var]))
+        return GeneratingFunction(
+            result.subs(replacements) * const_correction_term)

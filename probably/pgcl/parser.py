@@ -61,8 +61,7 @@ _PGCL_GRAMMAR = """
     literal: "true"  -> true
            | "false" -> false
            | INT     -> nat
-           | FLOAT   -> float
-           | NUMBER  -> real
+           | FLOAT   -> real
            | "∞"     -> infinity
            | "\\infty" -> infinity
 
@@ -76,7 +75,6 @@ _PGCL_GRAMMAR = """
     %import common.CNAME
     %import common.INT
     %import common.FLOAT
-    %import common.NUMBER
     %import common.WS
 """
 
@@ -122,7 +120,7 @@ class _LikelyExpr(ExprClass):
     of errors emitted by the parser before translation to CategoricalExprs.
     """
     value: Expr = attr.ib()
-    prob: FloatLitExpr = attr.ib()
+    prob: RealLitExpr = attr.ib()
 
     def __str__(self) -> str:
         return f'{expr_str_parens(self.value)} : {expr_str_parens(self.prob)}'
@@ -171,7 +169,7 @@ def _parse_declaration(t: Tree) -> Decl:
     elif t.data == "nat":
         return VarDecl(var0(), NatType(_parse_bounds(opt_child1())))
     elif t.data == "real":
-        return VarDecl(var0(), RealType(_parse_bounds(opt_child1())))
+        return VarDecl(var0(), RealType())
     elif t.data == "const":
         return ConstDecl(var0(), _parse_expr(_child_tree(t, 1)))
     else:
@@ -214,7 +212,7 @@ def _parse_expr(t: Tree) -> Expr:
         return _parse_fraction(expr0(), expr1())
     elif t.data == 'likely':
         prob_expr = expr1()
-        if not isinstance(prob_expr, FloatLitExpr):
+        if not isinstance(prob_expr, RealLitExpr):
             raise Exception(
                 f"Probability annotation must be a probability literal: {t}")
         # We return a _LikelyExpr here, which is not in the Expr union type, but
@@ -231,9 +229,9 @@ def _parse_expr(t: Tree) -> Expr:
         raise Exception(f'invalid AST: {t.data}')
 
 
-def _parse_fraction(num: Expr, denom: Expr) -> Union[FloatLitExpr, BinopExpr]:
+def _parse_fraction(num: Expr, denom: Expr) -> Union[RealLitExpr, BinopExpr]:
     if isinstance(num, NatLitExpr) and isinstance(denom, NatLitExpr):
-        return FloatLitExpr(Fraction(num.value, denom.value))
+        return RealLitExpr(Fraction(num.value, denom.value))
     return BinopExpr(Binop.DIVIDE, num, denom)
 
 
@@ -244,12 +242,10 @@ def _parse_literal(t: Tree) -> Expr:
         return BoolLitExpr(False)
     elif t.data == 'nat':
         return NatLitExpr(int(_child_str(t, 0)))
-    elif t.data == 'float':
-        return FloatLitExpr(Decimal(_child_str(t, 0)))
     elif t.data == 'real':
         return RealLitExpr(Decimal(_child_str(t, 0)))
     elif t.data == 'infinity':
-        return FloatLitExpr.infinity()
+        return RealLitExpr.infinity()
     else:
         raise Exception(f'invalid AST: {t.data}')
 
@@ -265,10 +261,10 @@ def _parse_rvalue(t: Tree) -> Expr:
         return DUniformExpr(start, end)
     elif t.data == 'cuniform':
         start = _parse_expr(_child_tree(t, 0))
-        if not isinstance(start, (NatLitExpr, FloatLitExpr, RealLitExpr)):
+        if not isinstance(start, RealLitExpr):
             raise Exception(f"{start} is not a real number")
         end = _parse_expr(_child_tree(t, 1))
-        if not isinstance(end, (NatLitExpr, FloatLitExpr, RealLitExpr)):
+        if not isinstance(end, RealLitExpr):
             raise Exception(f"{end} is not a real number")
         return CUniformExpr(start, end)
 
@@ -286,7 +282,7 @@ def _parse_rvalue(t: Tree) -> Expr:
                 raise Exception(
                     f"Failed to parse categorical expression: each term in {t} must have an associated probability"
                 )
-            categories: List[Tuple[Expr, FloatLitExpr]] = [
+            categories: List[Tuple[Expr, RealLitExpr]] = [
                 (operand.value, operand.prob) for operand in likely_operands
             ]
             return CategoricalExpr(categories)
@@ -330,16 +326,16 @@ def _parse_instrs(t: Tree) -> List[Instr]:
     return [_parse_instr(_as_tree(t)) for t in t.children]
 
 
-def _parse_program(t: Tree) -> Program:
+def _parse_program(config: ProgramConfig, t: Tree) -> Program:
     assert t.data == 'start'
     declarations = _parse_declarations(_child_tree(t, 0))
     instructions = _parse_instrs(_child_tree(t, 1))
-    return Program.from_parse(declarations, instructions)
+    return Program.from_parse(config, declarations, instructions)
 
 
-def parse_pgcl(code: str) -> Program:
+def parse_pgcl(code: str, config: ProgramConfig = ProgramConfig()) -> Program:
     """
-    Parse a pGCL program.
+    Parse a pGCL program with an optional :py:class:`probably.pgcl.ast.ProgramConfig`.
 
     .. doctest::
 
@@ -350,10 +346,10 @@ def parse_pgcl(code: str) -> Program:
         AsgnInstr(lhs='x', rhs=DUniformExpr(start=NatLitExpr(5), end=NatLitExpr(17)))
 
         >>> parse_pgcl("x := x : 1/3 + y : 2/3").instructions[0]
-        AsgnInstr(lhs='x', rhs=CategoricalExpr(exprs=[(VarExpr('x'), FloatLitExpr("1/3")), (VarExpr('y'), FloatLitExpr("2/3"))]))
+        AsgnInstr(lhs='x', rhs=CategoricalExpr(exprs=[(VarExpr('x'), RealLitExpr("1/3")), (VarExpr('y'), RealLitExpr("2/3"))]))
     """
     tree = _PARSER.parse(code)
-    return _parse_program(tree)
+    return _parse_program(config, tree)
 
 
 def parse_expr(code: str) -> Expr:
@@ -395,13 +391,13 @@ def parse_expectation(code: str) -> Expr:
         UnopExpr(operator=Unop.IVERSON, expr=VarExpr('x'))
 
         >>> parse_expectation("0.2")
-        FloatLitExpr("0.2")
+        RealLitExpr("0.2")
 
         >>> parse_expectation("1/3")
-        FloatLitExpr("1/3")
+        RealLitExpr("1/3")
 
         >>> parse_expectation("∞")
-        FloatLitExpr("Infinity")
+        RealLitExpr("Infinity")
     """
     tree = _PARSER.parse(code, start="expression")
     return _parse_expr(tree)

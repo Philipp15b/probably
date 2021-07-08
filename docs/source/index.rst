@@ -8,7 +8,7 @@ For more information, visit `https://github.com/Philipp15b/probably <https://git
 
 Features:
 
-* pGCL language support: Constants, variables, static types (boolean, (bounded) natural numbers, floats), literals, unary and binary operators, while loops, conditional if statements, assignments, probabilistic choices.
+* pGCL language support: Constants, variables, static types (boolean, (bounded) natural numbers, real numbers), literals, unary and binary operators, while loops, conditional if statements, assignments, probabilistic choices.
 * Weakest pre-expectation calculation for loop-free and linear pGCL programs.
 
   * Translation from general expectations to linear expectations and expectations in summation normal form.

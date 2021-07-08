@@ -24,6 +24,7 @@ from .analysis.generating_function import GeneratingFunction
 import sympy
 sympy.init_printing()
 
+
 @click.command()
 @click.argument('input', type=click.File('r'))
 # pylint: disable=redefined-builtin

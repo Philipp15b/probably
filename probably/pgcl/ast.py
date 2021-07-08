@@ -18,6 +18,7 @@ All data types to represent a pGCL program.
 Program
 #######
 .. autoclass:: Program
+.. autoclass:: ProgramConfig
 
     .. automethod:: __str__
 
@@ -27,7 +28,6 @@ Types
 .. autoclass:: BoolType
 .. autoclass:: NatType
 .. autoclass:: Bounds
-.. autoclass:: FloatType
 .. autoclass:: RealType
 
 Declarations
@@ -59,7 +59,6 @@ mapping of states to *expected values*: :math:`\Sigma \to \mathbb{R}`.
 .. autoclass:: VarExpr
 .. autoclass:: BoolLitExpr
 .. autoclass:: NatLitExpr
-.. autoclass:: FloatLitExpr
 .. autoclass:: RealLitExpr
 .. autoclass:: Unop
 .. autoclass:: UnopExpr
@@ -168,17 +167,14 @@ class NatType(TypeClass):
 
 @attr.s
 class RealType(TypeClass):
-    """Real number types with optional bounds"""
+    """
+    Real number types.
 
-    bounds: Optional[Bounds] = attr.ib()
-
-
-@attr.s
-class FloatType(TypeClass):
-    """Floating numbers, used for probabilities."""
+    They are used both to represent probabilities and as values in the program if they are allowed (see :py:data:`ProgramConfig.allow_real_vars`).
+    """
 
 
-Type = Union[BoolType, NatType, FloatType]
+Type = Union[BoolType, NatType, RealType]
 """Union type for all type objects. See :class:`TypeClass` for use with isinstance."""
 
 
@@ -211,10 +207,7 @@ class VarDecl(DeclClass):
                 res += " " + str(self.typ.bounds)
             return res + ";"
         elif isinstance(self.typ, RealType):
-            res = f"real {self.var}"
-            if self.typ.bounds is not None:
-                res += " " + str(self.typ.bounds)
-            return res + ";"
+            return f"real {self.var};"
         raise ValueError(f"invalid type: {self.typ}")
 
 
@@ -293,7 +286,7 @@ class NatLitExpr(ExprClass):
 
 
 def _validate_real_lit_value(_object: 'RealLitExpr', _attribute: Any,
-                              value: Any):
+                             value: Any):
     if not isinstance(value, Decimal) and not isinstance(value, Fraction):
         raise ValueError(
             f"Expected a Decimal or Fraction value, got: {value!r}")
@@ -314,7 +307,9 @@ def _parse_real_lit_expr(
 @attr.s(repr=False, frozen=True)
 class RealLitExpr(ExprClass):
     """
-    A decimal literal (used for probabilities) is an expression.
+    A real number literals. Used for both probabilities and for values in the
+    program if real number variables are enabled (see
+    :py:data:`ProgramConfig.allow_real_vars`).
 
     It is represented by either a :class:`Decimal` (created from decimal
     literals), or by a :class:`Fraction` (created from a fraction of natural numbers).
@@ -370,86 +365,6 @@ class RealLitExpr(ExprClass):
 
     def __repr__(self) -> str:
         return f'RealLitExpr("{str(self.value)}")'
-
-
-def _validate_float_lit_value(_object: 'FloatLitExpr', _attribute: Any,
-                              value: Any):
-    if not isinstance(value, Decimal) and not isinstance(value, Fraction):
-        raise ValueError(
-            f"Expected a Decimal or Fraction value, got: {value!r}")
-
-
-def _parse_float_lit_expr(
-        value: Union[str, Decimal, Fraction]) -> Union[Decimal, Fraction]:
-    if isinstance(value, str):
-        if "/" in value:
-            return Fraction(value)
-        else:
-            res = Decimal(value)
-            assert value == str(res)
-            return res
-    return value
-
-
-@attr.s(repr=False, frozen=True)
-class FloatLitExpr(ExprClass):
-    """
-    A decimal literal (used for probabilities) is an expression.
-
-    It is represented by either a :class:`Decimal` (created from decimal
-    literals), or by a :class:`Fraction` (created from a fraction of natural numbers).
-
-    Infinity is represented by ``Decimal('Infinity')``.
-
-    .. warning::
-
-        Note that the :class:`Decimal` representation is not exact under arithmetic operations.
-        That is fine if it is used just as the representation of a decimal literal.
-        For calculations, please use :meth:`to_fraction()`.
-    """
-    value: Union[Decimal,
-                 Fraction] = attr.ib(validator=_validate_float_lit_value,
-                                     converter=_parse_float_lit_expr)
-
-    @staticmethod
-    def infinity() -> 'FloatLitExpr':
-        """
-        Create a new infinite value.
-
-        .. doctest::
-
-            >>> FloatLitExpr.infinity().is_infinite()
-            True
-        """
-        return FloatLitExpr(Decimal('Infinity'))
-
-    def is_infinite(self):
-        """
-        Whether this expression represents infinity.
-        """
-        return isinstance(self.value, Decimal) and self.value.is_infinite()
-
-    def to_fraction(self) -> Fraction:
-        """
-        Convert this value to a :class:`Fraction`.
-        Throws an exception if the value :meth:`is_infinite()`!
-
-        .. doctest::
-
-            >>> expr = FloatLitExpr("0.1")
-            >>> expr.to_fraction()
-            Fraction(1, 10)
-        """
-        assert not self.is_infinite()
-        if isinstance(self.value, Fraction):
-            return self.value
-        return Fraction(self.value)
-
-    def __str__(self) -> str:
-        return str(self.value)
-
-    def __repr__(self) -> str:
-        return f'FloatLitExpr("{str(self.value)}")'
 
 
 class Unop(Enum):
@@ -578,14 +493,14 @@ class DUniformExpr(ExprClass):
     start: NatLitExpr = attr.ib()
     end: NatLitExpr = attr.ib()
 
-    def distribution(self) -> List[Tuple[FloatLitExpr, NatLitExpr]]:
+    def distribution(self) -> List[Tuple[RealLitExpr, NatLitExpr]]:
         r"""
         Return the distribution of possible values as a list along with
         probabilities. For the uniform distribution, all probabilites are equal
         to :math:`\frac{1}{\text{end} - \text{start} + 1}`.
         """
         width = self.end.value - self.start.value + 1
-        prob = FloatLitExpr(Fraction(1, width))
+        prob = RealLitExpr(Fraction(1, width))
         return [(prob, NatLitExpr(i))
                 for i in range(self.start.value, self.end.value + 1)]
 
@@ -610,7 +525,7 @@ class CUniformExpr(ExprClass):
 
 
 def _check_categorical_exprs(_self: "CategoricalExpr", _attribute: Any,
-                             value: List[Tuple["Expr", FloatLitExpr]]):
+                             value: List[Tuple["Expr", RealLitExpr]]):
     probabilities = (prob.to_fraction() for _, prob in value)
     if sum(probabilities) != 1:
         raise ValueError("Probabilities need to sum up to 1!")
@@ -628,10 +543,10 @@ class CategoricalExpr(ExprClass):
     expressions are only allowed as the right-hand side of an assignment
     statement and not somewhere in a nested expression.
     """
-    exprs: List[Tuple["Expr", FloatLitExpr]] = attr.ib(
+    exprs: List[Tuple["Expr", RealLitExpr]] = attr.ib(
         validator=_check_categorical_exprs)
 
-    def distribution(self) -> List[Tuple[FloatLitExpr, "Expr"]]:
+    def distribution(self) -> List[Tuple[RealLitExpr, "Expr"]]:
         r"""
         Return the distribution of possible values as a list along with
         probabilities.
@@ -688,14 +603,15 @@ class TickExpr(ExprClass):
 def expr_str_parens(expr: ExprClass) -> str:
     """Wrap parentheses around an expression, but not for simple expressions."""
     if isinstance(expr,
-                  (VarExpr, BoolLitExpr, NatLitExpr, FloatLitExpr, UnopExpr)):
+                  (VarExpr, BoolLitExpr, NatLitExpr, RealLitExpr, UnopExpr)):
         return str(expr)
     else:
         return f'({expr})'
 
 
-Expr = Union[VarExpr, BoolLitExpr, NatLitExpr, FloatLitExpr, RealLitExpr, UnopExpr,
-             BinopExpr, DUniformExpr, CUniformExpr, CategoricalExpr, SubstExpr, TickExpr]
+Expr = Union[VarExpr, BoolLitExpr, NatLitExpr, RealLitExpr, RealLitExpr,
+             UnopExpr, BinopExpr, DUniformExpr, CUniformExpr, CategoricalExpr,
+             SubstExpr, TickExpr]
 """Union type for all expression objects. See :class:`ExprClass` for use with isinstance."""
 
 
@@ -805,11 +721,30 @@ Instr = Union[SkipInstr, WhileInstr, IfInstr, AsgnInstr, ChoiceInstr,
 """Union type for all instruction objects. See :class:`InstrClass` for use with isinstance."""
 
 
+@attr.s(frozen=True)
+class ProgramConfig:
+    """
+    Some compilation options for programs. Frozen after initialization (cannot
+    be modified).
+
+    At the moment, we only have a flag for the type checker on which types are
+    allowed as program variables.
+    """
+
+    allow_real_vars: bool = attr.ib(default=True)
+    """
+    Whether real numbers are allowed as program values (in computations, or as
+    variables).
+    """
+
+
 @attr.s
 class Program:
     """
     A pGCL program has a bunch of variables with types, constants with defining expressions, and a list of instructions.
     """
+    config: ProgramConfig = attr.ib(repr=False)
+
     declarations: List[Decl] = attr.ib(repr=False)
     """The original list of declarations."""
 
@@ -828,7 +763,7 @@ class Program:
     instructions: List[Instr] = attr.ib()
 
     @staticmethod
-    def from_parse(declarations: List[Decl],
+    def from_parse(config: ProgramConfig, declarations: List[Decl],
                    instructions: List[Instr]) -> "Program":
         """Create a program from the parser's output."""
         variables: Dict[Var, Type] = dict()
@@ -840,7 +775,8 @@ class Program:
             elif isinstance(decl, ConstDecl):
                 constants[decl.var] = decl.value
 
-        return Program(declarations, variables, constants, instructions)
+        return Program(config, declarations, variables, constants,
+                       instructions)
 
     def add_variable(self, var: Var, typ: Type):
         """
@@ -867,7 +803,8 @@ class Program:
             >>> program.to_skeleton()
             Program(variables={'x': NatType(bounds=None), 'y': NatType(bounds=None)}, constants={}, instructions=[])
         """
-        return Program(declarations=copy.copy(self.declarations),
+        return Program(config=self.config,
+                       declarations=copy.copy(self.declarations),
                        variables=copy.copy(self.variables),
                        constants=copy.copy(self.constants),
                        instructions=[])
