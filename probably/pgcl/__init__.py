@@ -40,6 +40,7 @@ For more details on what syntax is accepted for pGCL programs, you can view the 
     :no-members:
 .. automodule:: probably.pgcl.wp
     :no-members:
+.. automodule:: probably.pgcl.cf
 .. automodule:: probably.pgcl.syntax
     :no-members:
 .. automodule:: probably.pgcl.parser

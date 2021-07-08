@@ -37,6 +37,7 @@ API Documentation
 
     pgcl
     pysmt
+    analysis
     util
 
 

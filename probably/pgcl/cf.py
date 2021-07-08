@@ -5,11 +5,6 @@ Characteristic Functions
 
 Want to calculate the characteristic function of a program?
 You're in the right module!
-
-.. autoclass:: LoopCFTransformer
-.. autofunction:: one_loop_cf_transformer
-.. autofunction:: general_cf_transformer
-
 """
 import functools
 from typing import Sequence, Union
