@@ -21,17 +21,30 @@ def create_random_gf(vars:int = 1, terms:int = 1):
     return GeneratingFunction(result)
 
 
-def test_finite_geq():
+def test_finite_leq():
     gf1 = GeneratingFunction("x**2*y**3")
     gf2 = GeneratingFunction("1/2*x**2*y**3")
-    assert gf1 >= gf2
+    assert not gf1 <= gf2
 
 
-@pytest.mark.xfail(raises=ComparisonException)
-def test_infinite_geq():
+def test_infinite_leq():
     gf1 = GeneratingFunction("(1-sqrt(1-x))/x")
     gf2 = GeneratingFunction("2/(2-x)-1")
-    assert gf1 >= gf2
+    with pytest.raises(ComparisonException):
+        assert gf1 <= gf2
+
+
+def test_finite_le():
+    gf1 = GeneratingFunction("x**2*y**3")
+    gf2 = GeneratingFunction("1/2*x**2*y**3")
+    assert not gf1 < gf2
+
+
+def test_infinite_le():
+    gf1 = GeneratingFunction("(1-sqrt(1-x))/x")
+    gf2 = GeneratingFunction("2/(2-x)-1")
+    with pytest.raises(ComparisonException):
+        assert gf1 < gf2
 
 
 def test_split_addend():
@@ -43,3 +56,11 @@ def test_split_addend():
         monomial *= sympy.S("x"+str(i))**values[i]
     addend = probability*monomial
     assert GeneratingFunction.split_addend(addend) == (probability, monomial)
+
+def test_linear_transformation():
+    # TODO Implement a meaningful test here
+    pass
+
+def test_filter():
+    # TODO Implement a meaningful test here
+    pass
