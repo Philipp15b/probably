@@ -11,7 +11,6 @@ def _is_constant_constraint(expression):  # Move this to expression checks etc.
     else:
         return False
 
-
 class ComparisonException(Exception):
     pass
 
@@ -77,8 +76,10 @@ class GeneratingFunction:
             if self.is_finite():
                 terms = self._function.as_coefficients_dict()
                 for monomial in terms:
-                    if terms[monomial] >= other.probability_of({monomial: terms[monomial]}):
-                        return False
+                    variables = monomial.as_powers_dict()
+                    for var in variables:
+                        if terms[monomial] >= other.probability_of({var: variables[var]}):
+                            return False
                 return True
             elif other.is_finite():
                 terms = other._function.as_coefficients_dict()
@@ -99,9 +100,27 @@ class GeneratingFunction:
     def __ne__(self, other):
         return self != other
 
+    def _monomial_to_state(self, monomial):
+        variables_and_powers = monomial.as_powers_dict()
+        result = dict()
+        for var in self._variables:
+            if var in variables_and_powers.keys():
+                result[var] = variables_and_powers[var]
+            else:
+                result[var] = 0
+        return result
+
+    @classmethod
+    def split_addend(cls, addend):
+        prob_and_mon = addend.as_coefficients_dict()
+        result = tuple()
+        for monomial in prob_and_mon:
+            result += (prob_and_mon[monomial],)
+            result += (monomial,)
+        return result
+
     def diff(self, variable, k):
         return GeneratingFunction(sympy.diff(self._function, sympy.S(variable), k), variables=self._variables)
-
 
     def as_series(self):
         if self._dimension == 1:
@@ -130,7 +149,7 @@ class GeneratingFunction:
         """
         result = self._function
         for variable, value in state.items():
-            result = sympy.diff(result, sympy.symbols(variable), value)
+            result = sympy.diff(result, sympy.S(variable), value)
             result /= sympy.factorial(value)
         for var in self.vars():
             result = result.subs(var, 0)
