@@ -203,57 +203,56 @@ class GeneratingFunction:
         infinite support distributions.
         :return:
         """
-        if self.is_finite():
+        if expression.operator == Unop.NEG:
+            return GeneratingFunction(self._function - self.filter(expression.expr)._function,
+                                      variables=self._variables)
+        elif expression.operator == Binop.AND:
+            result = self.filter(expression.lhs)
+            return result.filter(expression.rhs)
+        elif expression.operator == Binop.OR:
+            neg_lhs = UnopExpr(operator=Unop.NEG, expr=expression.lhs)
+            neg_rhs = UnopExpr(operator=Unop.NEG, expr=expression.rhs)
+            neg_conj = BinopExpr(operator=Binop.AND,
+                                 lhs=neg_lhs,
+                                 rhs=neg_rhs)
+            neg_expr = UnopExpr(operator=Unop.NEG, expr=neg_conj)
+            return self.filter(neg_expr)
+        elif self.is_finite():
             result = sympy.S(0)
             addends = self._function.as_coefficients_dict()
             for monomial in addends:
                 if self.evaluate(expression, monomial):
                     result += addends[monomial] * monomial
             return GeneratingFunction(result, variables=self._variables)
-        else:
-            if expression.operator == Unop.NEG:
-                return GeneratingFunction(self._function - self.filter(expression.expr)._function, variables=self._variables)
-
-            if expression.operator == Binop.AND:
-                result = self.filter(expression.lhs)
-                return result.filter(expression.rhs)
-            if expression.operator == Binop.OR:
-                neg_lhs = UnopExpr(operator=Unop.NEG, expr=expression.lhs)
-                neg_rhs = UnopExpr(operator=Unop.NEG, expr=expression.rhs)
-                neg_conj = BinopExpr(operator=Binop.AND,
-                                     lhs=neg_lhs,
-                                     rhs=neg_rhs)
-                neg_expr = UnopExpr(operator=Unop.NEG, expr=neg_conj)
-                return self.filter(neg_expr)
+        elif _is_constant_constraint(expression):
             if expression.operator == Binop.LE:
-                if _is_constant_constraint(expression):
-                    variable = sympy.S(str(expression.lhs))
-                    constant = expression.rhs.value
-                    result = 0
-                    for i in range(0, constant):
-                        result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).subs(
-                            variable, 0) * variable ** i
-                    return GeneratingFunction(result, variables=self._variables)
+                variable = sympy.S(str(expression.lhs))
+                constant = expression.rhs.value
+                result = 0
+                for i in range(0, constant):
+                    result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).limit(
+                        variable, 0) * variable ** i
+                return GeneratingFunction(result, variables=self._variables)
             elif expression.operator == Binop.LEQ:
-                if _is_constant_constraint(expression):
-                    variable = sympy.S(str(expression.lhs))
-                    constant = expression.rhs.value
-                    result = 0
-                    for i in range(0, constant + 1):
-                        result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).subs(
-                            variable, 0) * variable ** i
-                    return GeneratingFunction(result, variables=self._variables)
+                variable = sympy.S(str(expression.lhs))
+                constant = expression.rhs.value
+                result = 0
+                for i in range(0, constant + 1):
+                    print(sympy.diff(self._function, variable, i))
+                    result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).limit(
+                        variable, 0) * variable ** i
+                print(result)
+                return GeneratingFunction(result, variables=self._variables)
             elif expression.operator == Binop.EQ:
                 variable = sympy.S(str(expression.lhs))
                 constant = expression.rhs.value
                 return GeneratingFunction(
                     (sympy.diff(self._function, variable, constant) / sympy.factorial(constant))
-                    .subs(variable, 0)
+                    .limit(variable, 0)
                     * variable ** constant, variables=self._variables
                 )
-            else:
-                raise NotImplementedError(
-                    "Infinite GFs not supported right now.")
+        else:
+            raise NotImplementedError("Infinite GFs not supported right now.")
 
     def linear_transformation(self, variable, expression):
         # Transform expression into sympy readable format
