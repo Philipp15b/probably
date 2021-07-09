@@ -59,7 +59,9 @@ def test_split_addend():
 
 def test_linear_transformation():
     # TODO Implement a meaningful test here
-    pass
+    gf = GeneratingFunction("1/2*x*c + 1/4 * x**2 + 1/4")
+    gf = gf.linear_transformation("x", "4 * x + 7*c + 2")
+    assert gf == GeneratingFunction("1/2*x**13*c + 1/4 * x**10 + 1/4*x**2")
 
 def test_filter():
     # TODO Implement a meaningful test here

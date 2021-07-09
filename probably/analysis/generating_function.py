@@ -61,7 +61,9 @@ class GeneratingFunction:
         if not isinstance(other, GeneratingFunction):
             return False
         else:
-            return True if self._function - other._function == 0 else False
+            # We rely on simplification of __sympy__ here. Thus, we cannot guarantee to detect equality when
+            # simplification fails.
+            return True if (self._function - other._function).simplify() == 0 else False
 
     def __le__(self, other):
         return self == other or self < other
