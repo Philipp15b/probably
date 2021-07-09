@@ -11,7 +11,12 @@ def _is_constant_constraint(expression):  # Move this to expression checks etc.
     else:
         return False
 
+
 class ComparisonException(Exception):
+    pass
+
+
+class NotComputable(Exception):
     pass
 
 
@@ -21,29 +26,36 @@ class GeneratingFunction:
     A GeneratingFunction object is designed to be immutable.
     This class does not ensure to be in a healthy state (i.e., every coefficient is non-negative).
     """
-    def __init__(self, function: str = "", variables=set()):
+    rational_preciseness = False
+
+    def __init__(self, function: str = "", variables=set(), preciseness= 1.0):
         self._function = sympy.S(function, rational=True)
         self._dimension = len(self._function.free_symbols)
         self._variables = self._function.free_symbols
+        self._preciseness = sympy.S(str(preciseness), rational=True)
         for variable in variables:
             self._variables = self._variables.union({sympy.S(variable)})
 
     def __add__(self, other):
         if isinstance(other, GeneratingFunction):
-            return GeneratingFunction(self._function + other._function, variables=self._variables)
+            return GeneratingFunction(self._function + other._function, variables=self._variables,
+                                      preciseness=min(self._preciseness, other._preciseness))
         else:
             raise SyntaxError("you try to add" + str(type(self)) + " with " + str(type(other)))
 
     def __sub__(self, other):
         if isinstance(other, GeneratingFunction):
-            return GeneratingFunction(self._function - other._function, variables=self._variables)
+            return GeneratingFunction(self._function - other._function, variables=self._variables,
+                                      preciseness=self._preciseness)
         else:
             raise SyntaxError(f"you try to subtract {2} from {1}", type(self),
                               type(other))
 
     def __mul__(self, other):
         if isinstance(other, GeneratingFunction):
-            return GeneratingFunction(self._function * other._function, variables=self._variables)
+            # I am not sure whether the preciseness calculation is correct. Discussion needed
+            return GeneratingFunction(self._function * other._function, variables=self._variables,
+                                      preciseness=min(self._preciseness, other._preciseness))
         else:
             raise SyntaxError(f"you try to add {1} with {2}", type(self),
                               type(other))
@@ -52,7 +64,10 @@ class GeneratingFunction:
         raise NotImplementedError("Division currently not supported")
 
     def __str__(self):
-        return str(self._function)
+        if GeneratingFunction.rational_preciseness:
+            return str(self._function) + "\t@" + str(self._preciseness)
+        else:
+            return str(self._function) + "\t@" + str(self._preciseness.evalf())
 
     def __repr__(self):
         return repr(self._function)
@@ -94,7 +109,8 @@ class GeneratingFunction:
                 if difference.is_polynomial():
                     return all(map(lambda x: x >= 0, difference.as_coefficients_dict().values()))
                 else:
-                    raise ComparisonException("Both objects have infinite support. We cannot determine the order between them.")
+                    raise ComparisonException(
+                        "Both objects have infinite support. We cannot determine the order between them.")
 
     def __gt__(self, other):
         return not (self <= other)
@@ -112,6 +128,12 @@ class GeneratingFunction:
                 result[var] = 0
         return result
 
+    def is_precise(self):
+        return self._preciseness >= 1.0
+
+    def precision(self):
+        return self._preciseness
+
     @classmethod
     def split_addend(cls, addend):
         prob_and_mon = addend.as_coefficients_dict()
@@ -122,19 +144,44 @@ class GeneratingFunction:
         return result
 
     def diff(self, variable, k):
-        return GeneratingFunction(sympy.diff(self._function, sympy.S(variable), k), variables=self._variables)
+        return GeneratingFunction(sympy.diff(self._function, sympy.S(variable), k), variables=self._variables,
+                                  preciseness=self._preciseness)
 
     def as_series(self):
-        if self._dimension == 1:
-            return self._function.lseries()
+        if 0 <= self._dimension <= 1:
+            series = self._function.lseries()
+            if str(type(series)) == "<class 'generator'>":
+                return self._function.lseries()
+            else:
+                return {self._function}
+
         else:
             # TODO Tobias wants to implement this.
             # Important: make this a generator, so we can query arbitrary many terms.
             # see difference between sympy series and lseries.
             NotImplementedError("Multivariate Taylor is needed here.")
 
+    def expand_until(self, threshold):
+        if threshold > self.coefficient_sum():
+            raise RuntimeError("Threshold cannot be larger than total coefficient sum! Threshold: {}, CSum {}"
+                               .format(threshold, self.coefficient_sum()))
+        expanded_expr = GeneratingFunction(0, self._variables)
+        for term in self.as_series():
+            if expanded_expr.coefficient_sum() >= threshold:
+                break
+            else:
+                expanded_expr += GeneratingFunction(term, self._variables)
+        expanded_expr._preciseness = self._preciseness * expanded_expr.coefficient_sum()/self.coefficient_sum()
+        return expanded_expr
+
     def dim(self):
         return self._dimension
+
+    def coefficient_sum(self):
+        coefficient_sum = self._function
+        for var in self._variables:
+            coefficient_sum = coefficient_sum.limit(var, 1, "-")
+        return coefficient_sum
 
     def vars(self):
         return self._variables
@@ -205,7 +252,7 @@ class GeneratingFunction:
         """
         if expression.operator == Unop.NEG:
             return GeneratingFunction(self._function - self.filter(expression.expr)._function,
-                                      variables=self._variables)
+                                      variables=self._variables, preciseness=self._preciseness)
         elif expression.operator == Binop.AND:
             result = self.filter(expression.lhs)
             return result.filter(expression.rhs)
@@ -223,7 +270,7 @@ class GeneratingFunction:
             for monomial in addends:
                 if self.evaluate(expression, monomial):
                     result += addends[monomial] * monomial
-            return GeneratingFunction(result, variables=self._variables)
+            return GeneratingFunction(result, variables=self._variables, preciseness=self._preciseness)
         elif _is_constant_constraint(expression):
             if expression.operator == Binop.LE:
                 variable = sympy.S(str(expression.lhs))
@@ -232,27 +279,26 @@ class GeneratingFunction:
                 for i in range(0, constant):
                     result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).limit(
                         variable, 0) * variable ** i
-                return GeneratingFunction(result, variables=self._variables)
+                return GeneratingFunction(result, variables=self._variables, preciseness=self._preciseness)
             elif expression.operator == Binop.LEQ:
                 variable = sympy.S(str(expression.lhs))
                 constant = expression.rhs.value
                 result = 0
                 for i in range(0, constant + 1):
-                    print(sympy.diff(self._function, variable, i))
                     result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).limit(
                         variable, 0) * variable ** i
-                print(result)
-                return GeneratingFunction(result, variables=self._variables)
+                return GeneratingFunction(result, variables=self._variables, preciseness=self._preciseness)
             elif expression.operator == Binop.EQ:
                 variable = sympy.S(str(expression.lhs))
                 constant = expression.rhs.value
                 return GeneratingFunction(
                     (sympy.diff(self._function, variable, constant) / sympy.factorial(constant))
                     .limit(variable, 0)
-                    * variable ** constant, variables=self._variables
+                    * variable ** constant, variables=self._variables, preciseness=self._preciseness
                 )
         else:
-            raise NotImplementedError("Infinite GFs not supported right now.")
+            raise NotComputable("Instruction {} is not computable on infinite generating function {}"
+                                .format(expression, self._function))
 
     def linear_transformation(self, variable, expression):
         # Transform expression into sympy readable format
@@ -279,4 +325,5 @@ class GeneratingFunction:
             # otherwise always assume we do an addition on x
             else:
                 replacements.append((var, var * subst_var ** terms[var]))
-        return GeneratingFunction(result.subs(replacements) * const_correction_term, variables=self._variables)
+        return GeneratingFunction(result.subs(replacements) * const_correction_term, variables=self._variables,
+                                  preciseness=self._preciseness)

@@ -51,7 +51,9 @@ def main(input: IO):
     if res is not None:
         print("Program is NOT linear:\n")
         print(f"\t{res}")
-        print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions, GeneratingFunction("1/(2-c)", variables={"x", "c"}))))
+        gf = loopfree_cf(program.instructions, GeneratingFunction("1/(2-x)"))
+        GeneratingFunction.rational_preciseness = True
+        print("\nCharacteristic-function\n", gf)
     else:
         print("Program is linear.")
         print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions, GeneratingFunction("1/(2-c)"))))

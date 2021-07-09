@@ -1,11 +1,4 @@
 nat x;
-nat c;
 
-x := 1;
-
-if (c <= 2){
-  c := c*x + 15;
-}
-else{
-  c := 0;
-}
+{x := x*x+1} [0.5] {skip};
+x := x*x*x

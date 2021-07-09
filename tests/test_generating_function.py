@@ -7,18 +7,25 @@ import random
 import pytest
 
 
-def create_random_gf(vars:int = 1, terms:int = 1):
+def create_random_gf(vars: int = 1, terms: int = 1):
+    # This does most likely does not create a PGF!
     symbols = [sympy.S("x"+str(i)) for i in range(vars)]
-    values = [sympy.S(random.randint(0,5000)) for _ in range(len(symbols)*terms)]
-    coeffs = [sympy.S(random.randint(0,5000)) for _ in range(terms)]
+    values = [sympy.S(random.randint(0, 100)) for _ in range(len(symbols)*terms)]
+    coeffs = [sympy.S(random.randint(0, 100)) for _ in range(terms)]
 
     result = sympy.S(0)
     for i in range(terms):
         monomial = sympy.S(1)
         for var in symbols:
-            monomial *= symbols[i]**values[i]
+            monomial *= var**values[i]
         result += monomial * coeffs[i]
-    return GeneratingFunction(result)
+    return GeneratingFunction(result, variables=set(symbols))
+
+
+def test_dim():
+    count = random.randint(1, 10)
+    gf = create_random_gf(count, random.randint(1, 100))
+    assert gf.dim() == count
 
 
 def test_finite_leq():
@@ -72,3 +79,15 @@ def test_filter():
     # check filter on infinite GF
     gf = GeneratingFunction("(1-sqrt(1-c**2))/c")
     assert gf.filter(probably.pgcl.parse_expr("c <= 5")) == GeneratingFunction("c/2 + c**3/8 + c**5/16")
+
+    # check non-const filter on infinite GF:
+    with pytest.raises(NotComputable):
+        gf.filter(probably.pgcl.parse_expr("x*z <= 10"))
+
+
+def test_expand_until():
+    gf = GeneratingFunction("2/(2-x) - 1")
+    assert gf.expand_until(0.99) == GeneratingFunction("1/2*x + 1/4*x**2 + 1/8 * x**3 + 1/16 * x**4 + 1/32 * x**5 + 1/64 * x**6 + 1/128 * x**7")
+
+    with pytest.raises(RuntimeError):
+        gf.expand_until(random.randint(2, 10))
