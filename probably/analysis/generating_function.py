@@ -345,7 +345,7 @@ class GeneratingFunction:
         if self._dimension > 2:
             raise Exception("We can only illustrate distributions with dimension 2 or less.")
 
-        if self._dimension != 1:
+        if self._dimension > 1:
             raise NotImplementedError("Only support of dimension 1")
 
         if not self.is_finite():

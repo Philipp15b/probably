@@ -19,15 +19,16 @@ from probably.analysis.discrete import loopfree_gf
 from probably.analysis.generating_function import *
 
 
-
 @click.command()
-@click.argument('input', type=click.File('r'))
+@click.argument('program_file', type=click.File('r'))
+@click.argument('input_gf', type=str, required=False)
 # pylint: disable=redefined-builtin
-def main(input: IO):
+def main(program_file: IO, input_gf: str):
     """
     Compile the given program and print some information about it.
     """
-    program_source = input.read()
+
+    program_source = program_file.read()
     print("Program source:")
     print(program_source)
 
@@ -37,12 +38,17 @@ def main(input: IO):
         return
 
     print("\nProgram instructions:")
-    with open("instr", "w") as instr_file:
+    with open("instr", "r") as instr_file:
         for instr in program.instructions:
             print(instr)
 
     print()
+    if input_gf is None:
+        gf = GeneratingFunction("1", set(program.variables.keys()), 1.0)
+        print(gf.vars())
+    else:
+        gf = GeneratingFunction(input_gf, set(program.variables.keys()), 1.0)
     GeneratingFunction.rational_preciseness = True
-    gf = loopfree_gf(program.instructions, GeneratingFunction("1/(2-x)"))
+    gf = loopfree_gf(program.instructions, gf)
     print("\nCharacteristic-function\n", gf)
     gf.create_histogram()

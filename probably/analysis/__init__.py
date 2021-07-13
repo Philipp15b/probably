@@ -4,5 +4,5 @@
 =====================
 
 .. automodule:: probably.analysis.generating_function
+.. automodule:: probably.analysis.discrete
 """
-from probably.analysis.generating_function import *
