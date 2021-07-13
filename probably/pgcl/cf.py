@@ -77,7 +77,7 @@ def loopfree_cf(instr: Union[Instr, Sequence[Instr]],
             return GeneratingFunction(result, variables=precf.vars(), preciseness=precf.precision())
         else:
             print("The assigntment {} is not computable on {}".format(instr, precf))
-            probability = float(input("Continue with approximation? Enter a probability (0, {}), otherwise enter 0. "
+            probability = float(input("Continue with approximation? Enter a probability (0, {}), otherwise enter 0.\t"
                                       .format(precf.coefficient_sum())))
             if 0 < probability < precf.coefficient_sum():
                 expanded = precf.expand_until(probability)

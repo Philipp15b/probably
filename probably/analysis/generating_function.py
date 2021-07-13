@@ -2,6 +2,8 @@ import sympy
 
 from probably.pgcl.ast import *
 from probably.pgcl.syntax import check_is_linear_expr
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def _is_constant_constraint(expression):  # Move this to expression checks etc.
@@ -147,7 +149,16 @@ class GeneratingFunction:
         return GeneratingFunction(sympy.diff(self._function, sympy.S(variable), k), variables=self._variables,
                                   preciseness=self._preciseness)
 
+    def _term_generator(self):
+        assert self._function.is_polynomial(), "Terms can only be generated for finite GF"
+        terms = self._function.as_coefficients_dict()
+        for term in terms:
+            yield sympy.S(terms[term] * term)
+
     def as_series(self):
+        if self._function.is_polynomial():
+            return self._term_generator()
+
         if 0 <= self._dimension <= 1:
             series = self._function.lseries()
             if str(type(series)) == "<class 'generator'>":
@@ -327,3 +338,24 @@ class GeneratingFunction:
                 replacements.append((var, var * subst_var ** terms[var]))
         return GeneratingFunction(result.subs(replacements) * const_correction_term, variables=self._variables,
                                   preciseness=self._preciseness)
+
+    def create_histogram(self):
+        """
+        Shows the encoded distribution as a histogram.
+        """
+        if self._dimension > 2:
+            raise Exception("We can only illustrate distributions with dimension 2 or less.")
+        data = []
+        ind = []
+        for addend in self.as_series():
+            (prob, mon) = self.split_addend(addend)
+            state = self._monomial_to_state(mon)
+            data.append(prob)
+            for var in self._variables:
+                ind.append(float(state[var]))
+        ax = plt.subplot()
+        ax.bar(ind, data, 1, linewidth=.5, ec=(0, 0, 0))
+        ax.set_xlabel('X')
+        ax.set_xticks(ind)
+        ax.set_ylabel('Probability p(x)')
+        plt.show()

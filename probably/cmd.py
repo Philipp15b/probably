@@ -54,6 +54,7 @@ def main(input: IO):
         gf = loopfree_cf(program.instructions, GeneratingFunction("1/(2-x)"))
         GeneratingFunction.rational_preciseness = True
         print("\nCharacteristic-function\n", gf)
+        gf.create_histogram()
     else:
         print("Program is linear.")
         print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions, GeneratingFunction("1/(2-c)"))))
