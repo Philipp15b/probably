@@ -51,6 +51,13 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
                 instr.false, non_sat_part)
 
     if isinstance(instr, AsgnInstr):
+        if isinstance(instr.rhs, DUniformExpr):
+            variable = instr.lhs
+            marginal = precf.linear_transformation(variable, "0")  # Seems weird but think of program assignments.
+            factors = []
+            for prob, value in instr.rhs.distribution():
+                factors.append(marginal * GeneratingFunction(f"{variable}**{value}*{prob}"))
+            return functools.reduce(lambda x, y: x+y, factors)
         if check_is_linear_expr(instr.rhs) is None:
             variable = instr.lhs
             return precf.linear_transformation(variable, instr.rhs)

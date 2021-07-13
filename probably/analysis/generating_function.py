@@ -58,8 +58,8 @@ class GeneratingFunction:
             return GeneratingFunction(self._function * other._function, variables=self._variables,
                                       preciseness=(s + o)/(s/self._preciseness + o/other._preciseness))
         else:
-            raise SyntaxError(f"you try to add {1} with {2}", type(self),
-                              type(other))
+            raise SyntaxError("you try to add {} with {}".format(type(self),
+                              type(other)))
 
     def __truediv__(self, other):
         raise NotImplementedError("Division currently not supported")

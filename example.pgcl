@@ -3,6 +3,5 @@ nat x;
 if(x<=3){
     x := x*x
 } else{
-    x := x*x*x
-}
-
+    x := unif(2,9)
+};
