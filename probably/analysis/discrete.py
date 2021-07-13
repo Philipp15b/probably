@@ -72,8 +72,8 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
             return GeneratingFunction(result, variables=precf.vars(), preciseness=precf.precision())
         else:
             print("The assigntment {} is not computable on {}".format(instr, precf))
-            probability = float(input("Continue with approximation. Enter a probability (0, {}):\t"
-                                      .format(precf.coefficient_sum())))
+            probability = sympy.S(input("Continue with approximation. Enter a probability (0, {}):\t"
+                                        .format(precf.coefficient_sum())))
             if 0 < probability < precf.coefficient_sum():
                 expanded = precf.expand_until(probability)
                 return loopfree_gf(instr, expanded)
@@ -83,8 +83,9 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
     if isinstance(instr, ChoiceInstr):
         lhs_block = loopfree_gf(instr.lhs, precf)
         rhs_block = loopfree_gf(instr.rhs, precf)
-        return GeneratingFunction(str(instr.prob), variables=precf.vars(), preciseness=precf.precision()) * lhs_block +\
-            GeneratingFunction("1-" + str(instr.prob), variables=precf.vars(), preciseness=precf.precision()) * rhs_block
+        return GeneratingFunction(str(instr.prob), variables=precf.vars(), preciseness=precf.precision()) * lhs_block + \
+               GeneratingFunction("1-" + str(instr.prob), variables=precf.vars(),
+                                  preciseness=precf.precision()) * rhs_block
 
     if isinstance(instr, TickInstr):
         raise NotImplementedError("Dont support TickInstr in CF setting")
