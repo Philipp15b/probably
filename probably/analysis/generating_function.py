@@ -1,9 +1,7 @@
 import sympy
 
 from probably.pgcl.ast import *
-from probably.pgcl.syntax import check_is_linear_expr
 import matplotlib.pyplot as plt
-import numpy as np
 
 
 def _is_constant_constraint(expression):  # Move this to expression checks etc.
@@ -30,7 +28,7 @@ class GeneratingFunction:
     """
     rational_preciseness = False
 
-    def __init__(self, function: str = "", variables=set(), preciseness= 1.0):
+    def __init__(self, function: str = "", variables=set(), preciseness=1.0):
         self._function = sympy.S(function, rational=True)
         self._dimension = len(self._function.free_symbols)
         self._variables = self._function.free_symbols
@@ -178,7 +176,7 @@ class GeneratingFunction:
         if threshold > self.coefficient_sum():
             raise RuntimeError("Threshold cannot be larger than total coefficient sum! Threshold: {}, CSum {}"
                                .format(threshold, self.coefficient_sum()))
-        expanded_expr = GeneratingFunction(0, self._variables)
+        expanded_expr = GeneratingFunction(str(0), self._variables)
         for term in self.as_series():
             if expanded_expr.coefficient_sum() >= threshold:
                 break
@@ -288,7 +286,7 @@ class GeneratingFunction:
             if expression.operator == Binop.LE:
                 variable = sympy.S(str(expression.lhs))
                 constant = expression.rhs.value
-                result = 0
+                result = sympy.S(0)
                 for i in range(0, constant):
                     result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).limit(
                         variable, 0) * variable ** i
@@ -296,7 +294,7 @@ class GeneratingFunction:
             elif expression.operator == Binop.LEQ:
                 variable = sympy.S(str(expression.lhs))
                 constant = expression.rhs.value
-                result = 0
+                result = sympy.S(0)
                 for i in range(0, constant + 1):
                     result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).limit(
                         variable, 0) * variable ** i

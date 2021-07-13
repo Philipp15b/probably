@@ -9,7 +9,6 @@ If you use `poetry` and do not have probably installed globally, you can use `po
    :show-nested:
 """
 
-import time
 from typing import IO
 
 import click
@@ -17,12 +16,9 @@ import click
 import probably.pgcl.compiler as pgcl
 from probably.pgcl.check import CheckFail
 from probably.pgcl.syntax import check_is_linear_program
-from probably.pgcl.cf import loopfree_cf
-from probably.pgcl.ast import *
-from .analysis.generating_function import GeneratingFunction
+from probably.analysis.discrete import loopfree_gf
+from probably.analysis.generating_function import *
 
-import sympy
-sympy.init_printing()
 
 
 @click.command()
@@ -52,11 +48,11 @@ def main(input: IO):
     if res is not None:
         print("Program is NOT linear:\n")
         print(f"\t{res}")
-        gf = loopfree_cf(program.instructions, GeneratingFunction("1/(2-x)"))
+        gf = loopfree_gf(program.instructions, GeneratingFunction("1/(2-x)"))
         print("\nCharacteristic-function\n", gf)
         gf.create_histogram()
     else:
         print("Program is linear.")
-        gf = loopfree_cf(program.instructions, GeneratingFunction("1/(2-x)"))
+        gf = loopfree_gf(program.instructions, GeneratingFunction("1/(2-x)"))
         print("\nCharacteristic-function\n", gf)
         gf.create_histogram()

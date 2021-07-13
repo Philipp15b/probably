@@ -7,17 +7,12 @@ Want to calculate the characteristic function of a program?
 You're in the right module!
 """
 import functools
-from typing import Sequence, Union
-
-from .ast import (Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr,
-                  ChoiceInstr, TickInstr)
-
 from probably.analysis.generating_function import *
-from .syntax import check_is_linear_expr
+from probably.pgcl.syntax import check_is_linear_expr
 import sympy
 
 
-def loopfree_cf(instr: Union[Instr, Sequence[Instr]],
+def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
                 precf: GeneratingFunction) -> GeneratingFunction:
     """
     Build the characteristic function as an expression.
@@ -31,7 +26,7 @@ def loopfree_cf(instr: Union[Instr, Sequence[Instr]],
     """
 
     if isinstance(instr, list):
-        return functools.reduce(lambda x, y: loopfree_cf(y, x), instr, precf)
+        return functools.reduce(lambda x, y: loopfree_gf(y, x), instr, precf)
 
     if isinstance(instr, SkipInstr):
         return precf
@@ -48,11 +43,11 @@ def loopfree_cf(instr: Union[Instr, Sequence[Instr]],
             probability = input("Continue with approximation. Enter a probability (0, {}):\t"
                                 .format(precf.coefficient_sum()))
             if probability > 0:
-                return loopfree_cf(instr, precf.expand_until(probability))
+                return loopfree_gf(instr, precf.expand_until(probability))
             else:
                 raise NotComputable(str(err))
         else:
-            return loopfree_cf(instr.true, sat_part) + loopfree_cf(
+            return loopfree_gf(instr.true, sat_part) + loopfree_gf(
                 instr.false, non_sat_part)
 
     if isinstance(instr, AsgnInstr):
@@ -81,13 +76,13 @@ def loopfree_cf(instr: Union[Instr, Sequence[Instr]],
                                       .format(precf.coefficient_sum())))
             if 0 < probability < precf.coefficient_sum():
                 expanded = precf.expand_until(probability)
-                return loopfree_cf(instr, expanded)
+                return loopfree_gf(instr, expanded)
             else:
                 raise NotComputable("The assigntment {} is not computable on {}".format(instr, precf))
 
     if isinstance(instr, ChoiceInstr):
-        lhs_block = loopfree_cf(instr.lhs, precf)
-        rhs_block = loopfree_cf(instr.rhs, precf)
+        lhs_block = loopfree_gf(instr.lhs, precf)
+        rhs_block = loopfree_gf(instr.rhs, precf)
         return GeneratingFunction(str(instr.prob), variables=precf.vars(), preciseness=precf.precision()) * lhs_block +\
             GeneratingFunction("1-" + str(instr.prob), variables=precf.vars(), preciseness=precf.precision()) * rhs_block
 

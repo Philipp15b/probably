@@ -1,4 +1,8 @@
 nat x;
 
-{x := x*x+1} [0.5] {skip};
-x := x*x*x
+if(x<=3){
+    x := x*x
+} else{
+    x := x*x*x
+}
+
