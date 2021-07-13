@@ -15,7 +15,6 @@ import click
 
 import probably.pgcl.compiler as pgcl
 from probably.pgcl.check import CheckFail
-from probably.pgcl.syntax import check_is_linear_program
 from probably.analysis.discrete import loopfree_gf
 from probably.analysis.generating_function import *
 
@@ -43,16 +42,7 @@ def main(input: IO):
             print(instr)
 
     print()
-    res = check_is_linear_program(program)
     GeneratingFunction.rational_preciseness = True
-    if res is not None:
-        print("Program is NOT linear:\n")
-        print(f"\t{res}")
-        gf = loopfree_gf(program.instructions, GeneratingFunction("1/(2-x)"))
-        print("\nCharacteristic-function\n", gf)
-        gf.create_histogram()
-    else:
-        print("Program is linear.")
-        gf = loopfree_gf(program.instructions, GeneratingFunction("1/(2-x)"))
-        print("\nCharacteristic-function\n", gf)
-        gf.create_histogram()
+    gf = loopfree_gf(program.instructions, GeneratingFunction("1/(2-x)"))
+    print("\nCharacteristic-function\n", gf)
+    gf.create_histogram()

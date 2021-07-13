@@ -1,5 +1,4 @@
 import sympy
-
 from probably.pgcl.ast import *
 import matplotlib.pyplot as plt
 
