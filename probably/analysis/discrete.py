@@ -72,10 +72,9 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
             return GeneratingFunction(result, variables=precf.vars(), preciseness=precf.precision())
         else:
             print("The assigntment {} is not computable on {}".format(instr, precf))
-            probability = sympy.S(input("Continue with approximation. Enter a probability (0, {}):\t"
-                                        .format(precf.coefficient_sum())))
-            if 0 < probability < precf.coefficient_sum():
-                expanded = precf.expand_until(probability)
+            error = sympy.S(input("Continue with approximation. Enter an allowed relative error (0, 1.0):\t"))
+            if 0 < error < 1:
+                expanded = precf.expand_until((1 - error) * precf.coefficient_sum())
                 return loopfree_gf(instr, expanded)
             else:
                 raise NotComputable("The assigntment {} is not computable on {}".format(instr, precf))
