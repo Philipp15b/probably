@@ -48,13 +48,15 @@ def main(input: IO):
 
     print()
     res = check_is_linear_program(program)
+    GeneratingFunction.rational_preciseness = True
     if res is not None:
         print("Program is NOT linear:\n")
         print(f"\t{res}")
         gf = loopfree_cf(program.instructions, GeneratingFunction("1/(2-x)"))
-        GeneratingFunction.rational_preciseness = True
         print("\nCharacteristic-function\n", gf)
         gf.create_histogram()
     else:
         print("Program is linear.")
-        print("\nCharacteristic-function\n", str(loopfree_cf(program.instructions, GeneratingFunction("1/(2-c)"))))
+        gf = loopfree_cf(program.instructions, GeneratingFunction("1/(2-x)"))
+        print("\nCharacteristic-function\n", gf)
+        gf.create_histogram()

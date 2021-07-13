@@ -40,8 +40,9 @@ class GeneratingFunction:
 
     def __add__(self, other):
         if isinstance(other, GeneratingFunction):
+            s, o = (self.coefficient_sum(), other.coefficient_sum())
             return GeneratingFunction(self._function + other._function, variables=self._variables,
-                                      preciseness=min(self._preciseness, other._preciseness))
+                                      preciseness=(s + o)/(s/self._preciseness + o/other._preciseness))
         else:
             raise SyntaxError("you try to add" + str(type(self)) + " with " + str(type(other)))
 
@@ -56,8 +57,9 @@ class GeneratingFunction:
     def __mul__(self, other):
         if isinstance(other, GeneratingFunction):
             # I am not sure whether the preciseness calculation is correct. Discussion needed
+            s, o = (self.coefficient_sum(), other.coefficient_sum())
             return GeneratingFunction(self._function * other._function, variables=self._variables,
-                                      preciseness=min(self._preciseness, other._preciseness))
+                                      preciseness=(s + o)/(s/self._preciseness + o/other._preciseness))
         else:
             raise SyntaxError(f"you try to add {1} with {2}", type(self),
                               type(other))
@@ -339,23 +341,31 @@ class GeneratingFunction:
         return GeneratingFunction(result.subs(replacements) * const_correction_term, variables=self._variables,
                                   preciseness=self._preciseness)
 
-    def create_histogram(self):
+    def create_histogram(self, n=100):
         """
         Shows the encoded distribution as a histogram.
         """
         if self._dimension > 2:
             raise Exception("We can only illustrate distributions with dimension 2 or less.")
-        data = []
-        ind = []
-        for addend in self.as_series():
-            (prob, mon) = self.split_addend(addend)
-            state = self._monomial_to_state(mon)
-            data.append(prob)
-            for var in self._variables:
-                ind.append(float(state[var]))
-        ax = plt.subplot()
-        ax.bar(ind, data, 1, linewidth=.5, ec=(0, 0, 0))
-        ax.set_xlabel('X')
-        ax.set_xticks(ind)
-        ax.set_ylabel('Probability p(x)')
-        plt.show()
+
+        if self._dimension != 1:
+            raise NotImplementedError("Only support of dimension 1")
+
+        if not self.is_finite():
+            gf = GeneratingFunction(self._function.series(n=n).removeO(), self._variables, self.precision())
+            gf.create_histogram()
+        else:
+            data = []
+            ind = []
+            for addend in self.as_series():
+                (prob, mon) = self.split_addend(addend)
+                state = self._monomial_to_state(mon)
+                data.append(prob)
+                for var in self._variables:
+                    ind.append(float(state[var]))
+            ax = plt.subplot()
+            ax.bar(ind, data, 1, linewidth=.5, ec=(0, 0, 0))
+            ax.set_xlabel('X')
+            ax.set_xticks(ind)
+            ax.set_ylabel('Probability p(x)')
+            plt.show()
