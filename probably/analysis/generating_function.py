@@ -45,8 +45,9 @@ class GeneratingFunction:
 
     def __sub__(self, other):
         if isinstance(other, GeneratingFunction):
+            s, o = (self.coefficient_sum(), other.coefficient_sum())
             return GeneratingFunction(self._function - other._function, variables=self._variables,
-                                      preciseness=self._preciseness)
+                                      preciseness=(s + o)/(s/self._preciseness + o/other._preciseness))
         else:
             raise SyntaxError(f"you try to subtract {2} from {1}", type(self),
                               type(other))
@@ -223,7 +224,6 @@ class GeneratingFunction:
 
     def evaluate(self, expression, monomial):
         operator = expression.operator
-
         if isinstance(expression, UnopExpr):
             if operator == Unop.NEG:
                 return not self.evaluate(expression.expr, monomial)
@@ -240,13 +240,18 @@ class GeneratingFunction:
             elif operator == Binop.OR:
                 return self.evaluate(lhs, monomial) or self.evaluate(rhs, monomial)
             elif operator == Binop.EQ or operator == Binop.LEQ or operator == Binop.LE:
-                equation = sympy.S(str(expression))
+                if operator == Binop.EQ:
+                    equation = sympy.S(f"{lhs} - {rhs}")
+                else:
+                    equation = sympy.S(str(expression))
                 variable_valuations = monomial.as_powers_dict()
                 for var in self._variables:
                     if var not in variable_valuations.keys():
                         equation = equation.subs(var, 0)
                     else:
                         equation = equation.subs(var, variable_valuations[var])
+                if operator == Binop.EQ:
+                    equation = equation == 0
                 return equation
             else:
                 raise AssertionError("Expression must be an (in-)equation!")
@@ -261,8 +266,7 @@ class GeneratingFunction:
         :return:
         """
         if expression.operator == Unop.NEG:
-            return GeneratingFunction(self._function - self.filter(expression.expr)._function,
-                                      variables=self._variables, preciseness=self._preciseness)
+            return self - self.filter(expression.expr)
         elif expression.operator == Binop.AND:
             result = self.filter(expression.lhs)
             return result.filter(expression.rhs)
