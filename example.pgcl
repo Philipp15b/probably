@@ -1,7 +1,5 @@
 nat x;
 
-if(x<=3){
-    x := x*x
-} else{
-    x := unif(2,9)
-};
+while (not (x = 1)){
+ {x:=1}[0.5]{x:=2}
+}
