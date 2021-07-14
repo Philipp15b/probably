@@ -1,1 +1,1 @@
-poetry run probably example.pgcl "1/(2-x)"
+poetry run probably example.pgcl

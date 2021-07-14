@@ -46,7 +46,7 @@ class GeneratingFunction:
     def __sub__(self, other):
         if isinstance(other, GeneratingFunction):
             s, o = (self.coefficient_sum(), other.coefficient_sum())
-            return GeneratingFunction(self._function - other._function, variables=self._variables,
+            return GeneratingFunction((self._function - other._function).simplify(), variables=self._variables,
                                       preciseness=(s + o)/(s/self._preciseness + o/other._preciseness))
         else:
             raise SyntaxError(f"you try to subtract {2} from {1}", type(self),
@@ -278,13 +278,6 @@ class GeneratingFunction:
                                  rhs=neg_rhs)
             neg_expr = UnopExpr(operator=Unop.NEG, expr=neg_conj)
             return self.filter(neg_expr)
-        elif self.is_finite():
-            result = sympy.S(0)
-            addends = self._function.as_coefficients_dict()
-            for monomial in addends:
-                if self.evaluate(expression, monomial):
-                    result += addends[monomial] * monomial
-            return GeneratingFunction(result, variables=self._variables, preciseness=self._preciseness)
         elif _is_constant_constraint(expression):
             if expression.operator == Binop.LE:
                 variable = sympy.S(str(expression.lhs))
@@ -293,7 +286,7 @@ class GeneratingFunction:
                 for i in range(0, constant):
                     result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).limit(
                         variable, 0) * variable ** i
-                return GeneratingFunction(result, variables=self._variables, preciseness=self._preciseness)
+                return GeneratingFunction(result.simplify(), variables=self._variables, preciseness=self._preciseness)
             elif expression.operator == Binop.LEQ:
                 variable = sympy.S(str(expression.lhs))
                 constant = expression.rhs.value
@@ -301,15 +294,22 @@ class GeneratingFunction:
                 for i in range(0, constant + 1):
                     result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).limit(
                         variable, 0) * variable ** i
-                return GeneratingFunction(result, variables=self._variables, preciseness=self._preciseness)
+                return GeneratingFunction(result.simplify(), variables=self._variables, preciseness=self._preciseness)
             elif expression.operator == Binop.EQ:
                 variable = sympy.S(str(expression.lhs))
                 constant = expression.rhs.value
                 return GeneratingFunction(
-                    (sympy.diff(self._function, variable, constant) / sympy.factorial(constant))
+                    ((sympy.diff(self._function, variable, constant) / sympy.factorial(constant))
                     .limit(variable, 0)
-                    * variable ** constant, variables=self._variables, preciseness=self._preciseness
+                    * variable ** constant).simplify(), variables=self._variables, preciseness=self._preciseness
                 )
+        elif self.is_finite():
+            result = sympy.S(0)
+            addends = self._function.as_coefficients_dict()
+            for monomial in addends:
+                if self.evaluate(expression, monomial):
+                    result += addends[monomial] * monomial
+            return GeneratingFunction(result.simplify(), variables=self._variables, preciseness=self._preciseness)
         else:
             raise NotComputable("Instruction {} is not computable on infinite generating function {}"
                                 .format(expression, self._function))

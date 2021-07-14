@@ -33,22 +33,21 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
 
     if isinstance(instr, WhileInstr):
         user_choice = int(input("While Instruction has only limited support. Choose an option:\n"
-              "[1]: Enter an Invariant\n"
-              "[2]: Fix a maximum number of iterations\n"
-              "[3]: Analyse until a certain probability mass is captured (might not terminate!)\n"))
+                                "[1]: Solve using invariants (Checks whether the invariant over-approximates the loop)\n"
+                                "[2]: Fix a maximum number of iterations (This results in an under-approximation)\n"
+                                "[3]: Analyse until a certain probability mass is captured (might not terminate!)\n"))
         if user_choice == 1:
-            invariant = sympy.S(input("Enter the invariant: "))
-            # TODO check the invariant here.
-            pass
+            raise NotImplementedError("Invariants not yet supported")
+
         elif user_choice == 2:
             max_iter = int(input("Specify a maximum iteration limit: "))
             sat_part, non_sat_part, approx = _safe_filter(precf, instr.cond)
             for i in range(max_iter):
                 iterated_part = loopfree_gf(instr.body, sat_part)
-                if iterated_sat + iterated_non_sat == iterated_part and not iterated_approx:
-                    # reached a fixpoint
-                    break
                 iterated_sat, iterated_non_sat, iterated_approx = _safe_filter(iterated_part, instr.cond)
+                if iterated_non_sat == GeneratingFunction(0) and iterated_sat == sat_part:
+                    print(f"Terminated already after {i} step(s)!")
+                    break
                 non_sat_part += iterated_non_sat
                 sat_part = iterated_sat
             return non_sat_part
@@ -87,7 +86,7 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
             factors = []
             for prob, value in instr.rhs.distribution():
                 factors.append(marginal * GeneratingFunction(f"{variable}**{value}*{prob}"))
-            return functools.reduce(lambda x, y: x+y, factors)
+            return functools.reduce(lambda x, y: x + y, factors)
         if check_is_linear_expr(instr.rhs) is None:
             variable = instr.lhs
             return precf.linear_transformation(variable, instr.rhs)

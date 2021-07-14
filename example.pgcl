@@ -1,5 +1,7 @@
 nat x;
+nat c;
 
-while (not (x = 1)){
- {x:=1}[0.5]{x:=2}
+while (x < 10){
+{c:= c+1}[0.5]{skip}
+x := x+1
 }
