@@ -9,6 +9,7 @@ from typing import Dict, Iterable, List, Optional, TypeVar, Union
 import attr
 
 from probably.util.ref import Mut
+from . import GeometricExpr
 
 from .ast import (AsgnInstr, Binop, BinopExpr, BoolLitExpr, BoolType,
                   CategoricalExpr, ChoiceInstr, Decl, Expr, RealLitExpr,
@@ -175,6 +176,9 @@ def get_type(program: Program,
 
     if isinstance(expr, CUniformExpr):
         return RealType()
+
+    if isinstance(expr, GeometricExpr):
+        return NatType(bounds=None)
 
     if isinstance(expr, CategoricalExpr):
         first_expr = expr.exprs[0][0]

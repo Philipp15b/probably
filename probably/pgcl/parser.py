@@ -57,6 +57,7 @@ _PGCL_GRAMMAR = """
     rvalue: "unif_d" "(" expression "," expression ")" -> duniform
           | "unif" "(" expression "," expression ")" -> duniform
           | "unif_c" "(" expression "," expression ")" -> cuniform
+          | "geometric" "(" expression ")" -> geometric
           | expression
 
     literal: "true"  -> true
@@ -268,6 +269,11 @@ def _parse_rvalue(t: Tree) -> Expr:
         if not isinstance(end, RealLitExpr):
             raise Exception(f"{end} is not a real number")
         return CUniformExpr(start, end)
+    elif t.data == 'geometric':
+        param = _parse_expr(_child_tree(t, 0))
+        if not isinstance(param, RealLitExpr):
+            raise Exception(f"{param} is not a real number")
+        return GeometricExpr(param)
 
     # otherwise we have an expression, but it may contain _LikelyExprs, which we
     # need to parse.

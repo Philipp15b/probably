@@ -11,6 +11,7 @@ import functools
 from probably.analysis.config import ForwardAnalysisConfig
 from probably.analysis.exceptions import ObserveZeroEventError
 from probably.analysis.generating_function import *
+from probably.analysis.pgfs import PGFS
 from probably.pgcl.syntax import check_is_linear_expr
 import sympy
 
@@ -86,7 +87,7 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
 
     if isinstance(instr, AsgnInstr):
 
-        # rhs is a sampling statement
+        # rhs is a uniform distribution
         if isinstance(instr.rhs, DUniformExpr):
             variable = instr.lhs
             marginal = precf.linear_transformation(variable, "0")  # Seems weird but think of program assignments.
@@ -102,6 +103,17 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
                 for prob, value in instr.rhs.distribution():
                     factors.append(marginal * GeneratingFunction(f"{variable}**{value}*{prob}"))
                 return functools.reduce(lambda x, y: x + y, factors)
+
+        # rhs is geometric distribution
+        if isinstance(instr.rhs, GeometricExpr):
+            variable = instr.lhs
+            marginal = precf.linear_transformation(variable, "0")
+            param = instr.rhs.param
+            return marginal * PGFS.geometric(variable, param)
+
+        # rhs is a categorical expression (explicit finite distr)
+        if isinstance(instr.rhs, CategoricalExpr):
+            raise NotImplementedError
 
         # rhs is a linear expression
         if check_is_linear_expr(instr.rhs) is None:

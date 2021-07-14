@@ -61,7 +61,7 @@ class GeneratingFunction:
             return GeneratingFunction(self._function * other._function, variables=self._variables,
                                       preciseness=(s + o)/(s/self._preciseness + o/other._preciseness))
         else:
-            raise SyntaxError("you try to add {} with {}".format(type(self),
+            raise SyntaxError("you try to multiply {} with {}".format(type(self),
                               type(other)))
 
     def __truediv__(self, other):

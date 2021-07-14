@@ -5,3 +5,7 @@ class ForwardAnalysisError(Exception):
 
 class ObserveZeroEventError(ForwardAnalysisError):
     pass
+
+
+class DistributionParameterError(ForwardAnalysisError):
+    pass

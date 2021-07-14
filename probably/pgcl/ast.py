@@ -523,6 +523,20 @@ class CUniformExpr(ExprClass):
     def __str__(self) -> str:
         return f'unif({expr_str_parens(self.start)}, {expr_str_parens(self.end)})'
 
+@attr.s
+class GeometricExpr(ExprClass):
+    """
+    Chooses a random geometrically distributed integer.
+
+    As *monadic expressions* (see :ref:`expressions`), geometric choice
+    expressions are only allowed as the right-hand side of an assignment
+    statement and not somewhere in a nested expression.
+    """
+    param: RealLitExpr = attr.ib()
+
+    def __str__(self) -> str:
+        return f'geometric({expr_str_parens(self.param)})'
+
 
 def _check_categorical_exprs(_self: "CategoricalExpr", _attribute: Any,
                              value: List[Tuple["Expr", RealLitExpr]]):
