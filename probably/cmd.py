@@ -38,9 +38,8 @@ def main(program_file: IO, input_gf: str):
         return
 
     print("\nProgram instructions:")
-    with open("instr", "r") as instr_file:
-        for instr in program.instructions:
-            print(instr)
+    for instr in program.instructions:
+        print(instr)
 
     print()
     if input_gf is None:
