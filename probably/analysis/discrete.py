@@ -9,6 +9,7 @@ You're in the right module!
 import functools
 
 from probably.analysis.config import ForwardAnalysisConfig
+from probably.analysis.exceptions import ObserveZeroEventError
 from probably.analysis.generating_function import *
 from probably.pgcl.syntax import check_is_linear_expr
 import sympy
@@ -133,7 +134,7 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
                 expanded = precf.expand_until((1 - error) * precf.coefficient_sum())
                 return loopfree_gf(instr, expanded)
             else:
-                raise NotComputable("The assigntment {} is not computable on {}".format(instr, precf))
+                raise NotComputable("The assignment {} is not computable on {}".format(instr, precf))
 
     if isinstance(instr, ChoiceInstr):
         lhs_block = loopfree_gf(instr.lhs, precf)
@@ -143,7 +144,15 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
                                   preciseness=precf.precision()) * rhs_block
 
     if isinstance(instr, TickInstr):
-        raise NotImplementedError("Dont support TickInstr in CF setting")
+        raise NotImplementedError("TickInstr not supported in forward analysis")
+
+    if isinstance(instr, ObserveInstr):
+        precf = precf.filter(instr.cond)
+        try:
+            precf = precf.normalized()
+        except ZeroDivisionError:
+            raise ObserveZeroEventError(f"observed event {instr.cond} has probability 0")
+        return precf
 
     raise Exception("illegal instruction")
 

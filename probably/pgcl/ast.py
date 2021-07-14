@@ -716,8 +716,23 @@ class TickInstr(InstrClass):
         return f"tick({self.expr});"
 
 
+@attr.s
+class ObserveInstr(InstrClass):
+    """
+    Updates the current distribution according to the observation (forward analysis only).
+    May result in an error if the observed condition has probability zero.
+
+    The type of ``expr`` must be :class:`BoolType`.
+    """
+    cond: Expr = attr.ib()
+
+    def __str__(self) -> str:
+        return f"observe({self.cond});"
+
+
+
 Instr = Union[SkipInstr, WhileInstr, IfInstr, AsgnInstr, ChoiceInstr,
-              TickInstr]
+              TickInstr, ObserveInstr]
 """Union type for all instruction objects. See :class:`InstrClass` for use with isinstance."""
 
 
