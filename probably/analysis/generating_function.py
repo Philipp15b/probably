@@ -366,7 +366,7 @@ class GeneratingFunction:
         return GeneratingFunction(result.subs(replacements) * const_correction_term, variables=self._variables,
                                   preciseness=self._preciseness)
 
-    def create_histogram(self, n=100):
+    def create_histogram(self, n=0, p: str = None):
         """
         Shows the encoded distribution as a histogram.
         """
@@ -377,7 +377,12 @@ class GeneratingFunction:
             raise NotImplementedError("Only support of dimension 1")
 
         if not self.is_finite():
-            gf = GeneratingFunction(self._function.series(n=n).removeO(), self._variables, self.precision())
+            if p:
+                gf = self.expand_until(p)
+            elif not (n == 0):
+                gf = GeneratingFunction(self._function.series(n=n).removeO(), self._variables, self.precision())
+            else:
+                gf = self.expand_until(self.coefficient_sum()*0.99)
             gf.create_histogram()
         else:
             data = []
