@@ -7,13 +7,18 @@ Want to calculate the characteristic function of a program?
 You're in the right module!
 """
 import functools
+
+from probably.analysis.config import ForwardAnalysisConfig
+from probably.analysis.exceptions import ObserveZeroEventError
 from probably.analysis.generating_function import *
+from probably.analysis.pgfs import PGFS
 from probably.pgcl.syntax import check_is_linear_expr
 import sympy
 
 
 def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
-                precf: GeneratingFunction) -> GeneratingFunction:
+                precf: GeneratingFunction,
+                config=ForwardAnalysisConfig()) -> GeneratingFunction:
     """
     Build the characteristic function as an expression.
 
@@ -23,6 +28,7 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
     Args:
         instr: The instruction to calculate the cf for, or a list of instructions.
         precf: Input generating function.
+        config: The configurable options.
     """
 
     if isinstance(instr, list):
@@ -80,16 +86,41 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
                 instr.false, non_sat_part)
 
     if isinstance(instr, AsgnInstr):
+
+        # rhs is a uniform distribution
         if isinstance(instr.rhs, DUniformExpr):
             variable = instr.lhs
             marginal = precf.linear_transformation(variable, "0")  # Seems weird but think of program assignments.
-            factors = []
-            for prob, value in instr.rhs.distribution():
-                factors.append(marginal * GeneratingFunction(f"{variable}**{value}*{prob}"))
-            return functools.reduce(lambda x, y: x + y, factors)
+            # either use the concise factorized representation of the uniform pgf ...
+            if config.use_factorized_duniform:
+                start = instr.rhs.start.value
+                end = instr.rhs.end.value
+                uniform_pgf_string = f"1/({end - start + 1}) * {variable}**{start} * ({variable}**({end - start + 1}) - 1) / ({variable} - 1)"
+                return marginal * GeneratingFunction(uniform_pgf_string)
+            # ... or use the representation as an explicit polynomial
+            else:
+                factors = []
+                for prob, value in instr.rhs.distribution():
+                    factors.append(marginal * GeneratingFunction(f"{variable}**{value}*{prob}"))
+                return functools.reduce(lambda x, y: x + y, factors)
+
+        # rhs is geometric distribution
+        if isinstance(instr.rhs, GeometricExpr):
+            variable = instr.lhs
+            marginal = precf.linear_transformation(variable, "0")
+            param = instr.rhs.param
+            return marginal * PGFS.geometric(variable, param)
+
+        # rhs is a categorical expression (explicit finite distr)
+        if isinstance(instr.rhs, CategoricalExpr):
+            raise NotImplementedError
+
+        # rhs is a linear expression
         if check_is_linear_expr(instr.rhs) is None:
             variable = instr.lhs
             return precf.linear_transformation(variable, instr.rhs)
+
+        # rhs is a non-linear expression, precf is finite
         elif precf.is_finite():
             result = sympy.S(0)
             for addend in precf.as_series():  # Take the addends of the Taylor expressions
@@ -106,14 +137,16 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
                     new_addend *= sympy.S(str(instr.lhs)) ** new_value  # and update
                 result += new_addend
             return GeneratingFunction(result, variables=precf.vars(), preciseness=precf.precision())
+
+        # rhs is non-linear, precf is infinite support
         else:
-            print("The assigntment {} is not computable on {}".format(instr, precf))
+            print("The assignment {} is not computable on {}".format(instr, precf))
             error = sympy.S(input("Continue with approximation. Enter an allowed relative error (0, 1.0):\t"))
             if 0 < error < 1:
                 expanded = precf.expand_until((1 - error) * precf.coefficient_sum())
                 return loopfree_gf(instr, expanded)
             else:
-                raise NotComputable("The assigntment {} is not computable on {}".format(instr, precf))
+                raise NotComputable("The assignment {} is not computable on {}".format(instr, precf))
 
     if isinstance(instr, ChoiceInstr):
         lhs_block = loopfree_gf(instr.lhs, precf)
@@ -123,7 +156,15 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
                                   preciseness=precf.precision()) * rhs_block
 
     if isinstance(instr, TickInstr):
-        raise NotImplementedError("Dont support TickInstr in CF setting")
+        raise NotImplementedError("TickInstr not supported in forward analysis")
+
+    if isinstance(instr, ObserveInstr):
+        precf = precf.filter(instr.cond)
+        try:
+            precf = precf.normalized()
+        except ZeroDivisionError:
+            raise ObserveZeroEventError(f"observed event {instr.cond} has probability 0")
+        return precf
 
     raise Exception("illegal instruction")
 

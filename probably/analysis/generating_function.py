@@ -1,3 +1,5 @@
+import functools
+
 import sympy
 from probably.pgcl.ast import *
 import matplotlib.pyplot as plt
@@ -59,7 +61,7 @@ class GeneratingFunction:
             return GeneratingFunction(self._function * other._function, variables=self._variables,
                                       preciseness=(s + o)/(s/self._preciseness + o/other._preciseness))
         else:
-            raise SyntaxError("you try to add {} with {}".format(type(self),
+            raise SyntaxError("you try to multiply {} with {}".format(type(self),
                               type(other)))
 
     def __truediv__(self, other):
@@ -214,6 +216,16 @@ class GeneratingFunction:
         for var in self.vars():
             result = result.subs(var, 0)
         return result
+
+    def probability_mass(self):
+        # use 'limit' instead of 'subs' to handle factored PGFs with denominators such as 1-x correctly
+        return functools.reduce(lambda x, y: x.limit(y, 1), self.vars(), self._function)
+
+    def normalized(self):
+        mass = self.probability_mass()
+        if mass == 0:
+            raise ZeroDivisionError
+        return GeneratingFunction(self._function / mass, preciseness=self._preciseness)
 
     def is_finite(self):
         """

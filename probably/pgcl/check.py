@@ -9,11 +9,12 @@ from typing import Dict, Iterable, List, Optional, TypeVar, Union
 import attr
 
 from probably.util.ref import Mut
+from . import GeometricExpr
 
 from .ast import (AsgnInstr, Binop, BinopExpr, BoolLitExpr, BoolType,
                   CategoricalExpr, ChoiceInstr, Decl, Expr, RealLitExpr,
-                  RealType, IfInstr, Instr, NatLitExpr, NatType, Node, Program,
-                  SkipInstr, Type, DUniformExpr, CUniformExpr, Unop, UnopExpr,
+                  RealType, IfInstr, Instr, NatLitExpr, NatType, Node, ObserveInstr,
+                  Program, SkipInstr, Type, DUniformExpr, CUniformExpr, Unop, UnopExpr,
                   Var, VarExpr, WhileInstr, VarDecl)
 from .ast import ProgramConfig  # pylint:disable=unused-import
 from .walk import Walk, walk_expr
@@ -175,6 +176,9 @@ def get_type(program: Program,
 
     if isinstance(expr, CUniformExpr):
         return RealType()
+
+    if isinstance(expr, GeometricExpr):
+        return NatType(bounds=None)
 
     if isinstance(expr, CategoricalExpr):
         first_expr = expr.exprs[0][0]
@@ -368,6 +372,15 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
             return CheckFail.expected_type_got(instr.prob, RealType(),
                                                prob_type)
         return _check_instrs(program, instr.lhs, instr.rhs)
+
+    if isinstance(instr, ObserveInstr):
+        cond_type = get_type(program, instr.cond)
+        if isinstance(cond_type, CheckFail):
+            return cond_type
+        if not is_compatible(BoolType(), cond_type):
+            return CheckFail.expected_type_got(instr.cond, BoolType(),
+                                               cond_type)
+        return None
 
     raise Exception("unreachable")
 

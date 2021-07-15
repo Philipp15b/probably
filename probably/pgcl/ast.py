@@ -523,6 +523,20 @@ class CUniformExpr(ExprClass):
     def __str__(self) -> str:
         return f'unif({expr_str_parens(self.start)}, {expr_str_parens(self.end)})'
 
+@attr.s
+class GeometricExpr(ExprClass):
+    """
+    Chooses a random geometrically distributed integer.
+
+    As *monadic expressions* (see :ref:`expressions`), geometric choice
+    expressions are only allowed as the right-hand side of an assignment
+    statement and not somewhere in a nested expression.
+    """
+    param: RealLitExpr = attr.ib()
+
+    def __str__(self) -> str:
+        return f'geometric({expr_str_parens(self.param)})'
+
 
 def _check_categorical_exprs(_self: "CategoricalExpr", _attribute: Any,
                              value: List[Tuple["Expr", RealLitExpr]]):
@@ -716,8 +730,23 @@ class TickInstr(InstrClass):
         return f"tick({self.expr});"
 
 
+@attr.s
+class ObserveInstr(InstrClass):
+    """
+    Updates the current distribution according to the observation (forward analysis only).
+    May result in an error if the observed condition has probability zero.
+
+    The type of ``expr`` must be :class:`BoolType`.
+    """
+    cond: Expr = attr.ib()
+
+    def __str__(self) -> str:
+        return f"observe({self.cond});"
+
+
+
 Instr = Union[SkipInstr, WhileInstr, IfInstr, AsgnInstr, ChoiceInstr,
-              TickInstr]
+              TickInstr, ObserveInstr]
 """Union type for all instruction objects. See :class:`InstrClass` for use with isinstance."""
 
 
