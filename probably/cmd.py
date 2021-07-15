@@ -52,3 +52,8 @@ def main(program_file: IO, input_gf: str):
     print("\nCharacteristic-function\n", gf)
     gf = GeneratingFunction(gf._function.expand(), {"x"}, gf.precision())
     gf.create_histogram()
+
+
+if __name__ == "__main__":
+    # execute only if run as a script
+    main()  # pylint: disable=no-value-for-parameter
