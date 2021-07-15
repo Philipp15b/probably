@@ -1,8 +1,9 @@
 import functools
 
 import sympy
-from probably.pgcl.ast import *
 import matplotlib.pyplot as plt
+
+from probably.pgcl import Unop, VarExpr, NatLitExpr, UnopExpr, BinopExpr, Binop, Expr
 
 
 def _is_constant_constraint(expression):  # Move this to expression checks etc.
@@ -140,6 +141,12 @@ class GeneratingFunction:
 
     @classmethod
     def split_addend(cls, addend):
+        """
+        This method assumes that the addend is given in terms of :math:`\alpha \times X^{\sigma}`, where
+        :math:`\alpha \in [0,1], \sigma \in \mathbb{N}^k`.
+        :param addend: the addend to split into its factor and monomial.
+        :return: a tuple (factor, monomial)
+        """
         prob_and_mon = addend.as_coefficients_dict()
         result = tuple()
         for monomial in prob_and_mon:
@@ -148,6 +155,14 @@ class GeneratingFunction:
         return result
 
     def diff(self, variable, k):
+        """
+        Partial `k`-th derivative of the generating function with respect to variable `variable`.
+        :param variable: The variable in which the generating function gets differentiated.
+        :param k: The order of the partial derivative.
+        :return: The `k`-th partial derivative of the generating function in `variable`
+
+        .. math:: \fraction{\delta G^`k`}{\delta `var`^`k`}
+        """
         return GeneratingFunction(sympy.diff(self._function, sympy.S(variable), k), variables=self._variables,
                                   preciseness=self._preciseness)
 
@@ -217,12 +232,8 @@ class GeneratingFunction:
             result = result.subs(var, 0)
         return result
 
-    def probability_mass(self):
-        # use 'limit' instead of 'subs' to handle factored PGFs with denominators such as 1-x correctly
-        return functools.reduce(lambda x, y: x.limit(y, 1), self.vars(), self._function)
-
     def normalized(self):
-        mass = self.probability_mass()
+        mass = self.coefficient_sum()
         if mass == 0:
             raise ZeroDivisionError
         return GeneratingFunction(self._function / mass, preciseness=self._preciseness)
@@ -242,8 +253,8 @@ class GeneratingFunction:
             else:
                 raise NotImplementedError(
                     "Iverson brackets are not supported.")
-
         elif isinstance(expression, BinopExpr):
+
             lhs = expression.lhs
             rhs = expression.rhs
 
@@ -271,7 +282,7 @@ class GeneratingFunction:
             raise AssertionError(
                 "Expression has an unknown format and/or type.")
 
-    def filter(self, expression):
+    def filter(self, expression: Expr):
         """
         Rough implementation of a filter. Can only handle distributions with finite support, or constant constraints on
         infinite support distributions.

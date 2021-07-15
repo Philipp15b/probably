@@ -7,11 +7,14 @@ Want to calculate the characteristic function of a program?
 You're in the right module!
 """
 import functools
+from typing import Union, Sequence, Tuple
 
 from probably.analysis.config import ForwardAnalysisConfig
 from probably.analysis.exceptions import ObserveZeroEventError
-from probably.analysis.generating_function import *
+from probably.analysis.generating_function import GeneratingFunction, NotComputable
 from probably.analysis.pgfs import PGFS
+from probably.pgcl import Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr, GeometricExpr, CategoricalExpr, ChoiceInstr, \
+    TickInstr, ObserveInstr, DUniformExpr, Expr
 from probably.pgcl.syntax import check_is_linear_expr
 import sympy
 
@@ -95,8 +98,7 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
             if config.use_factorized_duniform:
                 start = instr.rhs.start.value
                 end = instr.rhs.end.value
-                uniform_pgf_string = f"1/({end - start + 1}) * {variable}**{start} * ({variable}**({end - start + 1}) - 1) / ({variable} - 1)"
-                return marginal * GeneratingFunction(uniform_pgf_string)
+                return marginal * PGFS.uniform(variable, start, end)
             # ... or use the representation as an explicit polynomial
             else:
                 factors = []
