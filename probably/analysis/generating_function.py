@@ -29,11 +29,11 @@ class GeneratingFunction:
 
     def __init__(self, function: str = "", variables=set(), preciseness=1.0):
         self._function = sympy.S(function, rational=True)
-        self._dimension = len(self._function.free_symbols)
         self._variables = self._function.free_symbols
         self._preciseness = sympy.S(str(preciseness), rational=True)
         for variable in variables:
             self._variables = self._variables.union({sympy.S(variable)})
+        self._dimension = len(self._variables)
 
     def __add__(self, other):
         if isinstance(other, GeneratingFunction):
@@ -266,7 +266,8 @@ class GeneratingFunction:
         :return:
         """
         if expression.operator == Unop.NEG:
-            return self - self.filter(expression.expr)
+            result = self - self.filter(expression.expr)
+            return result
         elif expression.operator == Binop.AND:
             result = self.filter(expression.lhs)
             return result.filter(expression.rhs)
@@ -284,8 +285,8 @@ class GeneratingFunction:
                 constant = expression.rhs.value
                 result = sympy.S(0)
                 for i in range(0, constant):
-                    result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).limit(
-                        variable, 0) * variable ** i
+                    result += ((sympy.diff(self._function, variable, i) / sympy.factorial(i)).limit(
+                        variable, 0) * variable ** i).simplify()
                 return GeneratingFunction(result.simplify(), variables=self._variables, preciseness=self._preciseness)
             elif expression.operator == Binop.LEQ:
                 variable = sympy.S(str(expression.lhs))
