@@ -1,5 +1,3 @@
-import functools
-
 import sympy
 import matplotlib.pyplot as plt
 
@@ -41,29 +39,32 @@ class GeneratingFunction:
     def __add__(self, other):
         if isinstance(other, GeneratingFunction):
             s, o = (self.coefficient_sum(), other.coefficient_sum())
-            return GeneratingFunction(self._function + other._function, variables=self._variables,
-                                      preciseness=(s + o)/(s/self._preciseness + o/other._preciseness))
+            return GeneratingFunction(self._function + other._function,
+                                      variables=self._variables.union(other._variables),
+                                      preciseness=(s + o) / (s / self._preciseness + o / other._preciseness)
+                                      )
         else:
             raise SyntaxError("you try to add" + str(type(self)) + " with " + str(type(other)))
 
     def __sub__(self, other):
         if isinstance(other, GeneratingFunction):
             s, o = (self.coefficient_sum(), other.coefficient_sum())
-            return GeneratingFunction((self._function - other._function).simplify(), variables=self._variables,
-                                      preciseness=(s + o)/(s/self._preciseness + o/other._preciseness))
+            return GeneratingFunction((self._function - other._function).simplify(),
+                                      variables=self._variables.union(other._variables),
+                                      preciseness=(s + o) / (s / self._preciseness + o / other._preciseness)
+                                      )
         else:
-            raise SyntaxError(f"you try to subtract {2} from {1}", type(self),
-                              type(other))
+            raise SyntaxError(f"you try to subtract {type(self)} from {type(other)}")
 
     def __mul__(self, other):
         if isinstance(other, GeneratingFunction):
             # I am not sure whether the preciseness calculation is correct. Discussion needed
             s, o = (self.coefficient_sum(), other.coefficient_sum())
             return GeneratingFunction(self._function * other._function, variables=self._variables,
-                                      preciseness=(s + o)/(s/self._preciseness + o/other._preciseness))
+                                      preciseness=(s + o) / (s / self._preciseness + o / other._preciseness))
         else:
             raise SyntaxError("you try to multiply {} with {}".format(type(self),
-                              type(other)))
+                                                                      type(other)))
 
     def __truediv__(self, other):
         raise NotImplementedError("Division currently not supported")
@@ -199,7 +200,7 @@ class GeneratingFunction:
                 break
             else:
                 expanded_expr += GeneratingFunction(term, self._variables)
-        expanded_expr._preciseness = self._preciseness * expanded_expr.coefficient_sum()/self.coefficient_sum()
+        expanded_expr._preciseness = self._preciseness * expanded_expr.coefficient_sum() / self.coefficient_sum()
         return expanded_expr
 
     def dim(self):
@@ -324,8 +325,8 @@ class GeneratingFunction:
                 constant = expression.rhs.value
                 return GeneratingFunction(
                     ((sympy.diff(self._function, variable, constant) / sympy.factorial(constant))
-                    .limit(variable, 0)
-                    * variable ** constant).simplify(), variables=self._variables, preciseness=self._preciseness
+                     .limit(variable, 0)
+                     * variable ** constant).simplify(), variables=self._variables, preciseness=self._preciseness
                 )
         elif self.is_finite():
             result = sympy.S(0)
@@ -370,10 +371,10 @@ class GeneratingFunction:
         """
         Shows the encoded distribution as a histogram.
         """
-        if self._dimension > 2:
+        if len(self._function.free_symbols) > 2:
             raise Exception("We can only illustrate distributions with dimension 2 or less.")
 
-        if self._dimension > 1:
+        if len(self._function.free_symbols) > 1:
             raise NotImplementedError("Only support of dimension 1")
 
         if not self.is_finite():
@@ -382,7 +383,7 @@ class GeneratingFunction:
             elif not (n == 0):
                 gf = GeneratingFunction(self._function.series(n=n).removeO(), self._variables, self.precision())
             else:
-                gf = self.expand_until(self.coefficient_sum()*0.99)
+                gf = self.expand_until(self.coefficient_sum() * 0.99)
             gf.create_histogram()
         else:
             data = []
@@ -391,7 +392,7 @@ class GeneratingFunction:
                 (prob, mon) = self.split_addend(addend)
                 state = self._monomial_to_state(mon)
                 data.append(prob)
-                for var in self._variables:
+                for var in self._function.free_symbols:
                     ind.append(float(state[var]))
             ax = plt.subplot()
             ax.bar(ind, data, 1, linewidth=.5, ec=(0, 0, 0))

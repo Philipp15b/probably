@@ -7,7 +7,9 @@ Want to calculate the characteristic function of a program?
 You're in the right module!
 """
 import functools
+import sympy
 from typing import Union, Sequence, Tuple
+
 
 from probably.analysis.config import ForwardAnalysisConfig
 from probably.analysis.exceptions import ObserveZeroEventError
@@ -16,7 +18,6 @@ from probably.analysis.pgfs import PGFS
 from probably.pgcl import Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr, GeometricExpr, CategoricalExpr, ChoiceInstr, \
     TickInstr, ObserveInstr, DUniformExpr, Expr, BinomialExpr, PoissonExpr, LogDistExpr
 from probably.pgcl.syntax import check_is_linear_expr
-import sympy
 
 
 def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
