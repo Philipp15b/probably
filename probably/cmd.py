@@ -16,7 +16,7 @@ import click
 import probably.pgcl.compiler as pgcl
 from probably.pgcl.check import CheckFail
 from probably.analysis.discrete import loopfree_gf
-from probably.analysis.generating_function import *
+from probably.analysis.generating_function import GeneratingFunction
 
 
 @click.command()
