@@ -249,6 +249,8 @@ class ExprClass(Node):
         """
 
 
+
+
 @attr.s(repr=False)
 class VarExpr(ExprClass):
     """A variable is an expression."""
@@ -599,6 +601,10 @@ class BinomialExpr(ExprClass):
         return f'binomial({expr_str_parens(self.n)}, {expr_str_parens(self.p)})'
 
 
+DistrExpr = Union[DUniformExpr, CUniformExpr, BernoulliExpr, GeometricExpr, PoissonExpr, LogDistExpr, BinomialExpr]
+""" A type combining all sampling expressions"""
+
+
 def _check_categorical_exprs(_self: "CategoricalExpr", _attribute: Any,
                              value: List[Tuple["Expr", RealLitExpr]]):
     probabilities = (prob.to_fraction() for _, prob in value)
@@ -685,8 +691,8 @@ def expr_str_parens(expr: ExprClass) -> str:
 
 
 Expr = Union[VarExpr, BoolLitExpr, NatLitExpr, RealLitExpr, RealLitExpr,
-             UnopExpr, BinopExpr, DUniformExpr, CUniformExpr, CategoricalExpr,
-             SubstExpr, TickExpr, GeometricExpr, PoissonExpr, LogDistExpr, BernoulliExpr, BinomialExpr]
+             UnopExpr, BinopExpr, CategoricalExpr,
+             SubstExpr, TickExpr, DistrExpr]
 """Union type for all expression objects. See :class:`ExprClass` for use with isinstance."""
 
 
