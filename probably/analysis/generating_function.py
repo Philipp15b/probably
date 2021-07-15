@@ -2,6 +2,8 @@ import sympy
 import matplotlib.pyplot as plt
 
 from probably.pgcl import Unop, VarExpr, NatLitExpr, UnopExpr, BinopExpr, Binop, Expr
+from typing import Optional
+import operator
 
 
 def _is_constant_constraint(expression):  # Move this to expression checks etc.
@@ -28,46 +30,48 @@ class GeneratingFunction:
     """
     rational_preciseness = False
 
-    def __init__(self, function: str = "", variables=set(), preciseness=1.0):
+    def __init__(self,
+                 function: str = "",
+                 variables: set = None,
+                 preciseness=1.0,
+                 closed: bool = None,
+                 finite: bool = None):
+
         self._function = sympy.S(function, rational=True)
         self._variables = self._function.free_symbols
         self._preciseness = sympy.S(str(preciseness), rational=True)
-        for variable in variables:
-            self._variables = self._variables.union({sympy.S(variable)})
+        if variables:
+            for variable in variables:
+                self._variables = self._variables.union({sympy.S(variable)})
         self._dimension = len(self._variables)
+        self._is_closed_form = closed if closed else self._function.is_polynomial()
+        self._is_finite = finite if finite else self._function.is_polynomial()
+
+    def _arithmetic(self, other, op: operator):
+        if isinstance(other, GeneratingFunction):
+
+            s, o = self.coefficient_sum(), other.coefficient_sum()
+            is_closed_form = self._is_closed_form and other._is_closed_form
+            is_finite = self._is_finite and other._is_finite
+            preciseness = (s + o) / (s / self._preciseness + o / other._preciseness)
+            function = op(self._function, other._function)
+            variables = self._variables.union(other._variables)
+
+            return GeneratingFunction(function, variables, preciseness, is_closed_form, is_finite)
+        else:
+            raise SyntaxError(f"You cannot {str(op)} {type(self)} with {type(other)}.")
 
     def __add__(self, other):
-        if isinstance(other, GeneratingFunction):
-            s, o = (self.coefficient_sum(), other.coefficient_sum())
-            return GeneratingFunction(self._function + other._function,
-                                      variables=self._variables.union(other._variables),
-                                      preciseness=(s + o) / (s / self._preciseness + o / other._preciseness)
-                                      )
-        else:
-            raise SyntaxError("you try to add" + str(type(self)) + " with " + str(type(other)))
+        return self._arithmetic(other, operator.add)
 
     def __sub__(self, other):
-        if isinstance(other, GeneratingFunction):
-            s, o = (self.coefficient_sum(), other.coefficient_sum())
-            return GeneratingFunction((self._function - other._function).simplify(),
-                                      variables=self._variables.union(other._variables),
-                                      preciseness=(s + o) / (s / self._preciseness + o / other._preciseness)
-                                      )
-        else:
-            raise SyntaxError(f"you try to subtract {type(self)} from {type(other)}")
+        return self._arithmetic(other, operator.sub)
 
     def __mul__(self, other):
-        if isinstance(other, GeneratingFunction):
-            # I am not sure whether the preciseness calculation is correct. Discussion needed
-            s, o = (self.coefficient_sum(), other.coefficient_sum())
-            return GeneratingFunction(self._function * other._function, variables=self._variables,
-                                      preciseness=(s + o) / (s / self._preciseness + o / other._preciseness))
-        else:
-            raise SyntaxError("you try to multiply {} with {}".format(type(self),
-                                                                      type(other)))
+        return self._arithmetic(other, operator.mul)
 
     def __truediv__(self, other):
-        raise NotImplementedError("Division currently not supported")
+        return self._arithmetic(other, operator.truediv)
 
     def __str__(self):
         if GeneratingFunction.rational_preciseness:
@@ -96,16 +100,18 @@ class GeneratingFunction:
         if not isinstance(other, GeneratingFunction):
             return False
         else:
-            if self.is_finite():
-                terms = self._function.as_coefficients_dict()
+            if self._is_finite:
+                func = self._function.expand() if self._is_closed_form else self._function
+                terms = func.as_coefficients_dict()
                 for monomial in terms:
                     variables = monomial.as_powers_dict()
                     for var in variables:
                         if terms[monomial] >= other.probability_of({var: variables[var]}):
                             return False
                 return True
-            elif other.is_finite():
-                terms = other._function.as_coefficients_dict()
+            elif other._is_finite:
+                func = other._function.expand() if other._is_closed_form else other._function
+                terms = func.as_coefficients_dict()
                 for monomial in terms:
                     if terms[monomial] >= self.probability_of(monomial):
                         return False
@@ -122,7 +128,7 @@ class GeneratingFunction:
         return not (self <= other)
 
     def __ne__(self, other):
-        return self != other
+        return not (self == other)
 
     def _monomial_to_state(self, monomial):
         variables_and_powers = monomial.as_powers_dict()
@@ -225,13 +231,21 @@ class GeneratingFunction:
         :param state: The queried program state.
         :return: The probability for that state.
         """
-        result = self._function
-        for variable, value in state.items():
-            result = sympy.diff(result, sympy.S(variable), value)
-            result /= sympy.factorial(value)
-        for var in self.vars():
-            result = result.subs(var, 0)
-        return result
+
+        if self._is_closed_form or not self._is_finite:
+            result = self._function
+            for variable, value in state.items():
+                result = sympy.diff(result, sympy.S(variable), value)
+                result /= sympy.factorial(value)
+            for var in self.vars():
+                result = result.subs(var, 0)
+            return result
+        else:
+            monomial = sympy.S(1)
+            for variable, value in state.items():
+                monomial *= sympy.S(f"{variable} ** {value}")
+            probability = self._function.as_poly().coeff_monomial(monomial)
+            return probability if probability else sympy.core.numbers.Zero
 
     def normalized(self):
         mass = self.coefficient_sum()
@@ -244,12 +258,12 @@ class GeneratingFunction:
         Checks whether the generating function is finite.
         :return: True if the GF is a polynomial, False otherwise.
         """
-        return self._function.is_polynomial()
+        return self._is_finite
 
     def evaluate(self, expression, monomial):
-        operator = expression.operator
+        op = expression.operator
         if isinstance(expression, UnopExpr):
-            if operator == Unop.NEG:
+            if op == Unop.NEG:
                 return not self.evaluate(expression.expr, monomial)
             else:
                 raise NotImplementedError(
@@ -259,12 +273,12 @@ class GeneratingFunction:
             lhs = expression.lhs
             rhs = expression.rhs
 
-            if operator == Binop.AND:
+            if op == Binop.AND:
                 return self.evaluate(lhs, monomial) and self.evaluate(rhs, monomial)
-            elif operator == Binop.OR:
+            elif op == Binop.OR:
                 return self.evaluate(lhs, monomial) or self.evaluate(rhs, monomial)
-            elif operator == Binop.EQ or operator == Binop.LEQ or operator == Binop.LE:
-                if operator == Binop.EQ:
+            elif op == Binop.EQ or op == Binop.LEQ or op == Binop.LE:
+                if op == Binop.EQ:
                     equation = sympy.S(f"{lhs} - {rhs}")
                 else:
                     equation = sympy.S(str(expression))
@@ -274,7 +288,7 @@ class GeneratingFunction:
                         equation = equation.subs(var, 0)
                     else:
                         equation = equation.subs(var, variable_valuations[var])
-                if operator == Binop.EQ:
+                if op == Binop.EQ:
                     equation = equation == 0
                 return equation
             else:
@@ -289,6 +303,8 @@ class GeneratingFunction:
         infinite support distributions.
         :return:
         """
+
+        # Logical operators
         if expression.operator == Unop.NEG:
             result = self - self.filter(expression.expr)
             return result
@@ -298,11 +314,11 @@ class GeneratingFunction:
         elif expression.operator == Binop.OR:
             neg_lhs = UnopExpr(operator=Unop.NEG, expr=expression.lhs)
             neg_rhs = UnopExpr(operator=Unop.NEG, expr=expression.rhs)
-            neg_conj = BinopExpr(operator=Binop.AND,
-                                 lhs=neg_lhs,
-                                 rhs=neg_rhs)
-            neg_expr = UnopExpr(operator=Unop.NEG, expr=neg_conj)
+            conj = BinopExpr(operator=Binop.AND, lhs=neg_lhs, rhs=neg_rhs)
+            neg_expr = UnopExpr(operator=Unop.NEG, expr=conj)
             return self.filter(neg_expr)
+
+        # Constant expressions
         elif _is_constant_constraint(expression):
             if expression.operator == Binop.LE:
                 variable = sympy.S(str(expression.lhs))
@@ -328,9 +344,10 @@ class GeneratingFunction:
                      .limit(variable, 0)
                      * variable ** constant).simplify(), variables=self._variables, preciseness=self._preciseness
                 )
+        # evaluate on finite
         elif self.is_finite():
             result = sympy.S(0)
-            addends = self._function.as_coefficients_dict()
+            addends = self._function.as_coefficients_dict() if not self._is_closed_form else self._function.expand().as_coefficients_dict()
             for monomial in addends:
                 if self.evaluate(expression, monomial):
                     result += addends[monomial] * monomial
@@ -381,7 +398,7 @@ class GeneratingFunction:
             if p:
                 gf = self.expand_until(p)
             elif not (n == 0):
-                gf = GeneratingFunction(self._function.series(n=n).removeO(), self._variables, self.precision())
+                gf = GeneratingFunction(self._function.series(*self._function.free_symbols, n=n).removeO(), self._variables, self.precision())
             else:
                 gf = self.expand_until(self.coefficient_sum() * 0.99)
             gf.create_histogram()
@@ -396,7 +413,7 @@ class GeneratingFunction:
                     ind.append(float(state[var]))
             ax = plt.subplot()
             ax.bar(ind, data, 1, linewidth=.5, ec=(0, 0, 0))
-            ax.set_xlabel('X')
+            ax.set_xlabel(f"{self._function.free_symbols}")
             ax.set_xticks(ind)
-            ax.set_ylabel('Probability p(x)')
+            ax.set_ylabel(f'Probability p({self._function.free_symbols})')
             plt.show()
