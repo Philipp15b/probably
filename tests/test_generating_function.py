@@ -22,6 +22,11 @@ def create_random_gf(vars: int = 1, terms: int = 1):
     return GeneratingFunction(result, variables=set(symbols))
 
 
+def test_arithmetic():
+    #Todo implement me: addition, subtraction multiplication
+    pass
+
+
 def test_dim():
     count = random.randint(1, 10)
     gf = create_random_gf(count, random.randint(1, 100))
