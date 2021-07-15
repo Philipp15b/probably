@@ -16,7 +16,7 @@ class PGFS:
     def uniform(cls, var, a: str, b: str):
         if not (0 <= sp.S(a) < sp.S(b)):
             raise DistributionParameterError(f"Distribution parameters must satisfy 0 <= a < b < oo")
-        return GeneratingFunction(f"1/({b - a + 1}) * {var}**{a} * ({var}**({b - a + 1}) - 1) / ({var} - 1)")
+        return GeneratingFunction(f"1/({b} - {a} + 1) * {var}**{a} * ({var}**({b} - {a} + 1) - 1) / ({var} - 1)")
 
     @classmethod
     def bernoulli(cls, var, p: str):
