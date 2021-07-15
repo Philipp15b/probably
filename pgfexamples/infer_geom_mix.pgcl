@@ -9,23 +9,21 @@ res := 0;
 
 c := unif(1,3);
 
-if(c = 1) {
-    tmp := geometric(0.5);
+tmp := geometric(0.5);
+res := res + tmp;
+if(c = 2 || c = 3) {
+    tmp := geometric(0.3);
+    res := res + tmp;
+} else {skip}
+if(c = 3) {
+    tmp := geometric(0.2);
     res := res + tmp;
 } else {
-    if(c = 2) {
-        tmp := geometric(0.3);
-        res := res + tmp;
-    } else {
-        if(c = 3) {
-            tmp := geometric(0.2);
-            res := res + tmp;
-        } else { skip; }
-    }
+     skip
 }
 
 tmp := 0
 
 observe(res = 2)
 
-// res := 0
+res := 0
