@@ -20,7 +20,7 @@ import sympy
 
 
 def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
-                precf: GeneratingFunction,
+                input_gf: GeneratingFunction,
                 config=ForwardAnalysisConfig()) -> GeneratingFunction:
     """
     Build the characteristic function as an expression.
@@ -30,15 +30,15 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
 
     Args:
         instr: The instruction to calculate the cf for, or a list of instructions.
-        precf: Input generating function.
+        input_gf: Input generating function.
         config: The configurable options.
     """
 
     if isinstance(instr, list):
-        return functools.reduce(lambda x, y: loopfree_gf(y, x), instr, precf)
+        return functools.reduce(lambda x, y: loopfree_gf(y, x), instr, input_gf)
 
     if isinstance(instr, SkipInstr):
-        return precf
+        return input_gf
 
     if isinstance(instr, WhileInstr):
         user_choice = int(input("While Instruction has only limited support. Choose an option:\n"
@@ -50,7 +50,7 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
 
         elif user_choice == 2:
             max_iter = int(input("Specify a maximum iteration limit: "))
-            sat_part, non_sat_part, approx = _safe_filter(precf, instr.cond)
+            sat_part, non_sat_part, approx = _safe_filter(input_gf, instr.cond)
             for i in range(max_iter):
                 iterated_part = loopfree_gf(instr.body, sat_part)
                 iterated_sat, iterated_non_sat, iterated_approx = _safe_filter(iterated_part, instr.cond)
@@ -62,7 +62,7 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
             return non_sat_part
         elif user_choice == 3:
             captured_probability_threshold = sympy.S(input("Enter the probability threshold: "))
-            sat_part, non_sat_part, approx = _safe_filter(precf, instr.cond)
+            sat_part, non_sat_part, approx = _safe_filter(input_gf, instr.cond)
             while non_sat_part.coefficient_sum() < captured_probability_threshold:
                 iterated_part = loopfree_gf(instr.body, sat_part)
                 iterated_sat, iterated_non_sat, iterated_approx = _safe_filter(iterated_part, instr.cond)
@@ -74,14 +74,14 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
 
     if isinstance(instr, IfInstr):
         try:
-            sat_part = precf.filter(instr.cond)
-            non_sat_part = precf - sat_part
+            sat_part = input_gf.filter(instr.cond)
+            non_sat_part = input_gf - sat_part
         except NotComputable as err:
             print(err)
             probability = input("Continue with approximation. Enter a probability (0, {}):\t"
-                                .format(precf.coefficient_sum()))
+                                .format(input_gf.coefficient_sum()))
             if probability > 0:
-                return loopfree_gf(instr, precf.expand_until(probability))
+                return loopfree_gf(instr, input_gf.expand_until(probability))
             else:
                 raise NotComputable(str(err))
         else:
@@ -93,7 +93,7 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
         # rhs is a uniform distribution
         if isinstance(instr.rhs, DUniformExpr):
             variable = instr.lhs
-            marginal = precf.linear_transformation(variable, "0")  # Seems weird but think of program assignments.
+            marginal = input_gf.linear_transformation(variable, "0")  # Seems weird but think of program assignments.
             # either use the concise factorized representation of the uniform pgf ...
             if config.use_factorized_duniform:
                 start = instr.rhs.start.value
@@ -109,7 +109,7 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
         # rhs is geometric distribution
         if isinstance(instr.rhs, GeometricExpr):
             variable = instr.lhs
-            marginal = precf.linear_transformation(variable, "0")
+            marginal = input_gf.linear_transformation(variable, "0")
             param = instr.rhs.param
             return marginal * PGFS.geometric(variable, param)
 
@@ -120,53 +120,53 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
         # rhs is a linear expression
         if check_is_linear_expr(instr.rhs) is None:
             variable = instr.lhs
-            return precf.linear_transformation(variable, instr.rhs)
+            return input_gf.linear_transformation(variable, instr.rhs)
 
         # rhs is a non-linear expression, precf is finite
-        elif precf.is_finite():
+        elif input_gf.is_finite():
             result = sympy.S(0)
-            for addend in precf.as_series():  # Take the addends of the Taylor expressions
+            for addend in input_gf.as_series():  # Take the addends of the Taylor expressions
                 term = addend.as_coefficients_dict()  # Convert them into a dict separating monomials from coefficients
                 new_addend = sympy.S(addend).subs(str(instr.lhs), 1)  # create the updated monomial.
                 for monomial in term:  # For each of these monomial probability pairs...
                     var_powers = monomial.as_powers_dict()  # check the individual powers from the variables
                     new_value = sympy.S(str(instr.rhs))
-                    for var in precf.vars():  # for each variable check its current state
+                    for var in input_gf.vars():  # for each variable check its current state
                         if var not in var_powers.keys():
                             new_value = new_value.subs(var, 0)
                         else:
                             new_value = new_value.subs(var, var_powers[var])
                     new_addend *= sympy.S(str(instr.lhs)) ** new_value  # and update
                 result += new_addend
-            return GeneratingFunction(result, variables=precf.vars(), preciseness=precf.precision())
+            return GeneratingFunction(result, variables=input_gf.vars(), preciseness=input_gf.precision())
 
         # rhs is non-linear, precf is infinite support
         else:
-            print("The assignment {} is not computable on {}".format(instr, precf))
+            print("The assignment {} is not computable on {}".format(instr, input_gf))
             error = sympy.S(input("Continue with approximation. Enter an allowed relative error (0, 1.0):\t"))
             if 0 < error < 1:
-                expanded = precf.expand_until((1 - error) * precf.coefficient_sum())
+                expanded = input_gf.expand_until((1 - error) * input_gf.coefficient_sum())
                 return loopfree_gf(instr, expanded)
             else:
-                raise NotComputable("The assignment {} is not computable on {}".format(instr, precf))
+                raise NotComputable("The assignment {} is not computable on {}".format(instr, input_gf))
 
     if isinstance(instr, ChoiceInstr):
-        lhs_block = loopfree_gf(instr.lhs, precf)
-        rhs_block = loopfree_gf(instr.rhs, precf)
-        return GeneratingFunction(str(instr.prob), variables=precf.vars(), preciseness=precf.precision()) * lhs_block + \
-               GeneratingFunction("1-" + str(instr.prob), variables=precf.vars(),
-                                  preciseness=precf.precision()) * rhs_block
+        lhs_block = loopfree_gf(instr.lhs, input_gf)
+        rhs_block = loopfree_gf(instr.rhs, input_gf)
+        return GeneratingFunction(str(instr.prob), variables=input_gf.vars(), preciseness=input_gf.precision()) * lhs_block + \
+               GeneratingFunction("1-" + str(instr.prob), variables=input_gf.vars(),
+                                  preciseness=input_gf.precision()) * rhs_block
 
     if isinstance(instr, TickInstr):
         raise NotImplementedError("TickInstr not supported in forward analysis")
 
     if isinstance(instr, ObserveInstr):
-        precf = precf.filter(instr.cond)
+        input_gf = input_gf.filter(instr.cond)
         try:
-            precf = precf.normalized()
+            input_gf = input_gf.normalized()
         except ZeroDivisionError:
             raise ObserveZeroEventError(f"observed event {instr.cond} has probability 0")
-        return precf
+        return input_gf
 
     raise Exception("illegal instruction")
 
