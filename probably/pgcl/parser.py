@@ -58,6 +58,10 @@ _PGCL_GRAMMAR = """
           | "unif" "(" expression "," expression ")" -> duniform
           | "unif_c" "(" expression "," expression ")" -> cuniform
           | "geometric" "(" expression ")" -> geometric
+          | "poisson" "(" expression ")" -> poisson
+          | "logdist" "(" expression ")" -> logdist
+          | "binomial" "(" expression "," expression ")" -> binomial
+          | "bernoulli" "(" expression ")" -> bernoulli
           | expression
 
     literal: "true"  -> true
@@ -274,6 +278,29 @@ def _parse_rvalue(t: Tree) -> Expr:
         if not isinstance(param, RealLitExpr):
             raise Exception(f"{param} is not a real number")
         return GeometricExpr(param)
+    elif t.data == 'poisson':
+        param = _parse_expr(_child_tree(t, 0))
+        if not (isinstance(param, RealLitExpr) or isinstance(param, NatLitExpr)):
+            raise Exception(f"{param} is not a real number")
+        return PoissonExpr(param)
+    elif t.data == 'logdist':
+        param = _parse_expr(_child_tree(t, 0))
+        if not isinstance(param, RealLitExpr):
+            raise Exception(f"{param} is not a real number")
+        return LogDistExpr(param)
+    elif t.data == 'bernoulli':
+        param = _parse_expr(_child_tree(t, 0))
+        if not isinstance(param, RealLitExpr):
+            raise Exception(f"{param} is not a real number")
+        return BernoulliExpr(param)
+    elif t.data == 'binomial':
+        param_0 = _parse_expr(_child_tree(t, 0))
+        if not isinstance(param_0, NatLitExpr):
+            raise Exception(f"{param_0} is not a natural number")
+        param_1 = _parse_expr(_child_tree(t, 1))
+        if not isinstance(param_1, RealLitExpr):
+            raise Exception(f"{param_1} is not a real number")
+        return BinomialExpr(param_0, param_1)
 
     # otherwise we have an expression, but it may contain _LikelyExprs, which we
     # need to parse.

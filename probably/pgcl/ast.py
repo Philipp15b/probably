@@ -523,6 +523,21 @@ class CUniformExpr(ExprClass):
     def __str__(self) -> str:
         return f'unif({expr_str_parens(self.start)}, {expr_str_parens(self.end)})'
 
+
+@attr.s
+class BernoulliExpr(ExprClass):
+    """
+    Chooses a random bernoulli distributed integer.
+
+    As *monadic expressions* (see :ref:`expressions`), geometric choice
+    expressions are only allowed as the right-hand side of an assignment
+    statement and not somewhere in a nested expression.
+    """
+    param: RealLitExpr = attr.ib()
+
+    def __str__(self) -> str:
+        return f'bernoulli({expr_str_parens(self.param)})'
+
 @attr.s
 class GeometricExpr(ExprClass):
     """
@@ -536,6 +551,52 @@ class GeometricExpr(ExprClass):
 
     def __str__(self) -> str:
         return f'geometric({expr_str_parens(self.param)})'
+
+
+@attr.s
+class PoissonExpr(ExprClass):
+    """
+    Chooses a random poisson distributed integer.
+
+    As *monadic expressions* (see :ref:`expressions`), geometric choice
+    expressions are only allowed as the right-hand side of an assignment
+    statement and not somewhere in a nested expression.
+    """
+    param: RealLitExpr = attr.ib()
+
+    def __str__(self) -> str:
+        return f'poisson({expr_str_parens(self.param)})'
+
+
+@attr.s
+class LogDistExpr(ExprClass):
+    """
+    Chooses a random logarithmically distributed integer.
+
+    As *monadic expressions* (see :ref:`expressions`), geometric choice
+    expressions are only allowed as the right-hand side of an assignment
+    statement and not somewhere in a nested expression.
+    """
+    param: RealLitExpr = attr.ib()
+
+    def __str__(self) -> str:
+        return f'logdist({expr_str_parens(self.param)})'
+
+
+@attr.s
+class BinomialExpr(ExprClass):
+    """
+    Chooses a random logarithmically distributed integer.
+
+    As *monadic expressions* (see :ref:`expressions`), geometric choice
+    expressions are only allowed as the right-hand side of an assignment
+    statement and not somewhere in a nested expression.
+    """
+    n: NatLitExpr = attr.ib()
+    p: RealLitExpr = attr.ib()
+
+    def __str__(self) -> str:
+        return f'binomial({expr_str_parens(self.n)}, {expr_str_parens(self.p)})'
 
 
 def _check_categorical_exprs(_self: "CategoricalExpr", _attribute: Any,
@@ -625,7 +686,7 @@ def expr_str_parens(expr: ExprClass) -> str:
 
 Expr = Union[VarExpr, BoolLitExpr, NatLitExpr, RealLitExpr, RealLitExpr,
              UnopExpr, BinopExpr, DUniformExpr, CUniformExpr, CategoricalExpr,
-             SubstExpr, TickExpr]
+             SubstExpr, TickExpr, GeometricExpr, PoissonExpr, LogDistExpr, BernoulliExpr, BinomialExpr]
 """Union type for all expression objects. See :class:`ExprClass` for use with isinstance."""
 
 

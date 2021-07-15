@@ -9,13 +9,13 @@ from typing import Dict, Iterable, List, Optional, TypeVar, Union
 import attr
 
 from probably.util.ref import Mut
-from . import GeometricExpr
 
 from .ast import (AsgnInstr, Binop, BinopExpr, BoolLitExpr, BoolType,
                   CategoricalExpr, ChoiceInstr, Decl, Expr, RealLitExpr,
                   RealType, IfInstr, Instr, NatLitExpr, NatType, Node, ObserveInstr,
                   Program, SkipInstr, Type, DUniformExpr, CUniformExpr, Unop, UnopExpr,
-                  Var, VarExpr, WhileInstr, VarDecl)
+                  Var, VarExpr, WhileInstr, VarDecl, GeometricExpr, BernoulliExpr, BinomialExpr, PoissonExpr,
+                  LogDistExpr)
 from .ast import ProgramConfig  # pylint:disable=unused-import
 from .walk import Walk, walk_expr
 
@@ -178,6 +178,18 @@ def get_type(program: Program,
         return RealType()
 
     if isinstance(expr, GeometricExpr):
+        return NatType(bounds=None)
+
+    if isinstance(expr, BernoulliExpr):
+        return NatType(bounds=None)
+
+    if isinstance(expr, PoissonExpr):
+        return NatType(bounds=None)
+
+    if isinstance(expr, LogDistExpr):
+        return NatType(bounds=None)
+
+    if isinstance(expr, BinomialExpr):
         return NatType(bounds=None)
 
     if isinstance(expr, CategoricalExpr):

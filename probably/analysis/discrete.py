@@ -14,7 +14,7 @@ from probably.analysis.exceptions import ObserveZeroEventError
 from probably.analysis.generating_function import GeneratingFunction, NotComputable
 from probably.analysis.pgfs import PGFS
 from probably.pgcl import Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr, GeometricExpr, CategoricalExpr, ChoiceInstr, \
-    TickInstr, ObserveInstr, DUniformExpr, Expr
+    TickInstr, ObserveInstr, DUniformExpr, Expr, BinomialExpr, PoissonExpr, LogDistExpr
 from probably.pgcl.syntax import check_is_linear_expr
 import sympy
 
@@ -95,23 +95,38 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
             variable = instr.lhs
             marginal = input_gf.linear_transformation(variable, "0")  # Seems weird but think of program assignments.
             # either use the concise factorized representation of the uniform pgf ...
+            start = instr.rhs.start.value
+            end = instr.rhs.end.value
             if config.use_factorized_duniform:
-                start = instr.rhs.start.value
-                end = instr.rhs.end.value
                 return marginal * PGFS.uniform(variable, start, end)
             # ... or use the representation as an explicit polynomial
             else:
-                factors = []
-                for prob, value in instr.rhs.distribution():
-                    factors.append(marginal * GeneratingFunction(f"{variable}**{value}*{prob}"))
-                return functools.reduce(lambda x, y: x + y, factors)
+                return marginal * GeneratingFunction(PGFS.uniform(variable, start, end)._function.expand())
 
         # rhs is geometric distribution
         if isinstance(instr.rhs, GeometricExpr):
             variable = instr.lhs
             marginal = input_gf.linear_transformation(variable, "0")
             param = instr.rhs.param
-            return marginal * PGFS.geometric(variable, param)
+            return marginal * PGFS.geometric(variable, str(param))
+
+        # rhs is binomial distribution
+        if isinstance(instr.rhs, BinomialExpr):
+            variable = instr.lhs
+            marginal = input_gf.linear_transformation(variable, "0")
+            return marginal * PGFS.binomial(variable, str(instr.rhs.n), str(instr.rhs.p))
+
+        # rhs is poisson distribution
+        if isinstance(instr.rhs, PoissonExpr):
+            variable = instr.lhs
+            marginal = input_gf.linear_transformation(variable, "0")
+            return marginal * PGFS.poisson(variable, str(instr.rhs.param))
+
+        # rhs is logarithmic distribution
+        if isinstance(instr.rhs, LogDistExpr):
+            variable = instr.lhs
+            marginal = input_gf.linear_transformation(variable, "0")
+            return marginal * PGFS.log(variable, str(instr.rhs.param))
 
         # rhs is a categorical expression (explicit finite distr)
         if isinstance(instr.rhs, CategoricalExpr):
