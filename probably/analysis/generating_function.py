@@ -223,7 +223,9 @@ class GeneratingFunction:
 
     def expected_value_of(self, variable: str):
         result = sympy.diff(self._function, sympy.S(variable))
-        return sympy.limit(result, sympy.S(variable), 1, '-')
+        for var in self._variables:
+            result = sympy.limit(result, sympy.S(variable), 1, '-')
+        return result
 
     def probability_of(self, state: dict):
         """
@@ -251,7 +253,7 @@ class GeneratingFunction:
         mass = self.coefficient_sum()
         if mass == 0:
             raise ZeroDivisionError
-        return GeneratingFunction(self._function / mass, preciseness=self._preciseness)
+        return GeneratingFunction(self._function / mass, variables=self._variables, preciseness=self._preciseness, closed=self._is_closed_form, finite=self._is_finite)
 
     def is_finite(self):
         """
@@ -259,6 +261,9 @@ class GeneratingFunction:
         :return: True if the GF is a polynomial, False otherwise.
         """
         return self._is_finite
+
+    def simplify(self):
+        return GeneratingFunction(self._function.simplify(), self._variables, self._preciseness, self._is_closed_form, self._is_finite)
 
     def evaluate(self, expression, monomial):
         op = expression.operator
@@ -347,13 +352,13 @@ class GeneratingFunction:
             else:
                 raise Exception(f"Expression is neither an equality nor inequality!")
         # evaluate on finite
-        elif self.is_finite():
+        elif self._is_finite:
             result = sympy.S(0)
-            addends = self._function.as_coefficients_dict() if not self._is_closed_form else self._function.expand().as_coefficients_dict()
+            addends = self._function.as_coefficients_dict() if not self._is_closed_form else self._function.factor().expand().as_coefficients_dict()
             for monomial in addends:
                 if self.evaluate(expression, monomial):
                     result += addends[monomial] * monomial
-            return GeneratingFunction(result.simplify(), variables=self._variables, preciseness=self._preciseness)
+            return GeneratingFunction(result, variables=self._variables, preciseness=self._preciseness, closed=False, finite=True)
         else:
             raise NotComputable("Instruction {} is not computable on infinite generating function {}"
                                 .format(expression, self._function))

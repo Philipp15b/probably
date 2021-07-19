@@ -16,7 +16,7 @@ from probably.analysis.generating_function import GeneratingFunction, NotComputa
 from probably.analysis.pgfs import PGFS
 from probably.pgcl import (Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr, GeometricExpr,
                            CategoricalExpr, ChoiceInstr, TickInstr, ObserveInstr, DUniformExpr,
-                           Expr, BinomialExpr, PoissonExpr, LogDistExpr,
+                           Expr, BinomialExpr, PoissonExpr, LogDistExpr, BernoulliExpr,
                            DistrExpr, Binop, BinopExpr, VarExpr, NatLitExpr)
 from probably.pgcl.syntax import check_is_linear_expr
 
@@ -109,6 +109,11 @@ def _distr_handler(instr: AsgnInstr,
         variable = instr.lhs
         marginal = input_gf.linear_transformation(variable, "0")
         return marginal * PGFS.poisson(variable, str(instr.rhs.param))
+
+    if isinstance(instr.rhs, BernoulliExpr):
+        variable = instr.lhs
+        marginal = input_gf.linear_transformation(variable, "0")
+        return marginal * PGFS.bernoulli(variable, str(instr.rhs.param))
 
     # rhs is logarithmic distribution
     if isinstance(instr.rhs, LogDistExpr):
@@ -209,9 +214,16 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
         input_gf: Input generating function.
         config: The configurable options.
     """
+    def _show_steps(gf, instr):
+        res = loopfree_gf(instr, gf, config)
+        print(f"Instruction: {instr}\t Result: {res.simplify()}")
+        return res
+
+    def _dont_show_steps(gf, instr):
+        return loopfree_gf(instr, gf, config)
 
     if isinstance(instr, list):
-        return functools.reduce(lambda x, y: loopfree_gf(y, x), instr, input_gf)
+        return functools.reduce(_show_steps if config.show_intermediate_steps else _dont_show_steps, instr, input_gf)
 
     if isinstance(instr, SkipInstr):
         return input_gf
