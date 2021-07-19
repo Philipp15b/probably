@@ -1,0 +1,15 @@
+nat x; // 0: weekday, 1: weekend
+nat d; // sample the number of phone calls received in one hour.
+
+{x := 0} [5/7] {x := 1}
+if (x=0){
+    d := poisson(10) // Weekdays there are 10 phone calls on average in an hour
+} else {
+    d := poisson(3) // Weekends there are 3 phone calls in average in an hour
+}
+
+observe(d=4) // we have observed 4 phone calls.
+
+// remove aux variables, as we are only interested in the probability of having a weekday.
+d:=0
+
