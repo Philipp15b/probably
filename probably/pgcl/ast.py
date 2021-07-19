@@ -812,10 +812,19 @@ class ObserveInstr(InstrClass):
     def __str__(self) -> str:
         return f"observe({self.cond});"
 
+@attr.s
+class ExpectationInstr(InstrClass):
+    """
+    Allows for expectation queries inside of a pgcl program.
+    """
+    expr: Expr = attr.ib()
+
+    def __str__(self) -> str:
+        return f"!Ex[{self.expr}];"
 
 
 Instr = Union[SkipInstr, WhileInstr, IfInstr, AsgnInstr, ChoiceInstr,
-              TickInstr, ObserveInstr]
+              TickInstr, ObserveInstr, ExpectationInstr]
 """Union type for all instruction objects. See :class:`InstrClass` for use with isinstance."""
 
 

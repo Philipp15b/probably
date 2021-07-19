@@ -1,5 +1,6 @@
 nat x;
+nat y;
 
-
-x := unif(0,20)
-x := x % 4
+x := poisson(5)
+y := bernoulli(1/2)
+!Ex[x*3*y*4*2*x+1]

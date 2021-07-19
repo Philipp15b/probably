@@ -50,6 +50,7 @@ _PGCL_GRAMMAR = """
                | block "[" expression "]" block              -> choice
                | "tick" "(" expression ")"                   -> tick
                | "observe" "(" expression ")"                -> observe 
+               | "!Ex" "[" expression "]"                    -> expectation
 
 
     block: "{" instruction* "}"
@@ -355,6 +356,8 @@ def _parse_instr(t: Tree) -> Instr:
         return TickInstr(_parse_expr(_child_tree(t, 0)))
     elif t.data == 'observe':
         return ObserveInstr(_parse_expr(_child_tree(t, 0)))
+    elif t.data == 'expectation':
+        return ExpectationInstr(_parse_expr(_child_tree(t, 0)))
     else:
         raise Exception(f'invalid AST: {t.data}')
 

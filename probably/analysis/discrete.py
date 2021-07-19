@@ -17,7 +17,8 @@ from probably.analysis.pgfs import PGFS
 from probably.pgcl import (Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr, GeometricExpr,
                            CategoricalExpr, ChoiceInstr, TickInstr, ObserveInstr, DUniformExpr,
                            Expr, BinomialExpr, PoissonExpr, LogDistExpr, BernoulliExpr,
-                           DistrExpr, Binop, BinopExpr, VarExpr, NatLitExpr)
+                           DistrExpr, Binop, BinopExpr, VarExpr, NatLitExpr, ExpectationInstr, RealLitExpr, UnopExpr,
+                           Unop)
 from probably.pgcl.syntax import check_is_linear_expr
 
 
@@ -200,6 +201,38 @@ def _observe_handler(instr: ObserveInstr,
     return input_gf
 
 
+def _expectation_handler(instr: Expr,
+                         input_gf: GeneratingFunction,
+                         config: ForwardAnalysisConfig) -> GeneratingFunction:
+    if isinstance(instr, VarExpr):
+        return input_gf.diff(str(instr.var), 1) * GeneratingFunction(str(instr.var))
+    elif isinstance(instr, NatLitExpr):
+        return GeneratingFunction(str(instr))
+    elif isinstance(instr, RealLitExpr):
+        return GeneratingFunction(str(instr.to_fraction()))
+    elif isinstance(instr, UnopExpr):
+        if instr.operator == Unop.NEG:
+            return GeneratingFunction("-1") * _expectation_handler(instr.expr, input_gf, config)
+        else:
+            raise SyntaxError(f"Expression {instr} is not valid.")
+    elif isinstance(instr, BinopExpr):
+        if instr.operator == Binop.PLUS:
+            return _expectation_handler(instr.lhs, input_gf, config) + _expectation_handler(instr.rhs, input_gf, config)
+        elif instr.operator == Binop.TIMES:
+             if isinstance(instr.lhs, (NatLitExpr, RealLitExpr)):
+                 return _expectation_handler(instr.lhs, input_gf, config) * _expectation_handler(instr.rhs, input_gf, config)
+             if isinstance(instr.rhs, (NatLitExpr, RealLitExpr)):
+                 return _expectation_handler(instr.lhs, input_gf, config) * _expectation_handler(instr.rhs, input_gf, config)
+             else:
+                 return _expectation_handler(instr.rhs, _expectation_handler(instr.lhs, input_gf, config), config)
+        elif instr.operator == Binop.MINUS:
+            _expectation_handler(instr.lhs, input_gf, config) - _expectation_handler(instr.rhs, input_gf, config)
+        elif instr.operator == Binop.DIVIDE:
+            raise NotImplementedError("Division currently not supported.")
+    else:
+        raise SyntaxError("The expression is not vaild.")
+
+
 def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
                 input_gf: GeneratingFunction,
                 config=ForwardAnalysisConfig()) -> GeneratingFunction:
@@ -245,6 +278,12 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
 
     if isinstance(instr, ObserveInstr):
         return _observe_handler(instr, input_gf, config)
+
+    if isinstance(instr, ExpectationInstr):
+        result = _expectation_handler(instr.expr, input_gf, config)
+        for var in result.vars():
+            result = result.linear_transformation(var, 0)
+        return result
 
     raise Exception("illegal instruction")
 
