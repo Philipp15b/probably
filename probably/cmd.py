@@ -49,7 +49,7 @@ def main(program_file: IO, input_gf: str):
         gf = GeneratingFunction(input_gf, set(program.variables.keys()), 1.0)
     GeneratingFunction.rational_preciseness = True
     gf = loopfree_gf(program.instructions, gf)
-    print("\nCharacteristic-function\n", gf)
+    print("\nGeneratingfunction\n", gf)
     gf = GeneratingFunction(gf._function.expand(), {"x"}, gf.precision())
     gf.create_histogram()
 

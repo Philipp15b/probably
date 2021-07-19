@@ -226,7 +226,7 @@ def _expectation_handler(instr: Expr,
              else:
                  return _expectation_handler(instr.rhs, _expectation_handler(instr.lhs, input_gf, config), config)
         elif instr.operator == Binop.MINUS:
-            _expectation_handler(instr.lhs, input_gf, config) - _expectation_handler(instr.rhs, input_gf, config)
+            return _expectation_handler(instr.lhs, input_gf, config) - _expectation_handler(instr.rhs, input_gf, config)
         elif instr.operator == Binop.DIVIDE:
             raise NotImplementedError("Division currently not supported.")
     else:
@@ -283,7 +283,8 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
         result = _expectation_handler(instr.expr, input_gf, config)
         for var in result.vars():
             result = result.linear_transformation(var, 0)
-        return result
+            print(f"Expected value: {result}")
+        return input_gf
 
     raise Exception("illegal instruction")
 

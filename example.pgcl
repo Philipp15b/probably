@@ -1,6 +1,4 @@
-nat x;
 nat y;
 
-x := poisson(5)
-y := bernoulli(1/2)
-!Ex[x*3*y*4*2*x+1]
+y := binomial(10, 1/2)
+!Ex[y*3-10]
