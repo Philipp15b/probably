@@ -1,10 +1,5 @@
 nat x;
-nat y;
-nat z;
 
-x := binomial(5, 8/10)
-y := poisson(2.5)
-z := x+y
 
-x:=0;
-y:=0;
+x := unif(0,20)
+x := x % 4

@@ -1,9 +1,9 @@
 r"""
 ------------------------
-Characteristic Functions
+Generating Functions
 ------------------------
 
-Want to calculate the characteristic function of a program?
+Want to calculate the generating function of a program?
 You're in the right module!
 """
 import functools
@@ -17,7 +17,7 @@ from probably.analysis.pgfs import PGFS
 from probably.pgcl import (Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr, GeometricExpr,
                            CategoricalExpr, ChoiceInstr, TickInstr, ObserveInstr, DUniformExpr,
                            Expr, BinomialExpr, PoissonExpr, LogDistExpr,
-                           DistrExpr)
+                           DistrExpr, Binop, BinopExpr, VarExpr, NatLitExpr)
 from probably.pgcl.syntax import check_is_linear_expr
 
 
@@ -37,7 +37,7 @@ def _while_handler(instr: WhileInstr,
         for i in range(max_iter):
             iterated_part = loopfree_gf(instr.body, sat_part)
             iterated_sat, iterated_non_sat, iterated_approx = _safe_filter(iterated_part, instr.cond)
-            if iterated_non_sat == GeneratingFunction(0) and iterated_sat == sat_part:
+            if iterated_non_sat == GeneratingFunction("0") and iterated_sat == sat_part:
                 print(f"Terminated already after {i} step(s)!")
                 break
             non_sat_part += iterated_non_sat
@@ -66,7 +66,7 @@ def _ite_handler(instr: IfInstr,
         print(err)
         probability = input("Continue with approximation. Enter a probability (0, {}):\t"
                             .format(input_gf.coefficient_sum()))
-        if probability > 0:
+        if probability > sympy.S(0):
             return loopfree_gf(instr, input_gf.expand_until(probability))
         else:
             raise NotComputable(str(err))
@@ -86,7 +86,7 @@ def _distr_handler(instr: AsgnInstr,
         start = instr.rhs.start.value
         end = instr.rhs.end.value
         if config.use_factorized_duniform:
-            return marginal * PGFS.uniform(variable, start, end)
+            return marginal * PGFS.uniform(variable, str(start), str(end))
         # ... or use the representation as an explicit polynomial
         else:
             return marginal * GeneratingFunction(PGFS.uniform(variable, start, end)._function.expand())
@@ -126,6 +126,21 @@ def _assignment_handler(instr: AsgnInstr,
                         config: ForwardAnalysisConfig) -> GeneratingFunction:
     if isinstance(instr.rhs, get_args(DistrExpr)):
         return _distr_handler(instr, input_gf, config)
+
+    # rhs is a modulo expression
+    if isinstance(instr.rhs, BinopExpr) and instr.rhs.operator == Binop.MODULO:
+        # currently only unnested modulo operations are supported...
+        mod_expr = instr.rhs
+        if isinstance(mod_expr.lhs, VarExpr) and isinstance(mod_expr.rhs, NatLitExpr):
+            result = PGFS.zero(input_gf.vars())
+            for i in range(mod_expr.rhs.value):
+                func = input_gf.arithmetic_progression(str(mod_expr.lhs), str(mod_expr.rhs))[i]
+                result += func.linear_transformation(mod_expr.lhs, 0) * GeneratingFunction(f"{mod_expr.lhs}**{i}")
+            print(result)
+            return result
+        else:
+            raise NotImplementedError(f"Nested modulo expressions are currently not supported.")
+
 
     # rhs is a linear expression
     if check_is_linear_expr(instr.rhs) is None:
@@ -232,7 +247,7 @@ def _safe_filter(input_gf: GeneratingFunction, condition: Expr) -> Tuple[Generat
         print(err)
         probability = input("Continue with approximation. Enter a probability (0, {}):\t"
                             .format(input_gf.coefficient_sum()))
-        if probability > 0:
+        if probability > sympy.S(0):
             approx = input_gf.expand_until(probability)
             approx_sat_part = approx.filter(condition)
             approx_non_sat_part = approx - approx_sat_part

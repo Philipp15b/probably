@@ -44,7 +44,7 @@ class GeneratingFunction:
             for variable in variables:
                 self._variables = self._variables.union({sympy.S(variable)})
         self._dimension = len(self._variables)
-        self._is_closed_form = closed if closed else self._function.is_polynomial()
+        self._is_closed_form = closed if closed else not self._function.is_polynomial()
         self._is_finite = finite if finite else self._function.is_polynomial()
 
     def _arithmetic(self, other, op: operator):
@@ -344,6 +344,8 @@ class GeneratingFunction:
                      .limit(variable, 0)
                      * variable ** constant).simplify(), variables=self._variables, preciseness=self._preciseness
                 )
+            else:
+                raise Exception(f"Expression is neither an equality nor inequality!")
         # evaluate on finite
         elif self.is_finite():
             result = sympy.S(0)
@@ -365,7 +367,7 @@ class GeneratingFunction:
         terms = rhs.as_coefficients_dict()
         result = self._function
         if subst_var not in terms.keys():
-            result = result.subs(subst_var, 1)
+            result = result.limit(subst_var, 1, '-') if self._is_closed_form else result.subs(subst_var, 1)
 
         # Do the actual update stepwise
         const_correction_term = 1
@@ -378,11 +380,24 @@ class GeneratingFunction:
             # if the variable is the substitution, a different update is necessary
             elif var == subst_var:
                 replacements.append((var, subst_var ** terms[var]))
-            # otherwise always assume we do an addition on x
+            # otherwise always assume we do an addition
             else:
                 replacements.append((var, var * subst_var ** terms[var]))
         return GeneratingFunction(result.subs(replacements) * const_correction_term, variables=self._variables,
-                                  preciseness=self._preciseness)
+                                  preciseness=self._preciseness, closed=self._is_closed_form, finite=self._is_finite)
+
+    def arithmetic_progression(self, variable: str, modulus: str):
+        a = sympy.S(modulus)
+        var = sympy.S(variable)
+        primitive_uroot = sympy.S(f"exp(2 * {sympy.pi} * {sympy.I}/{a})")
+        result = []
+        for remainder in range(a):
+            psum = 0
+            for m in range(a):
+                psum += primitive_uroot ** (-m * remainder) * self._function.subs(var, (primitive_uroot ** m) * var)
+            result.append(GeneratingFunction(f"(1/{a}) * ({psum})", self._variables, self._preciseness,
+                                             self._is_closed_form, self._is_finite))
+        return result
 
     def create_histogram(self, n=0, p: str = None):
         """
@@ -398,7 +413,8 @@ class GeneratingFunction:
             if p:
                 gf = self.expand_until(p)
             elif not (n == 0):
-                gf = GeneratingFunction(self._function.series(*self._function.free_symbols, n=n).removeO(), self._variables, self.precision())
+                gf = GeneratingFunction(self._function.series(*self._function.free_symbols, n=n).removeO(),
+                                        self._variables, self.precision())
             else:
                 gf = self.expand_until(self.coefficient_sum() * 0.99)
             gf.create_histogram()
