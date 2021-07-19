@@ -404,6 +404,7 @@ class Binop(Enum):
     MINUS = auto()
     TIMES = auto()
     DIVIDE = auto()
+    MODULO = auto()
 
     def is_associative(self) -> bool:
         """Is this operator associative?"""
@@ -424,6 +425,7 @@ class Binop(Enum):
             Binop.MINUS: "-",
             Binop.TIMES: "*",
             Binop.DIVIDE: "/",
+            Binop.MODULO: "%"
         })[self]
 
 

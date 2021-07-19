@@ -159,8 +159,8 @@ def check_is_linear_expr(expr: Expr) -> Optional[CheckFail]:
     for node_ref in walk_expr(Walk.DOWN, Mut.alloc(expr)):
         node = node_ref.val
         if isinstance(node, BinopExpr):
-            if node.operator == Binop.TIMES and has_variable(
-                    node.lhs) and has_variable(node.rhs):
+            if node.operator == Binop.MODULO or \
+                    (node.operator == Binop.TIMES and has_variable(node.lhs) and has_variable(node.rhs)):
                 return CheckFail(node, "Is not a linear expression")
             if node.operator == Binop.DIVIDE:
                 return CheckFail(

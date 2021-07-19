@@ -90,7 +90,7 @@ _OPERATOR_TABLE = [[infixl("or", "||")], [infixl("and", "&")],
                     infixl("eq", "=")],
                    [infixl("plus", "+"),
                     infixl("minus", "-")], [infixl("times", "*")],
-                   [infixl("likely", ":")], [infixl("divide", "/")],
+                   [infixl("likely", ":")], [infixl("divide", "/")], [infixl("mod", "%")],
                    [
                        prefix("neg", "not "),
                        atom("parens", '"(" expression ")"'),
@@ -214,6 +214,8 @@ def _parse_expr(t: Tree) -> Expr:
         return BinopExpr(Binop.MINUS, expr0(), expr1())
     elif t.data == 'times':
         return BinopExpr(Binop.TIMES, expr0(), expr1())
+    elif t.data == 'mod':
+        return BinopExpr(Binop.MODULO, expr0(), expr1())
     elif t.data == 'divide':
         return _parse_fraction(expr0(), expr1())
     elif t.data == 'likely':
