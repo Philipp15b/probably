@@ -8,3 +8,6 @@ class ForwardAnalysisConfig:
     # add more options with their default value here
 
     show_intermediate_steps: bool = attr.ib(default=False)
+
+    # IMPORTANT: show_ attributes just change the string representation, not the actual computation
+    show_rational_probabilities: bool = attr.ib(default= False)
