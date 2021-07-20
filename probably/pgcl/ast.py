@@ -820,11 +820,22 @@ class ExpectationInstr(InstrClass):
     expr: Expr = attr.ib()
 
     def __str__(self) -> str:
-        return f"!Ex[{self.expr}];"
+        return f"?Ex[{self.expr}];"
 
+
+@attr.s
+class ProbabilityQueryInstr(InstrClass):
+
+    expr: Expr = attr.ib()
+
+    def __str__(self) -> str:
+        return f"?Pr[{self.expr}];"
+
+
+Queries = Union[ProbabilityQueryInstr, ExpectationInstr]
 
 Instr = Union[SkipInstr, WhileInstr, IfInstr, AsgnInstr, ChoiceInstr,
-              TickInstr, ObserveInstr, ExpectationInstr]
+              TickInstr, ObserveInstr, Queries]
 """Union type for all instruction objects. See :class:`InstrClass` for use with isinstance."""
 
 

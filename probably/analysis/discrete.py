@@ -18,7 +18,7 @@ from probably.pgcl import (Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr, Geo
                            CategoricalExpr, ChoiceInstr, TickInstr, ObserveInstr, DUniformExpr,
                            Expr, BinomialExpr, PoissonExpr, LogDistExpr, BernoulliExpr,
                            DistrExpr, Binop, BinopExpr, VarExpr, NatLitExpr, ExpectationInstr, RealLitExpr, UnopExpr,
-                           Unop)
+                           Unop, Queries, ProbabilityQueryInstr)
 from probably.pgcl.syntax import check_is_linear_expr
 
 
@@ -233,6 +233,22 @@ def _expectation_handler(instr: Expr,
         raise SyntaxError("The expression is not vaild.")
 
 
+def _query_handler(instr: Queries, input_gf: GeneratingFunction, config: ForwardAnalysisConfig) -> GeneratingFunction:
+    if isinstance(instr, ExpectationInstr):
+        result = _expectation_handler(instr.expr, input_gf, config)
+        for var in result.vars():
+            result = result.linear_transformation(var, 0)
+        print(f"Expected value: {result}")
+        return input_gf
+    elif isinstance(instr, ProbabilityQueryInstr):
+        prob = input_gf.filter(instr.expr).coefficient_sum() if config.show_rational_probabilities \
+                                                             else input_gf.filter(instr.expr).coefficient_sum().evalf()
+        print(f"Probability of {instr.expr}: {prob}")
+        return input_gf
+    else:
+        raise SyntaxError(f"Type {type(instr)} is not known.")
+
+
 def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
                 input_gf: GeneratingFunction,
                 config=ForwardAnalysisConfig()) -> GeneratingFunction:
@@ -279,12 +295,8 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
     if isinstance(instr, ObserveInstr):
         return _observe_handler(instr, input_gf, config)
 
-    if isinstance(instr, ExpectationInstr):
-        result = _expectation_handler(instr.expr, input_gf, config)
-        for var in result.vars():
-            result = result.linear_transformation(var, 0)
-            print(f"Expected value: {result}")
-        return input_gf
+    if isinstance(instr, get_args(Queries)):
+        return _query_handler(instr, input_gf, config)
 
     raise Exception("illegal instruction")
 

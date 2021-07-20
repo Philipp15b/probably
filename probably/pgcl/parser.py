@@ -50,7 +50,8 @@ _PGCL_GRAMMAR = """
                | block "[" expression "]" block              -> choice
                | "tick" "(" expression ")"                   -> tick
                | "observe" "(" expression ")"                -> observe 
-               | "!Ex" "[" expression "]"                    -> expectation
+               | "?Ex" "[" expression "]"                    -> expectation
+               | "?Pr" "[" expression "]"                    -> prquery
 
 
     block: "{" instruction* "}"
@@ -358,6 +359,8 @@ def _parse_instr(t: Tree) -> Instr:
         return ObserveInstr(_parse_expr(_child_tree(t, 0)))
     elif t.data == 'expectation':
         return ExpectationInstr(_parse_expr(_child_tree(t, 0)))
+    elif t.data == 'prquery':
+        return ProbabilityQueryInstr(_parse_expr(_child_tree(t, 0)))
     else:
         raise Exception(f'invalid AST: {t.data}')
 

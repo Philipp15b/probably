@@ -15,7 +15,7 @@ from .ast import (AsgnInstr, Binop, BinopExpr, BoolLitExpr, BoolType,
                   RealType, IfInstr, Instr, NatLitExpr, NatType, Node, ObserveInstr,
                   Program, SkipInstr, Type, DUniformExpr, CUniformExpr, Unop, UnopExpr,
                   Var, VarExpr, WhileInstr, VarDecl, GeometricExpr, BernoulliExpr, BinomialExpr, PoissonExpr,
-                  LogDistExpr, ExpectationInstr)
+                  LogDistExpr, ExpectationInstr, ProbabilityQueryInstr)
 from .ast import ProgramConfig  # pylint:disable=unused-import
 from .walk import Walk, walk_expr
 
@@ -387,6 +387,15 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
 
     if isinstance(instr, ObserveInstr):
         cond_type = get_type(program, instr.cond)
+        if isinstance(cond_type, CheckFail):
+            return cond_type
+        if not is_compatible(BoolType(), cond_type):
+            return CheckFail.expected_type_got(instr.cond, BoolType(),
+                                               cond_type)
+        return None
+
+    if isinstance(instr, ProbabilityQueryInstr):
+        cond_type = get_type(program, instr.expr)
         if isinstance(cond_type, CheckFail):
             return cond_type
         if not is_compatible(BoolType(), cond_type):
