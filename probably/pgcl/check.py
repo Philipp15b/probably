@@ -399,7 +399,7 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
         if isinstance(cond_type, CheckFail):
             return cond_type
         if not is_compatible(BoolType(), cond_type):
-            return CheckFail.expected_type_got(instr.cond, BoolType(),
+            return CheckFail.expected_type_got(instr.expr, BoolType(),
                                                cond_type)
         return None
 

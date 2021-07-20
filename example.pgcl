@@ -1,8 +1,5 @@
-nat y;
 nat x;
 
-y := binomial(10, 1/2)
-x := binomial(20, 7/10)
-?Pr[x=14 & y=5]
+x := poisson(5)
+x := x % 4
 
-y:=0

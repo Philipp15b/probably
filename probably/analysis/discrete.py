@@ -139,8 +139,9 @@ def _assignment_handler(instr: AsgnInstr,
         mod_expr = instr.rhs
         if isinstance(mod_expr.lhs, VarExpr) and isinstance(mod_expr.rhs, NatLitExpr):
             result = PGFS.zero(input_gf.vars())
+            ap = input_gf.arithmetic_progression(str(mod_expr.lhs), str(mod_expr.rhs))
             for i in range(mod_expr.rhs.value):
-                func = input_gf.arithmetic_progression(str(mod_expr.lhs), str(mod_expr.rhs))[i]
+                func = ap[i]
                 result += func.linear_transformation(mod_expr.lhs, 0) * GeneratingFunction(f"{mod_expr.lhs}**{i}")
             print(result)
             return result

@@ -12,6 +12,7 @@ If you use `poetry` and do not have probably installed globally, you can use `po
 from typing import IO
 
 import click
+import sympy
 
 import probably.pgcl.compiler as pgcl
 from probably.pgcl.check import CheckFail
@@ -49,8 +50,8 @@ def main(program_file: IO, input_gf: str):
         gf = GeneratingFunction(input_gf, set(program.variables.keys()), 1.0)
     GeneratingFunction.rational_preciseness = True
     gf = loopfree_gf(program.instructions, gf)
-    print("\nGeneratingfunction\n", gf)
-    gf = GeneratingFunction(gf._function.expand(), {"x"}, gf.precision())
+    print("\nGeneratingfunction\n", gf._function.refine(sympy.Q.real(sympy.S('x'))).simplify())
+    gf = GeneratingFunction(gf._function.expand().simplify(), preciseness=gf.precision())
     gf.create_histogram()
 
 

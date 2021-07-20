@@ -13,6 +13,17 @@ def _is_constant_constraint(expression):  # Move this to expression checks etc.
         return False
 
 
+def _is_modulus_condition(expression):
+    if isinstance(expression, BinopExpr) \
+            and expression.operator == Binop.EQ \
+            and isinstance(expression.rhs, NatLitExpr) \
+            and isinstance(expression.lhs, BinopExpr) \
+            and expression.lhs.operator == Binop.MODULO:
+        mod_expr = expression.lhs
+        if isinstance(mod_expr.lhs, VarExpr) and isinstance(mod_expr.rhs, NatLitExpr):
+            return True
+
+
 class ComparisonException(Exception):
     pass
 
@@ -334,6 +345,9 @@ class GeneratingFunction:
             neg_expr = UnopExpr(operator=Unop.NEG, expr=conj)
             return self.filter(neg_expr)
 
+        # Modulo extractions
+        elif _is_modulus_condition(expression):
+            return self.arithmetic_progression(str(expression.lhs.lhs), str(expression.lhs.rhs))[expression.rhs.value]
         # Constant expressions
         elif _is_constant_constraint(expression):
             if expression.operator == Binop.LE:
@@ -365,8 +379,8 @@ class GeneratingFunction:
         # evaluate on finite
         elif self._is_finite:
             result = sympy.S(0)
-            addends = self._function.as_coefficients_dict() if not self._is_closed_form\
-                                                            else self._function.factor().expand().as_coefficients_dict()
+            addends = self._function.as_coefficients_dict() if not self._is_closed_form \
+                else self._function.factor().expand().as_coefficients_dict()
             for monomial in addends:
                 if self.evaluate(expression, monomial):
                     result += addends[monomial] * monomial
