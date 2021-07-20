@@ -2,7 +2,6 @@ import sympy
 import matplotlib.pyplot as plt
 
 from probably.pgcl import Unop, VarExpr, NatLitExpr, UnopExpr, BinopExpr, Binop, Expr
-from typing import Optional
 import operator
 
 
@@ -179,6 +178,10 @@ class GeneratingFunction:
         for term in terms:
             yield sympy.S(terms[term] * term)
 
+    def _mult_term_generator(self):
+        # TODO Implement me. Current Problem: How to enumerate w.r.t total degree order?
+        pass
+
     def as_series(self):
         if self._function.is_polynomial():
             return self._term_generator()
@@ -224,7 +227,7 @@ class GeneratingFunction:
     def expected_value_of(self, variable: str):
         result = sympy.diff(self._function, sympy.S(variable))
         for var in self._variables:
-            result = sympy.limit(result, sympy.S(variable), 1, '-')
+            result = sympy.limit(result, sympy.S(var), 1, '-')
         return result
 
     def probability_of(self, state: dict):
@@ -253,7 +256,11 @@ class GeneratingFunction:
         mass = self.coefficient_sum()
         if mass == 0:
             raise ZeroDivisionError
-        return GeneratingFunction(self._function / mass, variables=self._variables, preciseness=self._preciseness, closed=self._is_closed_form, finite=self._is_finite)
+        return GeneratingFunction(self._function / mass,
+                                  variables=self._variables,
+                                  preciseness=self._preciseness,
+                                  closed=self._is_closed_form,
+                                  finite=self._is_finite)
 
     def is_finite(self):
         """
@@ -263,7 +270,11 @@ class GeneratingFunction:
         return self._is_finite
 
     def simplify(self):
-        return GeneratingFunction(self._function.simplify(), self._variables, self._preciseness, self._is_closed_form, self._is_finite)
+        return GeneratingFunction(self._function.simplify(),
+                                  self._variables,
+                                  self._preciseness,
+                                  self._is_closed_form,
+                                  self._is_finite)
 
     def evaluate(self, expression, monomial):
         op = expression.operator
@@ -354,11 +365,16 @@ class GeneratingFunction:
         # evaluate on finite
         elif self._is_finite:
             result = sympy.S(0)
-            addends = self._function.as_coefficients_dict() if not self._is_closed_form else self._function.factor().expand().as_coefficients_dict()
+            addends = self._function.as_coefficients_dict() if not self._is_closed_form\
+                                                            else self._function.factor().expand().as_coefficients_dict()
             for monomial in addends:
                 if self.evaluate(expression, monomial):
                     result += addends[monomial] * monomial
-            return GeneratingFunction(result, variables=self._variables, preciseness=self._preciseness, closed=False, finite=True)
+            return GeneratingFunction(result,
+                                      self._variables,
+                                      self._preciseness,
+                                      closed=False,
+                                      finite=True)
         else:
             raise NotComputable("Instruction {} is not computable on infinite generating function {}"
                                 .format(expression, self._function))
@@ -411,7 +427,7 @@ class GeneratingFunction:
         if len(self._function.free_symbols) > 2:
             raise Exception("We can only illustrate distributions with dimension 2 or less.")
 
-        if len(self._function.free_symbols) > 1:
+        elif len(self._function.free_symbols) > 1:
             raise NotImplementedError("Only support of dimension 1")
 
         if not self.is_finite():
@@ -437,4 +453,6 @@ class GeneratingFunction:
             ax.set_xlabel(f"{self._function.free_symbols}")
             ax.set_xticks(ind)
             ax.set_ylabel(f'Probability p({self._function.free_symbols})')
+            plt.get_current_fig_manager().set_window_title("Histogram Plot")
+            plt.gcf().suptitle("Histogram")
             plt.show()
