@@ -194,12 +194,12 @@ def _pchoice_handler(instr: ChoiceInstr,
 def _observe_handler(instr: ObserveInstr,
                      input_gf: GeneratingFunction,
                      config: ForwardAnalysisConfig) -> GeneratingFunction:
-    input_gf = input_gf.filter(instr.cond)
     try:
-        input_gf = input_gf.normalized()
+        (sat_part, non_sat_part, approx) = _safe_filter(input_gf, instr.cond)
+        normalized = (sat_part + non_sat_part).normalized()
     except ZeroDivisionError:
         raise ObserveZeroEventError(f"observed event {instr.cond} has probability 0")
-    return input_gf
+    return normalized
 
 
 def _expectation_handler(instr: Expr,
@@ -242,8 +242,9 @@ def _query_handler(instr: Queries, input_gf: GeneratingFunction, config: Forward
         print(f"Expected value: {result}")
         return input_gf
     elif isinstance(instr, ProbabilityQueryInstr):
-        prob = input_gf.filter(instr.expr).coefficient_sum() if config.show_rational_probabilities \
-                                                             else input_gf.filter(instr.expr).coefficient_sum().evalf()
+        sat_part, _, _ = _safe_filter(input_gf, instr.expr)
+        prob = sat_part.coefficient_sum() if config.show_rational_probabilities \
+                                                             else sat_part.coefficient_sum().evalf()
         print(f"Probability of {instr.expr}: {prob}")
         return input_gf
     else:
@@ -312,7 +313,7 @@ def _safe_filter(input_gf: GeneratingFunction, condition: Expr) -> Tuple[Generat
         print(err)
         probability = input("Continue with approximation. Enter a probability (0, {}):\t"
                             .format(input_gf.coefficient_sum()))
-        if probability > sympy.S(0):
+        if sympy.S(probability) > sympy.S(0):
             approx = input_gf.expand_until(probability)
             approx_sat_part = approx.filter(condition)
             approx_non_sat_part = approx - approx_sat_part

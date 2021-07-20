@@ -165,10 +165,19 @@ class GeneratingFunction:
         :return: a tuple (factor, monomial)
         """
         prob_and_mon = addend.as_coefficients_dict()
-        result = tuple()
+        result = (sympy.S(1), sympy.S(1))
         for monomial in prob_and_mon:
-            result += (prob_and_mon[monomial],)
-            result += (monomial,)
+            variable_powers = monomial.as_powers_dict()
+            for var in variable_powers:
+                if isinstance(var, sympy.core.numbers.Float):
+                    result = (monomial, prob_and_mon[monomial])
+                elif var == sympy.E:
+                    result = (result[0] * var**(variable_powers[var]), result[1])
+                elif isinstance(var, sympy.log):
+                    result = (result[0] * var, result[1])
+                else:
+                    result = (result[0], result[1] * var**variable_powers[var])
+            result = (result[0]*prob_and_mon[monomial], result[1])
         return result
 
     def diff(self, variable, k):
@@ -194,7 +203,7 @@ class GeneratingFunction:
         pass
 
     def as_series(self):
-        if self._function.is_polynomial():
+        if self._is_finite and not self._is_closed_form:
             return self._term_generator()
 
         if 0 <= self._dimension <= 1:
@@ -208,15 +217,16 @@ class GeneratingFunction:
             # TODO Tobias wants to implement this.
             # Important: make this a generator, so we can query arbitrary many terms.
             # see difference between sympy series and lseries.
-            NotImplementedError("Multivariate Taylor is needed here.")
+            raise NotImplementedError("Multivariate Taylor is needed here.")
 
     def expand_until(self, threshold):
-        if threshold > self.coefficient_sum():
+        if sympy.S(threshold) > self.coefficient_sum():
             raise RuntimeError("Threshold cannot be larger than total coefficient sum! Threshold: {}, CSum {}"
                                .format(threshold, self.coefficient_sum()))
         expanded_expr = GeneratingFunction(str(0), self._variables)
+        print(self)
         for term in self.as_series():
-            if expanded_expr.coefficient_sum() >= threshold:
+            if expanded_expr.coefficient_sum() >= sympy.S(threshold):
                 break
             else:
                 expanded_expr += GeneratingFunction(term, self._variables)

@@ -50,8 +50,8 @@ def main(program_file: IO, input_gf: str):
         gf = GeneratingFunction(input_gf, set(program.variables.keys()), 1.0)
     GeneratingFunction.rational_preciseness = True
     gf = loopfree_gf(program.instructions, gf)
-    print("\nGeneratingfunction\n", gf._function.refine(sympy.Q.real(sympy.S('x'))).simplify())
-    gf = GeneratingFunction(gf._function.expand().simplify(), preciseness=gf.precision())
+    print("\nGeneratingfunction\n", gf._function.refine(sympy.Q.real(sympy.S('x'))).simplify().doit())
+    gf = GeneratingFunction(gf._function.refine(sympy.Q.real(sympy.S('x'))).simplify(), preciseness=gf.precision())
     gf.create_histogram()
 
 
