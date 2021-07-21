@@ -1,7 +1,6 @@
 nat x;
 nat y;
 
-x := poisson(5)
+x := binomial(10, 1/2)
 y := binomial(10, 1/2)
-?Pr[4=3*y]
 

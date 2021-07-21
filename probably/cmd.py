@@ -15,6 +15,7 @@ import click
 import sympy
 
 import probably.pgcl.compiler as pgcl
+from probably.analysis.config import ForwardAnalysisConfig
 from probably.pgcl.check import CheckFail
 from probably.analysis.discrete import loopfree_gf
 from probably.analysis.generating_function import GeneratingFunction
@@ -44,15 +45,18 @@ def main(program_file: IO, input_gf: str):
 
     print()
     if input_gf is None:
-        gf = GeneratingFunction("1", set(program.variables.keys()), 1.0)
+        gf = GeneratingFunction("1", set(program.variables.keys()), 1.0, True, True)
         print(gf.vars())
     else:
         gf = GeneratingFunction(input_gf, set(program.variables.keys()), 1.0)
     GeneratingFunction.rational_preciseness = True
-    gf = loopfree_gf(program.instructions, gf)
+    GeneratingFunction.verbose_mode = True
+    gf = loopfree_gf(program.instructions, gf, ForwardAnalysisConfig(verbose_generating_functions=True))
     print("\nGeneratingfunction\n", gf._function.refine(sympy.Q.real(sympy.S('x'))).simplify().doit())
-    gf = GeneratingFunction(gf._function.refine(sympy.Q.real(sympy.S('x'))).simplify(), preciseness=gf.precision())
-    gf.create_histogram()
+    gf = GeneratingFunction(gf._function.refine(sympy.Q.real(sympy.S('x'))).simplify(), preciseness=gf.precision(), closed=True)
+    print(f"Create Plot for {gf}")
+    gf.create_histogram(var="x")
+    print("Plotted")
 
 
 if __name__ == "__main__":
