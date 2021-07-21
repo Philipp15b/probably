@@ -148,7 +148,6 @@ def _assignment_handler(instr: AsgnInstr,
         else:
             raise NotImplementedError(f"Nested modulo expressions are currently not supported.")
 
-
     # rhs is a linear expression
     if check_is_linear_expr(instr.rhs) is None:
         variable = instr.lhs
@@ -195,8 +194,8 @@ def _observe_handler(instr: ObserveInstr,
                      input_gf: GeneratingFunction,
                      config: ForwardAnalysisConfig) -> GeneratingFunction:
     try:
-        (sat_part, non_sat_part, approx) = _safe_filter(input_gf, instr.cond)
-        normalized = (sat_part + non_sat_part).normalized()
+        sat_part, non_sat_part, approx = _safe_filter(input_gf, instr.cond)
+        normalized = sat_part.normalized()
     except ZeroDivisionError:
         raise ObserveZeroEventError(f"observed event {instr.cond} has probability 0")
     return normalized
@@ -220,12 +219,14 @@ def _expectation_handler(instr: Expr,
         if instr.operator == Binop.PLUS:
             return _expectation_handler(instr.lhs, input_gf, config) + _expectation_handler(instr.rhs, input_gf, config)
         elif instr.operator == Binop.TIMES:
-             if isinstance(instr.lhs, (NatLitExpr, RealLitExpr)):
-                 return _expectation_handler(instr.lhs, input_gf, config) * _expectation_handler(instr.rhs, input_gf, config)
-             if isinstance(instr.rhs, (NatLitExpr, RealLitExpr)):
-                 return _expectation_handler(instr.lhs, input_gf, config) * _expectation_handler(instr.rhs, input_gf, config)
-             else:
-                 return _expectation_handler(instr.rhs, _expectation_handler(instr.lhs, input_gf, config), config)
+            if isinstance(instr.lhs, (NatLitExpr, RealLitExpr)):
+                return _expectation_handler(instr.lhs, input_gf, config) * _expectation_handler(instr.rhs, input_gf,
+                                                                                                config)
+            if isinstance(instr.rhs, (NatLitExpr, RealLitExpr)):
+                return _expectation_handler(instr.lhs, input_gf, config) * _expectation_handler(instr.rhs, input_gf,
+                                                                                                config)
+            else:
+                return _expectation_handler(instr.rhs, _expectation_handler(instr.lhs, input_gf, config), config)
         elif instr.operator == Binop.MINUS:
             return _expectation_handler(instr.lhs, input_gf, config) - _expectation_handler(instr.rhs, input_gf, config)
         elif instr.operator == Binop.DIVIDE:
@@ -243,8 +244,7 @@ def _query_handler(instr: Queries, input_gf: GeneratingFunction, config: Forward
         return input_gf
     elif isinstance(instr, ProbabilityQueryInstr):
         sat_part, _, _ = _safe_filter(input_gf, instr.expr)
-        prob = sat_part.coefficient_sum() if config.show_rational_probabilities \
-                                                             else sat_part.coefficient_sum().evalf()
+        prob = sat_part.coefficient_sum() if config.show_rational_probabilities else sat_part.coefficient_sum().evalf()
         print(f"Probability of {instr.expr}: {prob}")
         return input_gf
     else:
@@ -265,6 +265,7 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
         input_gf: Input generating function.
         config: The configurable options.
     """
+
     def _show_steps(gf, instr):
         res = loopfree_gf(instr, gf, config)
         print(f"Instruction: {instr}\t Result: {res.simplify()}")
