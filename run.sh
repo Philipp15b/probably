@@ -1,1 +1,1 @@
-poetry run probably pgfexamples/telephone_operator.pgcl
+poetry run probably example.pgcl

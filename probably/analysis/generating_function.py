@@ -1,3 +1,7 @@
+import functools
+from fractions import Fraction
+
+import more_itertools
 import sympy
 import matplotlib.pyplot as plt
 
@@ -32,6 +36,14 @@ class NotComputable(Exception):
     pass
 
 
+def _term_generator(function: sympy.Poly):
+    assert isinstance(function, sympy.Poly), "Terms can only be generated for finite GF"
+    poly = function
+    while poly.as_expr() != 0:
+        yield sympy.S(poly.LC() * poly.LM().as_expr())
+        poly -= poly.LC() * poly.LM().as_expr()
+
+
 class GeneratingFunction:
     """
     This class represents a generating function. It wraps the sympy library.
@@ -39,6 +51,7 @@ class GeneratingFunction:
     This class does not ensure to be in a healthy state (i.e., every coefficient is non-negative).
     """
     rational_preciseness = False
+    verbose_mode = False
 
     def __init__(self,
                  function: str = "",
@@ -55,7 +68,7 @@ class GeneratingFunction:
                 self._variables = self._variables.union({sympy.S(variable)})
         self._dimension = len(self._variables)
         self._is_closed_form = closed if closed else not self._function.is_polynomial()
-        self._is_finite = finite if finite else self._function.is_polynomial()
+        self._is_finite = finite if finite else self._function.expand().ratsimp().is_polynomial()
 
     def _arithmetic(self, other, op: operator):
         if isinstance(other, GeneratingFunction):
@@ -85,9 +98,15 @@ class GeneratingFunction:
 
     def __str__(self):
         if GeneratingFunction.rational_preciseness:
-            return str(self._function) + "\t@" + str(self._preciseness)
+            output = f"{str(self._function)} \t@{str(self._preciseness)}"
+            if GeneratingFunction.verbose_mode:
+                output += f"\t({str(self._is_closed_form)},{str(self._is_finite)})"
+            return output
         else:
-            return str(self._function) + "\t@" + str(self._preciseness.evalf())
+            output = str(self._function) + "\t@" + str(self._preciseness.evalf())
+            if GeneratingFunction.verbose_mode:
+                output += f"\t({str(self._is_closed_form)},{str(self._is_finite)})"
+            return output
 
     def __repr__(self):
         return repr(self._function)
@@ -192,39 +211,35 @@ class GeneratingFunction:
         return GeneratingFunction(sympy.diff(self._function, sympy.S(variable), k), variables=self._variables,
                                   preciseness=self._preciseness)
 
-    def _term_generator(self):
-        assert self._function.is_polynomial(), "Terms can only be generated for finite GF"
-        terms = self._function.as_coefficients_dict()
-        for term in terms:
-            yield sympy.S(terms[term] * term)
-
     def _mult_term_generator(self):
         # TODO Implement me. Current Problem: How to enumerate w.r.t total degree order?
         pass
 
     def as_series(self):
-        if self._is_finite and not self._is_closed_form:
-            return self._term_generator()
-
-        if 0 <= self._dimension <= 1:
-            series = self._function.lseries()
-            if str(type(series)) == "<class 'generator'>":
-                return self._function.lseries()
-            else:
-                return {self._function}
+        if self._is_finite:
+            func = self._function.as_poly()
+            if self._is_closed_form:
+                func = self._function.expand().ratsimp().as_poly(list(self._variables))
+            return _term_generator(func)
 
         else:
-            # TODO Tobias wants to implement this.
-            # Important: make this a generator, so we can query arbitrary many terms.
-            # see difference between sympy series and lseries.
-            raise NotImplementedError("Multivariate Taylor is needed here.")
+            if 0 <= self._dimension <= 1:
+                series = self._function.lseries()
+                if str(type(series)) == "<class 'generator'>":
+                    return self._function.lseries()
+                else:
+                    return {self._function}
+            else:
+                # TODO Tobias wants to implement this.
+                # Important: make this a generator, so we can query arbitrary many terms.
+                # see difference between sympy series and lseries.
+                raise NotImplementedError("Multivariate Taylor is needed here.")
 
     def expand_until(self, threshold):
         if sympy.S(threshold) > self.coefficient_sum():
             raise RuntimeError("Threshold cannot be larger than total coefficient sum! Threshold: {}, CSum {}"
                                .format(threshold, self.coefficient_sum()))
         expanded_expr = GeneratingFunction(str(0), self._variables)
-        print(self)
         for term in self.as_series():
             if expanded_expr.coefficient_sum() >= sympy.S(threshold):
                 break
@@ -379,11 +394,11 @@ class GeneratingFunction:
             elif expression.operator == Binop.EQ:
                 variable = sympy.S(str(expression.lhs))
                 constant = expression.rhs.value
-                return GeneratingFunction(
-                    ((sympy.diff(self._function, variable, constant) / sympy.factorial(constant))
-                     .limit(variable, 0)
-                     * variable ** constant).simplify(), variables=self._variables, preciseness=self._preciseness
-                )
+
+                new_func = self._function.diff(variable, constant)
+                new_func /= sympy.factorial(constant)
+                new_func = new_func.limit(variable, 0) * variable ** constant
+                return GeneratingFunction(new_func, variables=self._variables, preciseness=self._preciseness)
             else:
                 raise Exception(f"Expression is neither an equality nor inequality!")
         # evaluate on finite
@@ -402,6 +417,10 @@ class GeneratingFunction:
         else:
             raise NotComputable("Instruction {} is not computable on infinite generating function {}"
                                 .format(expression, self._function))
+
+    def limit(self, variable: str, value: str):
+        return GeneratingFunction(self._function.limit(sympy.S(variable), sympy.S(value), "-"),
+                                  preciseness=self._preciseness, closed=self._is_closed_form)
 
     def linear_transformation(self, variable, expression):
         # Transform expression into sympy readable format
@@ -444,17 +463,77 @@ class GeneratingFunction:
                                              self._is_closed_form, self._is_finite))
         return result
 
-    def create_histogram(self, n=0, p: str = None):
-        """
-        Shows the encoded distribution as a histogram.
-        """
-        if len(self._function.free_symbols) > 2:
-            raise Exception("We can only illustrate distributions with dimension 2 or less.")
+    def _create_histogram_for_variable(self, var: str, n: int, p: str):
+        marginal = self
+        for variable in self._variables.difference({sympy.S(var)}):
+            marginal = marginal.limit(variable, "1")
+        if marginal._is_finite:
+            print("Should not be the case", marginal)
+            data = []
+            ind = []
+            for addend in marginal.as_series():
+                (prob, mon) = self.split_addend(addend)
+                state = self._monomial_to_state(mon)
+                data.append(prob)
+                ind.append(float(state[sympy.S(var)]))
+            ax = plt.subplot()
+            ax.bar(ind, data, 1, linewidth=.5, ec=(0, 0, 0))
+            ax.set_xlabel(f"{var}")
+            ax.set_xticks(ind)
+            ax.set_ylabel(f'Probability p({var})')
+            plt.get_current_fig_manager().set_window_title("Histogram Plot")
+            plt.gcf().suptitle("Histogram")
+            plt.show()
+        else:
+            if p:
+                gf = marginal.expand_until(p)
+            elif not (n == 0):
+                gf = GeneratingFunction(marginal._function.series(sympy.S(var), n=n).removeO(),
+                                        var, self.precision(), False, True)
+            else:
+                gf = marginal.expand_until(marginal.coefficient_sum() * 0.99)
+            gf._create_histogram_for_variable(var, n, p)
 
-        elif len(self._function.free_symbols) > 1:
-            raise NotImplementedError("Only support of dimension 1")
-
-        if not self.is_finite():
+    def _create_2d_hist(self, n, p):
+        if self._is_finite:
+            coord_and_prob = dict()
+            maxima = dict()
+            var_x = None
+            var_y = None
+            max_prob = 0
+            for addend in self.as_series():
+                (prob, mon) = self.split_addend(addend)
+                state = self._monomial_to_state(mon)
+                coord = ()
+                i = 0
+                for var in self._function.free_symbols:
+                    if i == 0:
+                        var_x = var
+                    elif i == 1:
+                        var_y = var
+                    if var not in maxima:
+                        maxima[var] = state[var]
+                    else:
+                        maxima[var] = max(maxima[var], state[var])
+                    coord += (state[var],)
+                    i += 1
+                coord_and_prob[coord] = prob
+                max_prob = max(prob, max_prob)
+            colors = []
+            for _ in range(maxima[var_y]+1):
+                colors.append(list(0.0 for _ in range(maxima[var_x]+1)))
+            for coord in coord_and_prob:
+                x = coord[0]
+                y = coord[1]
+                colors[y][x] = float(coord_and_prob[coord])
+            c = plt.pcolormesh(colors, vmin=0, vmax=max_prob, shading='auto', ec="k", cmap="Blues")
+            plt.colorbar(c)
+            plt.gca().set_xlabel(f"{var_x}")
+            plt.gca().set_xticks(range(0, maxima[var_x]+1))
+            plt.gca().set_ylabel(f"{var_y}")
+            plt.gca().set_yticks(range(0, maxima[var_y]+1))
+            plt.show()
+        else:
             if p:
                 gf = self.expand_until(p)
             elif not (n == 0):
@@ -463,20 +542,20 @@ class GeneratingFunction:
             else:
                 gf = self.expand_until(self.coefficient_sum() * 0.99)
             gf.create_histogram()
+
+
+    def create_histogram(self, n=0, p: str = None, var: str = None):
+        """
+        Shows the histogram of the marginal distribution of the specified variable.
+        """
+        if var:
+            self._create_histogram_for_variable(var, n, p)
         else:
-            data = []
-            ind = []
-            for addend in self.as_series():
-                (prob, mon) = self.split_addend(addend)
-                state = self._monomial_to_state(mon)
-                data.append(prob)
+            if len(self._function.free_symbols) > 2:
+                raise Exception("Multivariate distributions need to specify the variable to plot")
+
+            elif len(self._function.free_symbols) == 2:
+                    self._create_2d_hist(n, p)
+            else:
                 for var in self._function.free_symbols:
-                    ind.append(float(state[var]))
-            ax = plt.subplot()
-            ax.bar(ind, data, 1, linewidth=.5, ec=(0, 0, 0))
-            ax.set_xlabel(f"{self._function.free_symbols}")
-            ax.set_xticks(ind)
-            ax.set_ylabel(f'Probability p({self._function.free_symbols})')
-            plt.get_current_fig_manager().set_window_title("Histogram Plot")
-            plt.gcf().suptitle("Histogram")
-            plt.show()
+                    self._create_histogram_for_variable(str(var), n, p)

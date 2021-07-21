@@ -1,6 +1,6 @@
 nat x;
 nat y;
 
-x := binomial(10, 1/2)
-y := binomial(10, 1/2)
+x := poisson(7)
+y := binomial(5, 1/2)
 

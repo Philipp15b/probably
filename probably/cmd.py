@@ -54,9 +54,7 @@ def main(program_file: IO, input_gf: str):
     gf = loopfree_gf(program.instructions, gf, ForwardAnalysisConfig(verbose_generating_functions=True))
     print("\nGeneratingfunction\n", gf._function.refine(sympy.Q.real(sympy.S('x'))).simplify().doit())
     gf = GeneratingFunction(gf._function.refine(sympy.Q.real(sympy.S('x'))).simplify(), preciseness=gf.precision(), closed=True)
-    print(f"Create Plot for {gf}")
-    gf.create_histogram(var="x")
-    print("Plotted")
+    gf.create_histogram(var="x", n=30)
 
 
 if __name__ == "__main__":
