@@ -1,7 +1,3 @@
-import functools
-from fractions import Fraction
-
-import more_itertools
 import sympy
 import matplotlib.pyplot as plt
 
@@ -160,13 +156,17 @@ class GeneratingFunction:
         return not (self == other)
 
     def _monomial_to_state(self, monomial):
-        variables_and_powers = monomial.as_powers_dict()
         result = dict()
-        for var in self._variables:
-            if var in variables_and_powers.keys():
-                result[var] = variables_and_powers[var]
-            else:
+        if monomial.free_symbols == set():
+            for var in self._variables:
                 result[var] = 0
+        else:
+            variables_and_powers = monomial.as_powers_dict()
+            for var in self._variables:
+                if var in variables_and_powers.keys():
+                    result[var] = variables_and_powers[var]
+                else:
+                    result[var] = 0
         return result
 
     def is_precise(self):
@@ -183,21 +183,17 @@ class GeneratingFunction:
         :param addend: the addend to split into its factor and monomial.
         :return: a tuple (factor, monomial)
         """
-        prob_and_mon = addend.as_coefficients_dict()
-        result = (sympy.S(1), sympy.S(1))
-        for monomial in prob_and_mon:
-            variable_powers = monomial.as_powers_dict()
-            for var in variable_powers:
-                if isinstance(var, sympy.core.numbers.Float):
-                    result = (monomial, prob_and_mon[monomial])
-                elif var == sympy.E:
-                    result = (result[0] * var**(variable_powers[var]), result[1])
-                elif isinstance(var, sympy.log):
-                    result = (result[0] * var, result[1])
+        if addend.free_symbols == set():
+            return addend, sympy.S(1)
+        else:
+            factor_powers = addend.as_powers_dict()
+            result = (sympy.S(1), sympy.S(1))
+            for factor in factor_powers:
+                if factor in addend.free_symbols:
+                    result = (result[0], result[1] * factor ** factor_powers[factor])
                 else:
-                    result = (result[0], result[1] * var**variable_powers[var])
-            result = (result[0]*prob_and_mon[monomial], result[1])
-        return result
+                    result = (result[0] * factor ** factor_powers[factor], result[1])
+            return result
 
     def diff(self, variable, k):
         """
@@ -217,9 +213,10 @@ class GeneratingFunction:
 
     def as_series(self):
         if self._is_finite:
-            func = self._function.as_poly()
             if self._is_closed_form:
                 func = self._function.expand().ratsimp().as_poly(list(self._variables))
+            else:
+                func = self._function.as_poly()
             return _term_generator(func)
 
         else:
@@ -468,7 +465,6 @@ class GeneratingFunction:
         for variable in self._variables.difference({sympy.S(var)}):
             marginal = marginal.limit(variable, "1")
         if marginal._is_finite:
-            print("Should not be the case", marginal)
             data = []
             ind = []
             for addend in marginal.as_series():

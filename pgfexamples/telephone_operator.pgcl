@@ -8,6 +8,6 @@ if (x=0){
     d := poisson(3) // Weekends there are 3 phone calls in average in an hour
 }
 
-observe(d=4) // we have observed 4 phone calls.
+observe(d=5) // we have observed 4 phone calls.
 
 

@@ -46,12 +46,11 @@ def main(program_file: IO, input_gf: str):
     print()
     if input_gf is None:
         gf = GeneratingFunction("1", set(program.variables.keys()), 1.0, True, True)
-        print(gf.vars())
     else:
         gf = GeneratingFunction(input_gf, set(program.variables.keys()), 1.0)
     GeneratingFunction.rational_preciseness = True
     GeneratingFunction.verbose_mode = True
-    gf = loopfree_gf(program.instructions, gf, ForwardAnalysisConfig(verbose_generating_functions=True))
+    gf = loopfree_gf(program.instructions, gf, ForwardAnalysisConfig(verbose_generating_functions=False, show_intermediate_steps=False))
     print("\nGeneratingfunction\n", gf._function.refine(sympy.Q.real(sympy.S('x'))).simplify().doit())
     gf = GeneratingFunction(gf._function.refine(sympy.Q.real(sympy.S('x'))).simplify(), preciseness=gf.precision(), closed=True)
     gf.create_histogram(var="x", n=30)

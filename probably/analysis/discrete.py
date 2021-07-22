@@ -275,7 +275,8 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
         return loopfree_gf(instr, gf, config)
 
     if isinstance(instr, list):
-        return functools.reduce(_show_steps if config.show_intermediate_steps else _dont_show_steps, instr, input_gf)
+        func = _show_steps if config.show_intermediate_steps else _dont_show_steps
+        return functools.reduce(func, instr, input_gf)
 
     if isinstance(instr, SkipInstr):
         return input_gf
