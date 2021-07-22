@@ -31,7 +31,7 @@ sympy = "^1.8"
 matplotlib = "^3.4.2"
 
 [tool.poetry.scripts]
-probably = "probably.cmd:main"
+probably = "probably.cli:main"
 
 [build-system]
 requires = ["poetry>=0.12"]
