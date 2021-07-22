@@ -1,3 +1,5 @@
+import functools
+
 import sympy
 import matplotlib.pyplot as plt
 
@@ -11,6 +13,16 @@ def _is_constant_constraint(expression):  # Move this to expression checks etc.
             return True
     else:
         return False
+
+
+def _enumerate_monomials(variables, max_degree):
+    if variables == 0:
+        return [[]]
+    t = []
+    for i in range(max_degree):
+        for L in _enumerate_monomials(variables - 1, max_degree):
+            t.append([i] + L)
+    return t
 
 
 def _is_modulus_condition(expression):
@@ -208,42 +220,62 @@ class GeneratingFunction:
                                   preciseness=self._preciseness)
 
     def _mult_term_generator(self):
-        # TODO Implement me. Current Problem: How to enumerate w.r.t total degree order?
-        pass
+        i = 1
+        old_monomials = []
+        while True:
+            new_monomials = _enumerate_monomials(len(self._variables), i)
+            for monomial in [item for item in new_monomials if item not in old_monomials]:
+                index = 0
+                func = self._function
+                for var in self._variables:
+                    func = func.diff(var, monomial[index]) / sympy.factorial(monomial[index])
+                    func = func.limit(var, 0, "-") * var ** monomial[index]
+                    index += 1
+                yield func
+            old_monomials = new_monomials
+            print(f"\t>Terms generated until total degree of {i - 1}")
+            i += 1
 
     def as_series(self):
         if self._is_finite:
             if self._is_closed_form:
                 func = self._function.expand().ratsimp().as_poly(list(self._variables))
             else:
-                func = self._function.as_poly()
+                func = self._function.as_poly(gens=list(self._variables))
             return _term_generator(func)
 
         else:
             if 0 <= self._dimension <= 1:
                 series = self._function.lseries()
                 if str(type(series)) == "<class 'generator'>":
-                    return self._function.lseries()
+                    return series
                 else:
                     return {self._function}
             else:
-                # TODO Tobias wants to implement this.
-                # Important: make this a generator, so we can query arbitrary many terms.
-                # see difference between sympy series and lseries.
-                raise NotImplementedError("Multivariate Taylor is needed here.")
+                print("Multivariate Taylor expansion might take a while...")
+                return self._mult_term_generator()
 
-    def expand_until(self, threshold):
-        if sympy.S(threshold) > self.coefficient_sum():
-            raise RuntimeError("Threshold cannot be larger than total coefficient sum! Threshold: {}, CSum {}"
-                               .format(threshold, self.coefficient_sum()))
-        expanded_expr = GeneratingFunction(str(0), self._variables)
-        for term in self.as_series():
-            if expanded_expr.coefficient_sum() >= sympy.S(threshold):
-                break
-            else:
-                expanded_expr += GeneratingFunction(term, self._variables)
-        expanded_expr._preciseness = self._preciseness * expanded_expr.coefficient_sum() / self.coefficient_sum()
-        return expanded_expr
+    def expand_until(self, threshold=None, nterms=None):
+        approx = sympy.S("0")
+        prec = sympy.S(0)
+        if threshold:
+            assert sympy.S(threshold) < self.coefficient_sum(), \
+                f"Threshold cannot be larger than total coefficient sum! Threshold:" \
+                f" {sympy.S(threshold)}, CSum {self.coefficient_sum()}"
+            for term in self.as_series():
+                if prec >= threshold:
+                    break
+                approx += term
+                prec += self.split_addend(term)[0]
+        else:
+            assert nterms > 0, "Expanding to less than 0 terms is not valid."
+            n = 0
+            for term in self.as_series():
+                if n >= nterms:
+                    break
+                approx += term
+                prec += self.split_addend(term)[0]
+        return GeneratingFunction(str(approx), self._variables, preciseness=prec, closed=False, finite=True)
 
     def dim(self):
         return self._dimension
@@ -252,7 +284,7 @@ class GeneratingFunction:
         coefficient_sum = self._function
         for var in self._variables:
             coefficient_sum = coefficient_sum.limit(var, 1, "-")
-        return coefficient_sum
+        return sympy.S(coefficient_sum)
 
     def vars(self):
         return self._variables
@@ -502,7 +534,7 @@ class GeneratingFunction:
                 state = self._monomial_to_state(mon)
                 coord = ()
                 i = 0
-                for var in self._function.free_symbols:
+                for var in self._variables:
                     if i == 0:
                         var_x = var
                     elif i == 1:
@@ -516,31 +548,24 @@ class GeneratingFunction:
                 coord_and_prob[coord] = prob
                 max_prob = max(prob, max_prob)
             colors = []
-            for _ in range(maxima[var_y]+1):
-                colors.append(list(0.0 for _ in range(maxima[var_x]+1)))
+            for _ in range(maxima[var_y] + 1):
+                colors.append(list(0.0 for _ in range(maxima[var_x] + 1)))
             for coord in coord_and_prob:
                 x = coord[0]
                 y = coord[1]
                 colors[y][x] = float(coord_and_prob[coord])
-            c = plt.pcolormesh(colors, vmin=0, vmax=max_prob, shading='auto', ec="k", cmap="Blues")
+            c = plt.pcolormesh(colors, vmin=0, vmax=max_prob, shading='auto', ec="k", cmap="Blues", linewidth=0.5)
             plt.colorbar(c)
             plt.gca().set_xlabel(f"{var_x}")
-            plt.gca().set_xticks(range(0, maxima[var_x]+1))
+            plt.gca().set_xticks(range(0, maxima[var_x] + 1))
             plt.gca().set_ylabel(f"{var_y}")
-            plt.gca().set_yticks(range(0, maxima[var_y]+1))
+            plt.gca().set_yticks(range(0, maxima[var_y] + 1))
             plt.show()
         else:
-            if p:
-                gf = self.expand_until(p)
-            elif not (n == 0):
-                gf = GeneratingFunction(self._function.series(*self._function.free_symbols, n=n).removeO(),
-                                        self._variables, self.precision())
-            else:
-                gf = self.expand_until(self.coefficient_sum() * 0.99)
-            gf.create_histogram()
+            gf = self.expand_until(p, n)
+            gf._create_2d_hist(n, p)
 
-
-    def create_histogram(self, n=0, p: str = None, var: str = None):
+    def create_histogram(self, n=None, p: str = None, var: str = None):
         """
         Shows the histogram of the marginal distribution of the specified variable.
         """
@@ -551,7 +576,7 @@ class GeneratingFunction:
                 raise Exception("Multivariate distributions need to specify the variable to plot")
 
             elif len(self._function.free_symbols) == 2:
-                    self._create_2d_hist(n, p)
+                self._create_2d_hist(n, p)
             else:
                 for var in self._function.free_symbols:
                     self._create_histogram_for_variable(str(var), n, p)
