@@ -4,6 +4,33 @@ nat opendoor;
 
 prize := unif(1,3)
 player := unif(1,3)
+
 opendoor := unif(1,3)
-observe( not (opendoor = player) & not (opendoor = prize) )
-// implement the rest
+while((opendoor = prize) || (opendoor = player)){
+    opendoor := unif(1,3)
+}
+?Pr[player = prize]
+if (opendoor = 1){
+    if (player = 2){
+        player := 3
+    } else {
+        player := 2
+    }
+} else {
+    if (opendoor = 2){
+        if (player = 3){
+            player := 1
+        } else {
+            player := 3
+        }
+    } else {
+        if (opendoor = 3){
+            if (player = 2){
+                player := 1
+            } else {
+                player := 2
+            }
+        } else{skip}
+    }
+}
+!Plot[player , prize]
