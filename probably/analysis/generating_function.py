@@ -515,61 +515,73 @@ class GeneratingFunction:
             gf = marginal.expand_until(p, n)
             gf._create_histogram_for_variable(var, n, p)
 
-    def _create_2d_hist(self, n, p):
-        if self._is_finite:
+    def _create_2d_hist(self, var_1: str, var_2: str, n, p):
+
+        x = sympy.S(var_1)
+        y = sympy.S(var_2)
+
+        # Marginalize distribution to the variables of interest.
+        marginal = self._function
+        for var in self._variables:
+            if var != x or var != y:
+                marginal = marginal.limit(var, 1, "-")
+        marginal = GeneratingFunction(marginal)
+
+        # Collect relevant data from the distribution and plot it.
+        if marginal._is_finite:
             coord_and_prob = dict()
-            maxima = dict()
-            var_x = None
-            var_y = None
+            maxima = {x: 0, y: 0}
             max_prob = 0
+            colors = []
+
+            # collect the coordinates and probabilities. Also compute maxima of probabilities and degrees
             for addend in self.as_series():
                 (prob, mon) = self.split_addend(addend)
                 state = self._monomial_to_state(mon)
-                coord = ()
-                i = 0
-                for var in self._variables:
-                    if i == 0:
-                        var_x = var
-                    elif i == 1:
-                        var_y = var
-                    if var not in maxima:
-                        maxima[var] = state[var]
-                    else:
-                        maxima[var] = max(maxima[var], state[var])
-                    coord += (state[var],)
-                    i += 1
+                maxima[x], maxima[y] = max(maxima[x], state[x]), max(maxima[y], state[y])
+                coord = (state[x], state[y])
                 coord_and_prob[coord] = prob
                 max_prob = max(prob, max_prob)
-            colors = []
-            for _ in range(maxima[var_y] + 1):
-                colors.append(list(0.0 for _ in range(maxima[var_x] + 1)))
+
+            # Zero out the colors array
+            for _ in range(maxima[y] + 1):
+                colors.append(list(0.0 for _ in range(maxima[x] + 1)))
+
+            # Fill the colors array with the previously collected data.
             for coord in coord_and_prob:
-                x = coord[0]
-                y = coord[1]
-                colors[y][x] = float(coord_and_prob[coord])
+                colors[coord[1]][coord[0]] = float(coord_and_prob[coord])
+
+            # Plot the colors array
             c = plt.pcolormesh(colors, vmin=0, vmax=max_prob, shading='auto', ec="k", cmap="Blues", linewidth=0.5)
             plt.colorbar(c)
-            plt.gca().set_xlabel(f"{var_x}")
-            plt.gca().set_xticks(range(0, maxima[var_x] + 1))
-            plt.gca().set_ylabel(f"{var_y}")
-            plt.gca().set_yticks(range(0, maxima[var_y] + 1))
+            plt.gca().set_xlabel(f"{x}")
+            plt.gca().set_xticks(range(0, maxima[x] + 1))
+            plt.gca().set_ylabel(f"{y}")
+            plt.gca().set_yticks(range(0, maxima[y] + 1))
             plt.show()
         else:
-            gf = self.expand_until(p, n)
-            gf._create_2d_hist(n, p)
+            # make the marginal finite.
+            marginal = marginal.expand_until(p, n)
+            marginal._create_2d_hist(var_1, var_2, n, p)
 
-    def create_histogram(self, n=None, p: str = None, var: str = None):
+    def create_histogram(self, n=None, p: str = None, var: [str] = None):
         """
         Shows the histogram of the marginal distribution of the specified variable.
         """
         if var:
-            self._create_histogram_for_variable(var, n, p)
+            if len(var) > 2:
+                raise ParameterError(f"{__name__} cannot handle more than two variables!")
+            if len(var) == 2:
+                self._create_2d_hist(var_1=var[0], var_2=var[1], n=n, p=p)
+            if len(var) == 1:
+                self._create_histogram_for_variable(var=var[0], n=n, p=p)
         else:
             if len(self._function.free_symbols) > 2:
                 raise Exception("Multivariate distributions need to specify the variable to plot")
 
             elif len(self._function.free_symbols) == 2:
-                self._create_2d_hist(n, p)
+                vars = list(self._function.free_symbols)
+                self._create_2d_hist(var_1=vars[0], var_2=vars[1], n=n, p=p)
             else:
                 for var in self._function.free_symbols:
                     self._create_histogram_for_variable(str(var), n, p)

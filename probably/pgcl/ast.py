@@ -835,10 +835,11 @@ class ProbabilityQueryInstr(InstrClass):
 @attr.s
 class PlotInstr(InstrClass):
 
-    variable: VarExpr = attr.ib()
+    var_1: VarExpr = attr.ib()
+    var_2: VarExpr = attr.ib(default=None)
 
     def __str__(self) -> str:
-        return f"!Plot[{self.variable}]"
+        return f"!Plot[{self.var_1}{(', ' + self.var_2.var) if self.var_2 else ''}]"
 
 
 Queries = Union[ProbabilityQueryInstr, ExpectationInstr, PlotInstr]

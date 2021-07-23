@@ -410,9 +410,13 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
         return None
 
     if isinstance(instr, PlotInstr):
-        var_type = get_type(program, instr.variable, check=True)
-        if isinstance(var_type, CheckFail):
-            return var_type
+        var_1_type = get_type(program, instr.var_1, check=True)
+        if isinstance(var_1_type, CheckFail):
+            return var_1_type
+        if instr.var_2:
+            var_2_type = get_type(program, instr.var_2, check=True)
+            if isinstance(var_2_type, CheckFail):
+                return var_2_type
         return None
 
     raise Exception("unreachable")

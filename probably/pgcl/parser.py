@@ -52,7 +52,7 @@ _PGCL_GRAMMAR = """
                | "observe" "(" expression ")"                -> observe 
                | "?Ex" "[" expression "]"                    -> expectation
                | "?Pr" "[" expression "]"                    -> prquery
-               | "!Plot" "[" var "]"                         -> plot
+               | "!Plot" "[" var ("," var)?"]"                 -> plot
 
 
     block: "{" instruction* "}"
@@ -363,7 +363,10 @@ def _parse_instr(t: Tree) -> Instr:
     elif t.data == 'prquery':
         return ProbabilityQueryInstr(_parse_expr(_child_tree(t, 0)))
     elif t.data == "plot":
-        return PlotInstr(VarExpr(_parse_var(_child_tree(t, 0))))
+        if len(t.children) == 2:
+            return PlotInstr(VarExpr(_parse_var(_child_tree(t, 0))), VarExpr(_parse_var(_child_tree(t, 1))))
+        else:
+            return PlotInstr(VarExpr(_parse_var(_child_tree(t, 0))))
     else:
         raise Exception(f'invalid AST: {t.data}')
 
