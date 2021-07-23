@@ -7,6 +7,8 @@ Want to calculate the generating function of a program?
 You're in the right module!
 """
 import functools
+import logging
+
 import sympy
 from typing import Union, Sequence, Tuple, get_args
 
@@ -21,6 +23,7 @@ from probably.pgcl import (Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr, Geo
                            Unop, Queries, ProbabilityQueryInstr, PlotInstr)
 from probably.pgcl.syntax import check_is_linear_expr
 
+logger = logging.getLogger("probably.analysis.discrete")
 
 def _while_handler(instr: WhileInstr,
                    input_gf: GeneratingFunction,
@@ -29,6 +32,7 @@ def _while_handler(instr: WhileInstr,
                             "[1]: Solve using invariants (Checks whether the invariant over-approximates the loop)\n"
                             "[2]: Fix a maximum number of iterations (This results in an under-approximation)\n"
                             "[3]: Analyse until a certain probability mass is captured (might not terminate!)\n"))
+    logger.info(f"User chose {user_choice}")
     if user_choice == 1:
         raise NotImplementedError("Invariants not yet supported")
 
@@ -60,20 +64,9 @@ def _while_handler(instr: WhileInstr,
 def _ite_handler(instr: IfInstr,
                  input_gf: GeneratingFunction,
                  config: ForwardAnalysisConfig) -> GeneratingFunction:
-    try:
-        sat_part = input_gf.filter(instr.cond)
-        non_sat_part = input_gf - sat_part
-    except NotComputable as err:
-        print(err)
-        probability = input("Continue with approximation. Enter a probability (0, {}):\t"
-                            .format(input_gf.coefficient_sum()))
-        if probability > sympy.S(0):
-            return loopfree_gf(instr, input_gf.expand_until(probability))
-        else:
-            raise NotComputable(str(err))
-    else:
-        return loopfree_gf(instr.true, sat_part) + loopfree_gf(
-            instr.false, non_sat_part)
+    sat_part, non_sat_part, approx = _safe_filter(input_gf, instr.cond)
+    non_sat_part = input_gf - sat_part
+    return loopfree_gf(instr.true, sat_part) + loopfree_gf(instr.false, non_sat_part)
 
 
 def _distr_handler(instr: AsgnInstr,
@@ -248,7 +241,10 @@ def _query_handler(instr: Queries, input_gf: GeneratingFunction, config: Forward
         print(f"Probability of {instr.expr}: {prob}")
         return input_gf
     elif isinstance(instr, PlotInstr):
-        input_gf.create_histogram(var=instr.variable.var, p=0.99)
+        if instr.var_2:
+            input_gf.create_histogram(var=[instr.var_1.var, instr.var_2.var], p="0.99")
+        else:
+            input_gf.create_histogram(var=[instr.var_1.var], p=".99")
         return input_gf
     else:
         raise SyntaxError(f"Type {type(instr)} is not known.")
@@ -280,6 +276,9 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
     if isinstance(instr, list):
         func = _show_steps if config.show_intermediate_steps else _dont_show_steps
         return functools.reduce(func, instr, input_gf)
+
+    # Only log instruchtions when its not a list
+    logger.info(f"{instr} gets handled")
 
     if isinstance(instr, SkipInstr):
         return input_gf

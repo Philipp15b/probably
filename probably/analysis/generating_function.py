@@ -1,10 +1,17 @@
 import functools
+import logging
+
 import sympy
 import matplotlib.pyplot as plt
 import operator
 from probably.pgcl import Unop, VarExpr, NatLitExpr, UnopExpr, BinopExpr, Binop, Expr
-from .exceptions import ComparisonException, NotComputable
-from . import logger
+from .exceptions import ComparisonException, NotComputable, ParameterError
+
+logger = logging.getLogger("probably.analysis.generating_function")
+logger.setLevel(logging.INFO)
+fhandler = logging.FileHandler(filename='test.log', mode='a')
+fhandler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(fhandler)
 
 
 def _is_constant_constraint(expression):  # Move this to expression checks etc.
@@ -80,7 +87,6 @@ class GeneratingFunction:
             preciseness = (s + o) / (s / self._preciseness + o / other._preciseness)
             function = op(self._function, other._function)
             variables = self._variables.union(other._variables)
-
             return GeneratingFunction(function, variables, preciseness, is_closed_form, is_finite)
         else:
             raise SyntaxError(f"You cannot {str(op)} {type(self)} with {type(other)}.")

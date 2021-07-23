@@ -17,3 +17,6 @@ class ComparisonException(Exception):
 
 class NotComputable(Exception):
     pass
+
+class ParameterError(Exception):
+    pass

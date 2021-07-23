@@ -31,7 +31,8 @@ def main(program_file: IO, input_gf: str):
     """
 
     # Setup the logging.
-    logging.basicConfig(filename=f"analyse_{program_file.name.strip('.pgcl')}.log", encoding='utf-8', level=logging.INFO)
+    #logging.basicConfig(level=logging.INFO)
+    logging.getLogger("probably.cli").info("Program started.")
 
     program_source = program_file.read()
     print("Program source:")
@@ -55,8 +56,8 @@ def main(program_file: IO, input_gf: str):
     GeneratingFunction.verbose_mode = False
     gf = loopfree_gf(program.instructions, gf, ForwardAnalysisConfig(verbose_generating_functions=False, show_intermediate_steps=False))
     print("\nGeneratingfunction\n", gf)
-    print("Generating plot")
-    gf.create_histogram(p=0.99)
+    # print("Generating plot")
+    # gf.create_histogram(p=0.99)
 
 
 if __name__ == "__main__":
