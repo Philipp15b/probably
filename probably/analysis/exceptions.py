@@ -9,3 +9,11 @@ class ObserveZeroEventError(ForwardAnalysisError):
 
 class DistributionParameterError(ForwardAnalysisError):
     pass
+
+
+class ComparisonException(Exception):
+    pass
+
+
+class NotComputable(Exception):
+    pass

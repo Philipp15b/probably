@@ -1,10 +1,10 @@
 import functools
-
 import sympy
 import matplotlib.pyplot as plt
-
-from probably.pgcl import Unop, VarExpr, NatLitExpr, UnopExpr, BinopExpr, Binop, Expr
 import operator
+from probably.pgcl import Unop, VarExpr, NatLitExpr, UnopExpr, BinopExpr, Binop, Expr
+from .exceptions import ComparisonException, NotComputable
+from . import logger
 
 
 def _is_constant_constraint(expression):  # Move this to expression checks etc.
@@ -15,6 +15,7 @@ def _is_constant_constraint(expression):  # Move this to expression checks etc.
         return False
 
 
+@functools.cache
 def _enumerate_monomials(variables, max_degree):
     if variables == 0:
         return [[]]
@@ -34,14 +35,6 @@ def _is_modulus_condition(expression):
         mod_expr = expression.lhs
         if isinstance(mod_expr.lhs, VarExpr) and isinstance(mod_expr.rhs, NatLitExpr):
             return True
-
-
-class ComparisonException(Exception):
-    pass
-
-
-class NotComputable(Exception):
-    pass
 
 
 def _term_generator(function: sympy.Poly):
@@ -233,7 +226,7 @@ class GeneratingFunction:
                     index += 1
                 yield func
             old_monomials = new_monomials
-            print(f"\t>Terms generated until total degree of {i - 1}")
+            logger.info(f"\t>Terms generated until total degree of {i - 1}")
             i += 1
 
     def as_series(self):
@@ -252,7 +245,7 @@ class GeneratingFunction:
                 else:
                     return {self._function}
             else:
-                print("Multivariate Taylor expansion might take a while...")
+                logger.info("Multivariate Taylor expansion might take a while...")
                 return self._mult_term_generator()
 
     def expand_until(self, threshold=None, nterms=None):
@@ -513,13 +506,7 @@ class GeneratingFunction:
             plt.gcf().suptitle("Histogram")
             plt.show()
         else:
-            if p:
-                gf = marginal.expand_until(p)
-            elif not (n == 0):
-                gf = GeneratingFunction(marginal._function.series(sympy.S(var), n=n).removeO(),
-                                        var, self.precision(), False, True)
-            else:
-                gf = marginal.expand_until(marginal.coefficient_sum() * 0.99)
+            gf = marginal.expand_until(p, n)
             gf._create_histogram_for_variable(var, n, p)
 
     def _create_2d_hist(self, n, p):

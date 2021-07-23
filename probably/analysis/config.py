@@ -1,5 +1,6 @@
 import attr
 
+
 @attr.s
 class ForwardAnalysisConfig:
     """Global configurable options for forward analysis."""
@@ -13,4 +14,4 @@ class ForwardAnalysisConfig:
     verbose_generating_functions: bool = attr.ib(default=False)
 
     # IMPORTANT: show_ attributes just change the string representation, not the actual computation
-    show_rational_probabilities: bool = attr.ib(default= False)
+    show_rational_probabilities: bool = attr.ib(default=False)
