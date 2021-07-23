@@ -60,6 +60,7 @@ class GeneratingFunction:
     """
     rational_preciseness = False
     verbose_mode = False
+    simplified_output = False
 
     def __init__(self,
                  function: str = "",
@@ -76,7 +77,7 @@ class GeneratingFunction:
                 self._variables = self._variables.union({sympy.S(variable)})
         self._dimension = len(self._variables)
         self._is_closed_form = closed if closed else not self._function.is_polynomial()
-        self._is_finite = finite if finite else self._function.expand().ratsimp().is_polynomial()
+        self._is_finite = finite if finite else self._function.ratsimp().is_polynomial()
 
     def _arithmetic(self, other, op: operator):
         if isinstance(other, GeneratingFunction):
@@ -86,6 +87,15 @@ class GeneratingFunction:
             is_finite = self._is_finite and other._is_finite
             preciseness = (s + o) / (s / self._preciseness + o / other._preciseness)
             function = op(self._function, other._function)
+            logger.info(f"simplifying function! Before: {function}")
+            n, d = sympy.fraction(function)
+            n = n.factor()
+            d = d.factor()
+            function = n / d
+            logger.info(f"simplifying function! After: {function}")
+            if not is_closed_form:
+                function = function.expand()
+                logger.info(f"simplifying function as not in Closed-Form: {function}")
             variables = self._variables.union(other._variables)
             return GeneratingFunction(function, variables, preciseness, is_closed_form, is_finite)
         else:
@@ -105,12 +115,14 @@ class GeneratingFunction:
 
     def __str__(self):
         if GeneratingFunction.rational_preciseness:
-            output = f"{str(self._function)} \t@{str(self._preciseness)}"
+            output = f"{str(self._function.simplify() if GeneratingFunction.simplified_output else self._function)}" \
+                     f" \t@{str(self._preciseness)}"
             if GeneratingFunction.verbose_mode:
                 output += f"\t({str(self._is_closed_form)},{str(self._is_finite)})"
             return output
         else:
-            output = str(self._function) + "\t@" + str(self._preciseness.evalf())
+            output = str(self._function.simplify() if GeneratingFunction.simplified_output else self._function) + "\t@"
+            output += str(self._preciseness.evalf())
             if GeneratingFunction.verbose_mode:
                 output += f"\t({str(self._is_closed_form)},{str(self._is_finite)})"
             return output
@@ -274,16 +286,17 @@ class GeneratingFunction:
                     break
                 approx += term
                 prec += self.split_addend(term)[0]
-        return GeneratingFunction(str(approx), self._variables, preciseness=prec, closed=False, finite=True)
+        return GeneratingFunction(str(approx.expand()), self._variables, preciseness=prec, closed=False, finite=True)
 
     def dim(self):
         return self._dimension
 
     def coefficient_sum(self):
-        coefficient_sum = self._function
+        coefficient_sum = self._function.simplify()
         for var in self._variables:
-            coefficient_sum = coefficient_sum.limit(var, 1, "-")
-        return sympy.S(coefficient_sum)
+            coefficient_sum = coefficient_sum.limit(var, 1, "-") if self._is_closed_form else coefficient_sum.subs(var,
+                                                                                                                   1)
+        return coefficient_sum
 
     def vars(self):
         return self._variables
