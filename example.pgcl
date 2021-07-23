@@ -5,3 +5,6 @@ nat y;
 x := binomial(20, 1/2)
 y := binomial(20, 1/2)
 
+!Plot[x]
+!Plot[y]
+

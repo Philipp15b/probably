@@ -15,7 +15,7 @@ from .ast import (AsgnInstr, Binop, BinopExpr, BoolLitExpr, BoolType,
                   RealType, IfInstr, Instr, NatLitExpr, NatType, Node, ObserveInstr,
                   Program, SkipInstr, Type, DUniformExpr, CUniformExpr, Unop, UnopExpr,
                   Var, VarExpr, WhileInstr, VarDecl, GeometricExpr, BernoulliExpr, BinomialExpr, PoissonExpr,
-                  LogDistExpr, ExpectationInstr, ProbabilityQueryInstr)
+                  LogDistExpr, ExpectationInstr, ProbabilityQueryInstr, PlotInstr)
 from .ast import ProgramConfig  # pylint:disable=unused-import
 from .walk import Walk, walk_expr
 
@@ -407,6 +407,12 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
         expr_type = get_type(program, instr.expr, check=True)
         if isinstance(expr_type, CheckFail):
             return expr_type
+        return None
+
+    if isinstance(instr, PlotInstr):
+        var_type = get_type(program, instr.variable, check=True)
+        if isinstance(var_type, CheckFail):
+            return var_type
         return None
 
     raise Exception("unreachable")

@@ -18,7 +18,7 @@ from probably.pgcl import (Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr, Geo
                            CategoricalExpr, ChoiceInstr, TickInstr, ObserveInstr, DUniformExpr,
                            Expr, BinomialExpr, PoissonExpr, LogDistExpr, BernoulliExpr,
                            DistrExpr, Binop, BinopExpr, VarExpr, NatLitExpr, ExpectationInstr, RealLitExpr, UnopExpr,
-                           Unop, Queries, ProbabilityQueryInstr)
+                           Unop, Queries, ProbabilityQueryInstr, PlotInstr)
 from probably.pgcl.syntax import check_is_linear_expr
 
 
@@ -246,6 +246,9 @@ def _query_handler(instr: Queries, input_gf: GeneratingFunction, config: Forward
         sat_part, _, _ = _safe_filter(input_gf, instr.expr)
         prob = sat_part.coefficient_sum() if config.show_rational_probabilities else sat_part.coefficient_sum().evalf()
         print(f"Probability of {instr.expr}: {prob}")
+        return input_gf
+    elif isinstance(instr, PlotInstr):
+        input_gf.create_histogram(var=instr.variable.var, p=0.99)
         return input_gf
     else:
         raise SyntaxError(f"Type {type(instr)} is not known.")

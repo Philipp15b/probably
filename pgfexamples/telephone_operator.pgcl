@@ -10,4 +10,5 @@ if (x=0){
 
 observe(d=5) // we have observed 4 phone calls.
 
+!Plot[d]
 

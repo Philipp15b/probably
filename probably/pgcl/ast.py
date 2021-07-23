@@ -832,7 +832,16 @@ class ProbabilityQueryInstr(InstrClass):
         return f"?Pr[{self.expr}];"
 
 
-Queries = Union[ProbabilityQueryInstr, ExpectationInstr]
+@attr.s
+class PlotInstr(InstrClass):
+
+    variable: VarExpr = attr.ib()
+
+    def __str__(self) -> str:
+        return f"!Plot[{self.variable}]"
+
+
+Queries = Union[ProbabilityQueryInstr, ExpectationInstr, PlotInstr]
 
 Instr = Union[SkipInstr, WhileInstr, IfInstr, AsgnInstr, ChoiceInstr,
               TickInstr, ObserveInstr, Queries]
