@@ -1,9 +1,9 @@
-import itertools
 import logging
 
 import sympy
 import matplotlib.pyplot as plt
 import operator
+from matplotlib.cm import ScalarMappable
 from probably.pgcl import Unop, VarExpr, NatLitExpr, UnopExpr, BinopExpr, Binop, Expr
 from .exceptions import ComparisonException, NotComputable, ParameterError
 
@@ -20,17 +20,6 @@ def _is_constant_constraint(expression):  # Move this to expression checks etc.
             return True
     else:
         return False
-
-
-@functools.cache
-def _enumerate_monomials(variables, max_degree):
-    if variables == 0:
-        return [[]]
-    t = []
-    for i in range(max_degree):
-        for L in _enumerate_monomials(variables - 1, max_degree):
-            t.append([i] + L)
-    return t
 
 
 def _is_modulus_condition(expression):
@@ -89,6 +78,7 @@ class GeneratingFunction:
             function = op(self._function, other._function)
             logger.info(f"simplifying function! Before: {function}")
             n, d = sympy.fraction(function)
+            logger.info("Factoring")
             n = n.factor()
             d = d.factor()
             function = n / d
@@ -233,21 +223,20 @@ class GeneratingFunction:
 
     def _mult_term_generator(self):
         i = 1
-        old_monomials = []
         while True:
-            new_monomials = _enumerate_monomials(len(self._variables), i)
-            for monomial in [item for item in new_monomials if item not in old_monomials]:
-                index = 0
-                func = self._function
+            logger.info(f"generating and sorting of new monomials")
+            new_monomials = sorted(sympy.polys.monomials.itermonomials(self._variables, i),
+                                   key=sympy.polys.orderings.monomial_key("grlex", list(self._variables)))
+            if i > 1:
+                new_monomials = new_monomials[sympy.polys.monomials.monomial_count(len(self._variables), i-1):]
+            logger.info(f"Monomial_generation done")
+            for monomial in new_monomials:
                 logger.info(f"create term for monomial {monomial}")
-                for var in self._variables:
-                    func = func.diff(var, monomial[index]) / sympy.factorial(monomial[index])
-                    func = func.limit(var, 0, "-") * var ** monomial[index]
-                    index += 1
-                logger.info(f"created term {func}")
-                yield func
-            old_monomials = new_monomials
-            logger.info(f"\t>Terms generated until total degree of {i - 1}")
+                mon_expr = monomial.as_expr()
+                term = mon_expr * self.probability_of(mon_expr.as_powers_dict())
+                logger.info(f"created term {term}")
+                yield term
+            logger.info(f"\t>Terms generated until total degree of {i}")
             i += 1
 
     def as_series(self):
@@ -320,14 +309,15 @@ class GeneratingFunction:
         :param state: The queried program state.
         :return: The probability for that state.
         """
-        logger.info(f"probability_of call")
+        logger.info(f"probability_of({state}) call")
         if self._is_closed_form or not self._is_finite:
             result = self._function
             for variable, value in state.items():
-                result = sympy.diff(result, sympy.S(variable), value)
-                result /= sympy.factorial(value)
-            for var in self.vars():
-                result = result.subs(var, 0)
+                if not variable == 1:
+                    result = result.diff(sympy.S(variable), value)
+                    result /= sympy.factorial(value)
+            for var in self._variables:
+                result = result.limit(var, 0, "-") if self._is_closed_form else result.subs(var, 0)
             return result
         else:
             monomial = sympy.S(1)
@@ -532,17 +522,22 @@ class GeneratingFunction:
                     break
                 (prob, mon) = self.split_addend(addend)
                 state = self._monomial_to_state(mon)
-                data.append(prob)
+                data.append(float(prob))
                 ind.append(float(state[sympy.S(var)]))
                 prob_sum += prob
                 terms += 1
             ax = plt.subplot()
-            ax.bar(ind, data, 1, linewidth=.5, ec=(0, 0, 0))
+            my_cmap = plt.cm.get_cmap("Blues")
+            colors = my_cmap([x / max(data) for x in data])
+            sm = ScalarMappable(cmap=my_cmap, norm=plt.Normalize(0, max(data)))
+            sm.set_array([])
+            ax.bar(ind, data, 1, linewidth=.5, ec=(0, 0, 0), color=colors)
             ax.set_xlabel(f"{var}")
             ax.set_xticks(ind)
             ax.set_ylabel(f'Probability p({var})')
             plt.get_current_fig_manager().set_window_title("Histogram Plot")
             plt.gcf().suptitle("Histogram")
+            plt.colorbar(sm)
             plt.show()
         else:
             gf = marginal.expand_until(p, n)
@@ -558,7 +553,6 @@ class GeneratingFunction:
         for var in self._variables:
             if var != x and var != y:
                 marginal = marginal.limit(var, 1, "-")
-        print(marginal)
         marginal = GeneratingFunction(marginal.ratsimp())
         logger.info(f"Creating Histogram for {marginal}")
         # Collect relevant data from the distribution and plot it.
@@ -594,7 +588,7 @@ class GeneratingFunction:
                 colors[coord[1]][coord[0]] = float(coord_and_prob[coord])
 
             # Plot the colors array
-            c = plt.pcolormesh(colors, vmin=0, vmax=max_prob, shading='auto', ec="k", cmap="Blues", linewidth=0.5)
+            c = plt.pcolormesh(colors, vmin=0, vmax=max_prob, shading='auto', ec="k", cmap="gnuplot2", linewidth=0.5, antialiased=True)
             plt.colorbar(c)
             plt.gca().set_xlabel(f"{x}")
             plt.gca().set_xticks(range(0, maxima[x] + 1))
