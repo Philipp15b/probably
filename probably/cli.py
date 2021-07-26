@@ -55,7 +55,7 @@ def main(program_file: IO, input_gf: str):
     GeneratingFunction.rational_preciseness = True
     GeneratingFunction.verbose_mode = False
     GeneratingFunction.simplified_output = False
-    gf = loopfree_gf(program.instructions, gf, ForwardAnalysisConfig(verbose_generating_functions=False, show_intermediate_steps=True))
+    gf = loopfree_gf(program.instructions, gf, ForwardAnalysisConfig(verbose_generating_functions=False, show_intermediate_steps=False))
     print("\nGeneratingfunction\n", gf)
     # print("Generating plot")
     # gf.create_histogram(p=0.99)

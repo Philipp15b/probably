@@ -417,8 +417,21 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
             var_2_type = get_type(program, instr.var_2, check=True)
             if isinstance(var_2_type, CheckFail):
                 return var_2_type
+        if instr.prob:
+            prob_type = get_type(program, instr.prob, check=True)
+            if isinstance(prob_type, CheckFail):
+                return prob_type
+            if not is_compatible(RealType(), prob_type):
+                return CheckFail.expected_type_got(instr.prob, RealType(),
+                                                   prob_type)
+        if instr.term_count:
+            int_type = get_type(program, instr.term_count, check=True)
+            if isinstance(int_type, CheckFail):
+                return int_type
+            if not is_compatible(NatType(bounds=None), int_type):
+                return CheckFail.expected_type_got(instr.term_count, NatType(),
+                                                   int_type)
         return None
-
     raise Exception("unreachable")
 
 

@@ -837,9 +837,18 @@ class PlotInstr(InstrClass):
 
     var_1: VarExpr = attr.ib()
     var_2: VarExpr = attr.ib(default=None)
+    prob: RealLitExpr = attr.ib(default=None)
+    term_count: NatLitExpr = attr.ib(default=None)
 
     def __str__(self) -> str:
-        return f"!Plot[{self.var_1}{(', ' + self.var_2.var) if self.var_2 else ''}]"
+        output = str(self.var_1)
+        if self.var_2:
+            output += f", {str(self.var_2)}"
+        if self.prob:
+            output += f", {str(self.prob)}"
+        if self.term_count:
+            output += f", {str(self.term_count)}"
+        return f"!Plot[{output}]"
 
 
 Queries = Union[ProbabilityQueryInstr, ExpectationInstr, PlotInstr]

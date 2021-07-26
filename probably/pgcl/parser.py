@@ -52,7 +52,7 @@ _PGCL_GRAMMAR = """
                | "observe" "(" expression ")"                -> observe 
                | "?Ex" "[" expression "]"                    -> expectation
                | "?Pr" "[" expression "]"                    -> prquery
-               | "!Plot" "[" var ("," var)?"]"                 -> plot
+               | "!Plot" "[" var ("," var)? ("," literal)?"]"                 -> plot
 
 
     block: "{" instruction* "}"
@@ -363,8 +363,37 @@ def _parse_instr(t: Tree) -> Instr:
     elif t.data == 'prquery':
         return ProbabilityQueryInstr(_parse_expr(_child_tree(t, 0)))
     elif t.data == "plot":
-        if len(t.children) == 2:
-            return PlotInstr(VarExpr(_parse_var(_child_tree(t, 0))), VarExpr(_parse_var(_child_tree(t, 1))))
+        if len(t.children) == 3:
+            lit = _parse_literal(_child_tree(t, 2))
+            if isinstance(lit, BoolLitExpr):
+                raise SyntaxError("Plot instructions cannot handle boolean literals as arguments")
+            if t.children[2].data == 'real':
+                return PlotInstr(VarExpr(_parse_var(_child_tree(t, 0))),
+                                 VarExpr(_parse_var(_child_tree(t, 1))),
+                                 prob=lit)
+            else:
+                return PlotInstr(VarExpr(_parse_var(_child_tree(t, 0))),
+                                 VarExpr(_parse_var(_child_tree(t, 1))),
+                                 term_count=lit)
+        elif len(t.children) == 2:
+            if t.children[1].data == 'real':
+                lit = _parse_literal(_child_tree(t, 1))
+                return PlotInstr(VarExpr(_parse_var(_child_tree(t, 0))),
+                                 prob=lit)
+            elif t.children[1].data == 'nat':
+                lit = _parse_literal(_child_tree(t, 1))
+                return PlotInstr(VarExpr(_parse_var(_child_tree(t, 0))),
+                                 term_count=lit)
+            elif t.children[1].data == 'infinity':
+                lit = _parse_literal(_child_tree(t, 1))
+                return PlotInstr(VarExpr(_parse_var(_child_tree(t, 0))),
+                                 prob=lit)
+            elif t.children[1].data == 'true' or t.children[1].data == 'false':
+                raise SyntaxError("Plot instruction does not support boolean operators")
+            else:
+                return PlotInstr(VarExpr(_parse_var(_child_tree(t, 0))),
+                                 VarExpr(_parse_var(_child_tree(t, 1))),
+                                 )
         else:
             return PlotInstr(VarExpr(_parse_var(_child_tree(t, 0))))
     else:

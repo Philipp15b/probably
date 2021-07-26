@@ -241,10 +241,25 @@ def _query_handler(instr: Queries, input_gf: GeneratingFunction, config: Forward
         print(f"Probability of {instr.expr}: {prob}")
         return input_gf
     elif isinstance(instr, PlotInstr):
-        if instr.var_2:
-            input_gf.create_histogram(var=[instr.var_1.var, instr.var_2.var], p="0.99")
+        vars = [instr.var_1.var]
+        vars += instr.var_2.var if instr.var_2 else []
+
+        if instr.prob:
+            if instr.prob.is_infinite():
+                input_gf.create_histogram(var=vars, p=str(1))
+            else:
+                input_gf.create_histogram(var=vars, p=str(instr.prob))
+        elif instr.term_count:
+            input_gf.create_histogram(var=vars, n=str(instr.term_count))
         else:
-            input_gf.create_histogram(var=[instr.var_1.var], p=".99")
+            p = .1
+            inc = .1
+            while True:
+                input_gf.create_histogram(var=vars, p=str(p))
+                p = p + inc if p + inc < 1 else 1
+                cont = input(f"Continue with p={p}? [Y/n]")
+                if cont.lower() == 'n':
+                    break
         return input_gf
     else:
         raise SyntaxError(f"Type {type(instr)} is not known.")

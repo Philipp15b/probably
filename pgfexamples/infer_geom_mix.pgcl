@@ -21,9 +21,5 @@ if(c = 3) {
 } else {
      skip
 }
-
-tmp := 0
-
-observe(res = 2)
-
-res := 0
+observe(res = 4)
+!Plot[c]
