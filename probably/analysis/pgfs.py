@@ -29,7 +29,7 @@ class PGFS:
     @classmethod
     def poisson(cls, var, l: str):
         if sp.S(l) < 0:
-            raise DistributionParameterError(f"Parameter of Poisson Distribution must be in [0, oo), but was {p}")
+            raise DistributionParameterError(f"Parameter of Poisson Distribution must be in [0, oo), but was {l}")
         return GeneratingFunction(f"exp({l} * ({var} - 1))", closed=True, finite=False)
 
     @classmethod
