@@ -24,6 +24,10 @@ from probably.pgcl import (Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr, Geo
 from probably.pgcl.syntax import check_is_linear_expr
 
 logger = logging.getLogger("probably.analysis.discrete")
+logger.setLevel(logging.INFO)
+fhandler = logging.FileHandler(filename='test.log', mode='a')
+fhandler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(fhandler)
 
 def _while_handler(instr: WhileInstr,
                    input_gf: GeneratingFunction,
@@ -242,7 +246,7 @@ def _query_handler(instr: Queries, input_gf: GeneratingFunction, config: Forward
         return input_gf
     elif isinstance(instr, PlotInstr):
         vars = [instr.var_1.var]
-        vars += instr.var_2.var if instr.var_2 else []
+        vars += [instr.var_2.var] if instr.var_2 else []
 
         if instr.prob:
             if instr.prob.is_infinite():
