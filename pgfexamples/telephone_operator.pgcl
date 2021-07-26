@@ -1,7 +1,7 @@
 nat x; // 0: weekday, 1: weekend
 nat d; // sample the number of phone calls received in one hour.
 
-{x := 0} [5/7] {x := 1}
+x := bernoulli(2/7)
 if (x=0){
     d := poisson(10) // Weekdays there are 10 phone calls on average in an hour
 } else {
@@ -10,5 +10,5 @@ if (x=0){
 
 observe(d=4) // we have observed 4 phone calls.
 
-!Plot[x, d]
+!Plot[x, d, 2]
 
