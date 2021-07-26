@@ -1,4 +1,4 @@
-import functools
+import itertools
 import logging
 
 import sympy
@@ -48,8 +48,8 @@ def _term_generator(function: sympy.Poly):
     assert isinstance(function, sympy.Poly), "Terms can only be generated for finite GF"
     poly = function
     while poly.as_expr() != 0:
-        yield sympy.S(poly.LC() * poly.LM().as_expr())
-        poly -= poly.LC() * poly.LM().as_expr()
+        yield sympy.S(poly.EC() * poly.EM().as_expr())
+        poly -= poly.EC() * poly.EM().as_expr()
 
 
 class GeneratingFunction:
@@ -239,10 +239,12 @@ class GeneratingFunction:
             for monomial in [item for item in new_monomials if item not in old_monomials]:
                 index = 0
                 func = self._function
+                logger.info(f"create term for monomial {monomial}")
                 for var in self._variables:
                     func = func.diff(var, monomial[index]) / sympy.factorial(monomial[index])
                     func = func.limit(var, 0, "-") * var ** monomial[index]
                     index += 1
+                logger.info(f"created term {func}")
                 yield func
             old_monomials = new_monomials
             logger.info(f"\t>Terms generated until total degree of {i - 1}")
@@ -306,7 +308,7 @@ class GeneratingFunction:
         return self._variables
 
     def expected_value_of(self, variable: str):
-        logger.info(f"{__name__}")
+        logger.info(f"expected_value_of() call")
         result = sympy.diff(self._function, sympy.S(variable))
         for var in self._variables:
             result = sympy.limit(result, sympy.S(var), 1, '-')
@@ -335,7 +337,7 @@ class GeneratingFunction:
             return probability if probability else sympy.core.numbers.Zero
 
     def normalized(self):
-        logger.info(f"{__name__}")
+        logger.info(f"normalized() call")
         mass = self.coefficient_sum()
         if mass == 0:
             raise ZeroDivisionError
@@ -379,9 +381,9 @@ class GeneratingFunction:
                 return self.evaluate(lhs, monomial) or self.evaluate(rhs, monomial)
             elif op == Binop.EQ or op == Binop.LEQ or op == Binop.LE:
                 if op == Binop.EQ:
-                    equation = sympy.S(f"{lhs} - {rhs}")
+                    equation = sympy.S(f"{lhs} - {rhs}").simplify()
                 else:
-                    equation = sympy.S(str(expression))
+                    equation = sympy.S(str(expression)).simplify()
                 variable_valuations = monomial.as_powers_dict()
                 for var in self._variables:
                     if var not in variable_valuations.keys():
@@ -403,7 +405,7 @@ class GeneratingFunction:
         infinite support distributions.
         :return:
         """
-        logger.info(f"filter call")
+        logger.info(f"filter({expression}) call")
         # Logical operators
         if expression.operator == Unop.NEG:
             result = self - self.filter(expression.expr)
@@ -465,8 +467,8 @@ class GeneratingFunction:
                                       closed=False,
                                       finite=True)
         else:
-            raise NotComputable("Instruction {} is not computable on infinite generating function {}"
-                                .format(expression, self._function))
+            raise NotComputable(f"Instruction {expression} is not computable on infinite generating function"
+                                f" {self._function}")
 
     def limit(self, variable: str, value: str):
         return GeneratingFunction(self._function.limit(sympy.S(variable), sympy.S(value), "-"),
@@ -569,13 +571,13 @@ class GeneratingFunction:
             # collect the coordinates and probabilities. Also compute maxima of probabilities and degrees
             terms = 0
             prob_sum = 0
-            for addend in self.as_series():
+            for addend in marginal.as_series():
                 if p and prob_sum >= sympy.S(p):
                     break
                 if n and terms >= sympy.S(n):
                     break
-                (prob, mon) = self.split_addend(addend)
-                state = self._monomial_to_state(mon)
+                (prob, mon) = marginal.split_addend(addend)
+                state = marginal._monomial_to_state(mon)
                 maxima[x], maxima[y] = max(maxima[x], state[x]), max(maxima[y], state[y])
                 coord = (state[x], state[y])
                 coord_and_prob[coord] = prob
@@ -610,7 +612,7 @@ class GeneratingFunction:
         """
         if var:
             if len(var) > 2:
-                raise ParameterError(f"{__name__} cannot handle more than two variables!")
+                raise ParameterError(f"create_histogram() cannot handle more than two variables!")
             if len(var) == 2:
                 self._create_2d_hist(var_1=var[0], var_2=var[1], n=n, p=p)
             if len(var) == 1:
