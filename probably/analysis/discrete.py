@@ -81,10 +81,10 @@ def _distr_handler(instr: AsgnInstr,
         variable = instr.lhs
         marginal = input_gf.linear_transformation(variable, "0")  # Seems weird but think of program assignments.
         # either use the concise factorized representation of the uniform pgf ...
-        start = instr.rhs.start.value
-        end = instr.rhs.end.value
+        start = str(instr.rhs.start.value)
+        end = str(instr.rhs.end.value)
         if config.use_factorized_duniform:
-            return marginal * PGFS.uniform(variable, str(start), str(end))
+            return marginal * PGFS.uniform(variable, start, end)
         # ... or use the representation as an explicit polynomial
         else:
             return marginal * GeneratingFunction(PGFS.uniform(variable, start, end)._function.expand())
@@ -302,31 +302,31 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
         func = _show_steps if config.show_intermediate_steps else _dont_show_steps
         return functools.reduce(func, instr, input_gf)
 
-    # Only log instruchtions when its not a list
+    # Only log instructions when its not a list
     logger.info(f"{instr} gets handled")
 
     if isinstance(instr, SkipInstr):
         return input_gf
 
-    if isinstance(instr, WhileInstr):
+    elif isinstance(instr, WhileInstr):
         return _while_handler(instr, input_gf, config)
 
-    if isinstance(instr, IfInstr):
+    elif isinstance(instr, IfInstr):
         return _ite_handler(instr, input_gf, config)
 
-    if isinstance(instr, AsgnInstr):
+    elif isinstance(instr, AsgnInstr):
         return _assignment_handler(instr, input_gf, config)
 
-    if isinstance(instr, ChoiceInstr):
+    elif isinstance(instr, ChoiceInstr):
         return _pchoice_handler(instr, input_gf, config)
 
-    if isinstance(instr, TickInstr):
+    elif isinstance(instr, TickInstr):
         raise NotImplementedError("TickInstr not supported in forward analysis")
 
-    if isinstance(instr, ObserveInstr):
+    elif isinstance(instr, ObserveInstr):
         return _observe_handler(instr, input_gf, config)
 
-    if isinstance(instr, get_args(Queries)):
+    elif isinstance(instr, get_args(Queries)):
         return _query_handler(instr, input_gf, config)
 
     raise Exception("illegal instruction")
