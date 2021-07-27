@@ -432,34 +432,17 @@ class GeneratingFunction:
             return self.arithmetic_progression(str(expression.lhs.lhs), str(expression.lhs.rhs))[expression.rhs.value]
         # Constant expressions
         elif _is_constant_constraint(expression):
-            if expression.operator == Binop.LE:
-                variable = sympy.S(str(expression.lhs))
-                constant = expression.rhs.value
-                result = sympy.S(0)
-                for i in range(0, constant):
-                    result += ((sympy.diff(self._function, variable, i) / sympy.factorial(i)).limit(
-                        variable, 0) * variable ** i).simplify()
-                return GeneratingFunction(result.simplify(), variables=self._variables, preciseness=self._preciseness)
-            elif expression.operator == Binop.LEQ:
-                variable = sympy.S(str(expression.lhs))
-                constant = expression.rhs.value
-                result = sympy.S(0)
-                for i in range(0, constant + 1):
-                    result += (sympy.diff(self._function, variable, i) / sympy.factorial(i)).limit(
-                        variable, 0) * variable ** i
-                return GeneratingFunction(result.simplify(), variables=self._variables, preciseness=self._preciseness)
-            elif expression.operator == Binop.EQ:
-                variable = sympy.S(str(expression.lhs))
-                constant = expression.rhs.value
-
-                logger.info("sympy diff call")
-                new_func = self._function.ratsimp().diff(variable, constant)
-                logger.info("sympy diff call done")
-                new_func /= sympy.factorial(constant)
-                new_func = new_func.limit(variable, 0) * variable ** constant
-                return GeneratingFunction(new_func, variables=self._variables, preciseness=self._preciseness)
-            else:
-                raise Exception(f"Expression is neither an equality nor inequality!")
+            variable = sympy.S(str(expression.lhs))
+            constant = expression.rhs.value
+            result = sympy.S(0)
+            ranges = {Binop.LE: range(constant), Binop.LEQ: range(constant + 1), Binop.EQ: [constant]}
+            for i in ranges[expression.operator]:
+                result += self.probability_of({variable: i}) * variable ** i
+            return GeneratingFunction(result,
+                                      variables=self._variables,
+                                      preciseness=self._preciseness,
+                                      closed=self._is_closed_form,
+                                      finite=self._is_finite)
         # evaluate on finite
         elif self._is_finite:
             result = sympy.S(0)
