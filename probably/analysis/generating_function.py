@@ -334,14 +334,13 @@ class GeneratingFunction:
                 if not variable == 1:
                     result = result.diff(sympy.S(variable), value)
                     result /= sympy.factorial(value)
-            for var in self._variables:
-                result = result.limit(var, 0, "-") if self._is_closed_form else result.subs(var, 0)
+                    result = result.limit(variable, 0, "-") if marginal._is_closed_form else result.subs(variable, 0)
             return result
         else:
             monomial = sympy.S(1)
             for variable, value in state.items():
                 monomial *= sympy.S(f"{variable} ** {value}")
-            probability = self._function.as_poly().coeff_monomial(monomial)
+            probability = marginal._function.as_poly().coeff_monomial(monomial)
             return probability if probability else sympy.core.numbers.Zero
 
     def normalized(self):
