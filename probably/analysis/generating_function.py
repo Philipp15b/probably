@@ -1,4 +1,5 @@
 import logging
+from typing import Tuple
 
 import sympy
 import matplotlib.pyplot as plt
@@ -67,6 +68,10 @@ class GeneratingFunction:
         self._dimension = len(self._variables)
         self._is_closed_form = closed if closed else not self._function.is_polynomial()
         self._is_finite = finite if finite else self._function.ratsimp().is_polynomial()
+
+    def copy(self):
+        return GeneratingFunction(self._function, self._variables, self._preciseness, self._is_closed_form,
+                                  self._is_finite)
 
     def _arithmetic(self, other, op: operator):
         if isinstance(other, GeneratingFunction):
@@ -621,3 +626,21 @@ class GeneratingFunction:
             else:
                 for var in self._function.free_symbols:
                     self._create_histogram_for_variable(str(var), n, p)
+
+    def safe_filter(self, condition: Expr) -> Tuple['GeneratingFunction', 'GeneratingFunction', bool]:
+        # TODO move into filter function in GF class
+        try:
+            sat_part = self.filter(condition)
+            non_sat_part = self - sat_part
+            return sat_part, non_sat_part, False
+        except NotComputable as err:
+            print(err)
+            probability = input("Continue with approximation. Enter a probability (0, {}):\t"
+                                .format(self.coefficient_sum()))
+            if sympy.S(probability) > sympy.S(0):
+                approx = list(self.expand_until(probability))[-1]
+                approx_sat_part = approx.filter(condition)
+                approx_non_sat_part = approx - approx_sat_part
+                return approx_sat_part, approx_non_sat_part, True
+            else:
+                raise NotComputable(str(err))

@@ -10,7 +10,7 @@ import functools
 import logging
 
 import sympy
-from typing import Union, Sequence, Tuple, get_args
+from typing import Union, Sequence, get_args
 
 from probably.analysis.config import ForwardAnalysisConfig
 from probably.analysis.exceptions import ObserveZeroEventError
@@ -42,10 +42,10 @@ def _while_handler(instr: WhileInstr,
 
     elif user_choice == 2:
         max_iter = int(input("Specify a maximum iteration limit: "))
-        sat_part, non_sat_part, approx = _safe_filter(input_gf, instr.cond)
+        sat_part, non_sat_part, approx = input_gf.safe_filter(instr.cond)
         for i in range(max_iter):
             iterated_part = loopfree_gf(instr.body, sat_part)
-            iterated_sat, iterated_non_sat, iterated_approx = _safe_filter(iterated_part, instr.cond)
+            iterated_sat, iterated_non_sat, iterated_approx = iterated_part.safe_filter(instr.cond)
             if iterated_non_sat == GeneratingFunction("0") and iterated_sat == sat_part:
                 print(f"Terminated already after {i} step(s)!")
                 break
@@ -54,10 +54,10 @@ def _while_handler(instr: WhileInstr,
         return non_sat_part
     elif user_choice == 3:
         captured_probability_threshold = sympy.S(input("Enter the probability threshold: "))
-        sat_part, non_sat_part, approx = _safe_filter(input_gf, instr.cond)
+        sat_part, non_sat_part, approx = input_gf.safe_filter(instr.cond)
         while non_sat_part.coefficient_sum() < captured_probability_threshold:
             iterated_part = loopfree_gf(instr.body, sat_part)
-            iterated_sat, iterated_non_sat, iterated_approx = _safe_filter(iterated_part, instr.cond)
+            iterated_sat, iterated_non_sat, iterated_approx = iterated_part.safe_filter(instr.cond)
             non_sat_part += iterated_non_sat
             sat_part = iterated_sat
         return non_sat_part
@@ -68,7 +68,7 @@ def _while_handler(instr: WhileInstr,
 def _ite_handler(instr: IfInstr,
                  input_gf: GeneratingFunction,
                  config: ForwardAnalysisConfig) -> GeneratingFunction:
-    sat_part, non_sat_part, approx = _safe_filter(input_gf, instr.cond)
+    sat_part, non_sat_part, approx = input_gf.safe_filter(instr.cond)
     non_sat_part = input_gf - sat_part
     return loopfree_gf(instr.true, sat_part) + loopfree_gf(instr.false, non_sat_part)
 
@@ -191,7 +191,7 @@ def _observe_handler(instr: ObserveInstr,
                      input_gf: GeneratingFunction,
                      config: ForwardAnalysisConfig) -> GeneratingFunction:
     try:
-        sat_part, non_sat_part, approx = _safe_filter(input_gf, instr.cond)
+        sat_part, non_sat_part, approx = input_gf.safe_filter(instr.cond)
         normalized = sat_part.normalized()
     except ZeroDivisionError:
         raise ObserveZeroEventError(f"observed event {instr.cond} has probability 0")
@@ -241,12 +241,12 @@ def _query_handler(instr: Queries, input_gf: GeneratingFunction, config: Forward
         return input_gf
     elif isinstance(instr, ProbabilityQueryInstr):
         if isinstance(instr.expr, VarExpr):
-            marginal = input_gf
-            for var in input_gf.vars().difference({sympy.S(instr.expr.var)}):
+            marginal = input_gf.copy()
+            for var in marginal.vars().difference({sympy.S(instr.expr.var)}):
                 marginal = marginal.linear_transformation(var, 0)
-            print(marginal)
+            print(f"Marginal distribution of {instr.expr}: {marginal}")
         else:
-            sat_part, _, _ = _safe_filter(input_gf, instr.expr)
+            sat_part, _, _ = input_gf.safe_filter(instr.expr)
             prob = sat_part.coefficient_sum() if config.show_rational_probabilities else sat_part.coefficient_sum().evalf()
             print(f"Probability of {instr.expr}: {prob}")
         return input_gf
@@ -332,20 +332,3 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
     raise Exception("illegal instruction")
 
 
-def _safe_filter(input_gf: GeneratingFunction, condition: Expr) -> Tuple[GeneratingFunction, GeneratingFunction, bool]:
-    # TODO move into filter function in GF class
-    try:
-        sat_part = input_gf.filter(condition)
-        non_sat_part = input_gf - sat_part
-        return sat_part, non_sat_part, False
-    except NotComputable as err:
-        print(err)
-        probability = input("Continue with approximation. Enter a probability (0, {}):\t"
-                            .format(input_gf.coefficient_sum()))
-        if sympy.S(probability) > sympy.S(0):
-            approx = input_gf.expand_until(probability)
-            approx_sat_part = approx.filter(condition)
-            approx_non_sat_part = approx - approx_sat_part
-            return approx_sat_part, approx_non_sat_part, True
-        else:
-            raise NotComputable(str(err))
