@@ -24,8 +24,9 @@ from probably.analysis.generating_function import GeneratingFunction
 @click.command()
 @click.argument('program_file', type=click.File('r'))
 @click.argument('input_gf', type=str, required=False)
+@click.option('--intermediate-results', is_flag=True, required=False, default=False)
 # pylint: disable=redefined-builtin
-def main(program_file: IO, input_gf: str):
+def main(program_file: IO, input_gf: str, intermediate_results: bool):
     """
     Compile the given program and print some information about it.
     """
@@ -55,7 +56,9 @@ def main(program_file: IO, input_gf: str):
     GeneratingFunction.rational_preciseness = True
     GeneratingFunction.verbose_mode = False
     GeneratingFunction.simplified_output = False
-    gf = loopfree_gf(program.instructions, gf, ForwardAnalysisConfig(verbose_generating_functions=False, show_intermediate_steps=False))
+    gf = loopfree_gf(program.instructions, gf, ForwardAnalysisConfig(verbose_generating_functions=False,
+                                                                     show_intermediate_steps=intermediate_results)
+                     )
     print("\nGeneratingfunction\n", gf)
     # print("Generating plot")
     # gf.create_histogram(p=0.99)
