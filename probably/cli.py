@@ -11,8 +11,8 @@ If you use `poetry` and do not have probably installed globally, you can use `po
 
 from typing import IO
 
-import click
 import logging
+import click
 
 import probably.pgcl.compiler as pgcl
 from probably.analysis.config import ForwardAnalysisConfig
@@ -44,9 +44,8 @@ def main(program_file: IO, input_gf: str, intermediate_results: bool):
         print("Error:", program)
         return
 
-    print("\nProgram instructions:")
-    for instr in program.instructions:
-        print(instr)
+    # print("\nProgram instructions:")
+    # map(print, program.instructions)
 
     print()
     if input_gf is None:
