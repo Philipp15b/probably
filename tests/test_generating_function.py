@@ -92,7 +92,7 @@ def test_filter():
 
 def test_expand_until():
     gf = GeneratingFunction("2/(2-x) - 1")
-    assert gf.expand_until(0.99) == GeneratingFunction("1/2*x + 1/4*x**2 + 1/8 * x**3 + 1/16 * x**4 + 1/32 * x**5 + 1/64 * x**6 + 1/128 * x**7")
+    assert list(gf.expand_until(0.99))[-1] == GeneratingFunction("1/2*x + 1/4*x**2 + 1/8 * x**3 + 1/16 * x**4 + 1/32 * x**5 + 1/64 * x**6 + 1/128 * x**7")
 
     with pytest.raises(RuntimeError):
         gf.expand_until(random.randint(2, 10))

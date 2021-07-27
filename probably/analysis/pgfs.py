@@ -24,7 +24,7 @@ class PGFS:
     def bernoulli(cls, var, p: str):
         if not (0 <= sp.S(p) <= 1):
             raise DistributionParameterError(f"Parameter of Bernoulli Distribution must be in [0,1], but was {p}")
-        return GeneratingFunction(f"1 - {p} + {p} * {var}", closed=False, finite=True)
+        return GeneratingFunction(f"1 - {p} + {p} * {var}", closed=True, finite=True)
 
     @classmethod
     def poisson(cls, var, l: str):

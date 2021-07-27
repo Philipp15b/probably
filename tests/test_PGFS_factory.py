@@ -30,7 +30,7 @@ def test_log():
 
 def test_poisson():
     rate = rng.uniform(0, 10)
-    assert GeneratingFunction(f"exp({rate} * (variable -1))") == PGFS.poisson("variable", rate)
+    assert GeneratingFunction(f"exp({rate} * (variable -1))") == PGFS.poisson("variable", str(rate))
 
 
 def test_binomial():
