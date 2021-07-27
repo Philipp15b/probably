@@ -9,7 +9,7 @@ from probably.pgcl import Unop, VarExpr, NatLitExpr, UnopExpr, BinopExpr, Binop,
 from .exceptions import ComparisonException, NotComputable, ParameterError
 
 logger = logging.getLogger("probably.analysis.generating_function")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 fhandler = logging.FileHandler(filename='test.log', mode='a')
 fhandler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger.addHandler(fhandler)
@@ -81,16 +81,17 @@ class GeneratingFunction:
             is_finite = self._is_finite and other._is_finite
             preciseness = (s + o) / (s / self._preciseness + o / other._preciseness)
             function = op(self._function, other._function)
-            logger.info(f"simplifying function! Before: {function}")
+            logger.debug(f"Try simplification but stay in closed form!")
             n, d = sympy.fraction(function)
             logger.info("Factoring")
             n = n.factor()
             d = d.factor()
             function = n / d
-            logger.info(f"simplifying function! After: {function}")
+            logger.debug(f"Closed-form simplification result: {function}")
             if not is_closed_form:
+                logger.debug("Try to cancel terms")
                 function = function.expand()
-                logger.info(f"simplifying function as not in Closed-Form: {function}")
+                logger.debug(f"Canceling result: {function}")
             variables = self._variables.union(other._variables)
             return GeneratingFunction(function, variables, preciseness, is_closed_form, is_finite)
         else:
@@ -321,13 +322,14 @@ class GeneratingFunction:
         """
         logger.debug(f"probability_of({state}) call")
         marginal = self.copy()
-        for var in self._variables:
+        for var in marginal._variables:
             if var not in state:
-                if self._is_closed_form or not self._is_finite:
-                    marginal._function = marginal._function.limit(var, 0, '-')
+                if marginal._is_closed_form or not marginal._is_finite:
+                    marginal._function = marginal._function.limit(var, 1, '-')
+                    marginal._is_finite = marginal._function.ratsimp().is_polynomial()
+                    marginal._is_closed_form = not marginal._function.is_polynomial()
                 else:
-                    marginal._function = marginal._function.subs(var, 0)
-
+                    marginal._function = marginal._function.subs(var, 1)
         if marginal._is_closed_form or not marginal._is_finite:
             result = self._function
             for variable, value in state.items():
@@ -340,8 +342,8 @@ class GeneratingFunction:
             monomial = sympy.S(1)
             for variable, value in state.items():
                 monomial *= sympy.S(f"{variable} ** {value}")
-            probability = marginal._function.as_poly().coeff_monomial(monomial)
-            return probability if probability else sympy.core.numbers.Zero
+            probability = marginal._function.as_poly(gens=marginal._variables).coeff_monomial(monomial)
+            return probability if probability else sympy.core.numbers.Zero()
 
     def normalized(self):
         logger.debug(f"normalized() call")
@@ -421,11 +423,8 @@ class GeneratingFunction:
             result = self.filter(expression.lhs)
             return result.filter(expression.rhs)
         elif expression.operator == Binop.OR:
-            neg_lhs = UnopExpr(operator=Unop.NEG, expr=expression.lhs)
-            neg_rhs = UnopExpr(operator=Unop.NEG, expr=expression.rhs)
-            conj = BinopExpr(operator=Binop.AND, lhs=neg_lhs, rhs=neg_rhs)
-            neg_expr = UnopExpr(operator=Unop.NEG, expr=conj)
-            return self.filter(neg_expr)
+            filtered = self.filter(expression.lhs)
+            return filtered + self.filter(expression.rhs) - filtered.filter(expression.rhs)
 
         # Modulo extractions
         elif _is_modulus_condition(expression):
@@ -437,7 +436,10 @@ class GeneratingFunction:
             result = sympy.S(0)
             ranges = {Binop.LE: range(constant), Binop.LEQ: range(constant + 1), Binop.EQ: [constant]}
             for i in ranges[expression.operator]:
-                result += self.probability_of({variable: i}) * variable ** i
+                tmp = self._function.diff(variable, i) / sympy.factorial(i)
+                tmp = tmp.subs(variable, 0) if tmp.is_polynomial() else tmp.limit(variable, 0, '-')
+                tmp *= variable ** i
+                result += tmp
             return GeneratingFunction(result,
                                       variables=self._variables,
                                       preciseness=self._preciseness,
@@ -625,8 +627,8 @@ class GeneratingFunction:
                     self._create_histogram_for_variable(str(var), n, p)
 
     def safe_filter(self, condition: Expr) -> Tuple['GeneratingFunction', 'GeneratingFunction', bool]:
-        # TODO move into filter function in GF class
         try:
+            logger.info(f"filtering for {condition}")
             sat_part = self.filter(condition)
             non_sat_part = self - sat_part
             return sat_part, non_sat_part, False
