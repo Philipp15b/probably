@@ -100,6 +100,7 @@ class GeneratingFunction:
         return self._arithmetic(other, operator.add)
 
     def __sub__(self, other):
+        logger.debug(f"Subtraction of {other} from {self}")
         return self._arithmetic(other, operator.sub)
 
     def __mul__(self, other):
@@ -222,30 +223,30 @@ class GeneratingFunction:
 
         .. math:: \fraction{\delta G^`k`}{\delta `var`^`k`}
         """
-        logger.info(f"diff Call")
+        logger.debug(f"diff Call")
         return GeneratingFunction(sympy.diff(self._function, sympy.S(variable), k), variables=self._variables,
                                   preciseness=self._preciseness)
 
     def _mult_term_generator(self):
         i = 1
         while True:
-            logger.info(f"generating and sorting of new monomials")
+            logger.debug(f"generating and sorting of new monomials")
             new_monomials = sorted(sympy.polys.monomials.itermonomials(self._variables, i),
                                    key=sympy.polys.orderings.monomial_key("grlex", list(self._variables)))
             if i > 1:
-                new_monomials = new_monomials[sympy.polys.monomials.monomial_count(len(self._variables), i-1):]
-            logger.info(f"Monomial_generation done")
+                new_monomials = new_monomials[sympy.polys.monomials.monomial_count(len(self._variables), i - 1):]
+            logger.debug(f"Monomial_generation done")
             for monomial in new_monomials:
-                logger.info(f"create term for monomial {monomial}")
+                logger.debug(f"create term for monomial {monomial}")
                 mon_expr = monomial.as_expr()
                 term = mon_expr * self.probability_of(mon_expr.as_powers_dict())
-                logger.info(f"created term {term}")
+                logger.debug(f"created term {term}")
                 yield term
-            logger.info(f"\t>Terms generated until total degree of {i}")
+            logger.debug(f"\t>Terms generated until total degree of {i}")
             i += 1
 
     def as_series(self):
-        logger.info(f"as_series() call")
+        logger.debug(f"as_series() call")
         if self._is_finite:
             if self._is_closed_form:
                 func = self._function.expand().ratsimp().as_poly(list(self._variables))
@@ -261,11 +262,11 @@ class GeneratingFunction:
                 else:
                     return {self._function}
             else:
-                logger.info("Multivariate Taylor expansion might take a while...")
+                logger.debug("Multivariate Taylor expansion might take a while...")
                 return self._mult_term_generator()
 
     def expand_until(self, threshold=None, nterms=None):
-        logger.info(f"expand_until() call")
+        logger.debug(f"expand_until() call")
         approx = sympy.S("0")
         prec = sympy.S(0)
         if threshold:
@@ -291,7 +292,7 @@ class GeneratingFunction:
         return self._dimension
 
     def coefficient_sum(self):
-        logger.info(f"coefficient_sum() call")
+        logger.debug(f"coefficient_sum() call")
         coefficient_sum = self._function.simplify()
         for var in self._variables:
             coefficient_sum = coefficient_sum.limit(var, 1, "-") if self._is_closed_form else coefficient_sum.subs(var,
@@ -302,7 +303,7 @@ class GeneratingFunction:
         return self._variables
 
     def expected_value_of(self, variable: str):
-        logger.info(f"expected_value_of() call")
+        logger.debug(f"expected_value_of() call")
         result = sympy.diff(self._function, sympy.S(variable))
         for var in self._variables:
             result = sympy.limit(result, sympy.S(var), 1, '-')
@@ -314,8 +315,16 @@ class GeneratingFunction:
         :param state: The queried program state.
         :return: The probability for that state.
         """
-        logger.info(f"probability_of({state}) call")
-        if self._is_closed_form or not self._is_finite:
+        logger.debug(f"probability_of({state}) call")
+        marginal = self.copy()
+        for var in self._variables:
+            if var not in state:
+                if self._is_closed_form or not self._is_finite:
+                    marginal._function = marginal._function.limit(var, 0, '-')
+                else:
+                    marginal._function = marginal._function.subs(var, 0)
+
+        if marginal._is_closed_form or not marginal._is_finite:
             result = self._function
             for variable, value in state.items():
                 if not variable == 1:
@@ -332,7 +341,7 @@ class GeneratingFunction:
             return probability if probability else sympy.core.numbers.Zero
 
     def normalized(self):
-        logger.info(f"normalized() call")
+        logger.debug(f"normalized() call")
         mass = self.coefficient_sum()
         if mass == 0:
             raise ZeroDivisionError
@@ -357,7 +366,7 @@ class GeneratingFunction:
                                   self._is_finite)
 
     def evaluate(self, expression, monomial):
-        logger.info(f"evaluate() call")
+        logger.debug(f"evaluate() call")
         op = expression.operator
         if isinstance(expression, UnopExpr):
             if op == Unop.NEG:
@@ -400,7 +409,7 @@ class GeneratingFunction:
         infinite support distributions.
         :return:
         """
-        logger.info(f"filter({expression}) call")
+        logger.debug(f"filter({expression}) call")
         # Logical operators
         if expression.operator == Unop.NEG:
             result = self - self.filter(expression.expr)
@@ -470,7 +479,7 @@ class GeneratingFunction:
                                   preciseness=self._preciseness, closed=self._is_closed_form)
 
     def linear_transformation(self, variable, expression):
-        logger.info(f"linear_transformation() call")
+        logger.debug(f"linear_transformation() call")
         # Transform expression into sympy readable format
         rhs = sympy.S(str(expression))
         subst_var = sympy.S(str(variable))
@@ -559,7 +568,7 @@ class GeneratingFunction:
             if var != x and var != y:
                 marginal = marginal.limit(var, 1, "-")
         marginal = GeneratingFunction(marginal.ratsimp())
-        logger.info(f"Creating Histogram for {marginal}")
+        logger.debug(f"Creating Histogram for {marginal}")
         # Collect relevant data from the distribution and plot it.
         if marginal._is_finite:
             coord_and_prob = dict()
