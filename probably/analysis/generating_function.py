@@ -278,6 +278,8 @@ class GeneratingFunction:
                     break
                 approx += term
                 prec += self.split_addend(term)[0]
+                yield GeneratingFunction(str(approx.expand()), self._variables, preciseness=prec, closed=False,
+                                         finite=True)
         else:
             assert nterms > 0, "Expanding to less than 0 terms is not valid."
             n = 0
@@ -286,7 +288,9 @@ class GeneratingFunction:
                     break
                 approx += term
                 prec += self.split_addend(term)[0]
-        return GeneratingFunction(str(approx.expand()), self._variables, preciseness=prec, closed=False, finite=True)
+                n += 1
+                yield GeneratingFunction(str(approx.expand()), self._variables, preciseness=prec, closed=False,
+                                         finite=True)
 
     def dim(self):
         return self._dimension
@@ -554,8 +558,8 @@ class GeneratingFunction:
             plt.colorbar(sm)
             plt.show()
         else:
-            gf = marginal.expand_until(p, n)
-            gf._create_histogram_for_variable(var, n, p)
+            for gf in marginal.expand_until(p, n):
+                gf._create_histogram_for_variable(var, n, p)
 
     def _create_2d_hist(self, var_1: str, var_2: str, n, p):
 
@@ -611,8 +615,9 @@ class GeneratingFunction:
             plt.show()
         else:
             # make the marginal finite.
-            marginal = marginal.expand_until(sympy.S(p), n)
-            marginal._create_2d_hist(var_1, var_2, n, p)
+            for marginal in marginal.expand_until(sympy.S(p), sympy.S(n)):
+                if len(marginal._function.free_symbols) > 1:
+                    marginal._create_2d_hist(var_1, var_2, n, p)
 
     def create_histogram(self, n=None, p: str = None, var: [str] = None):
         """
