@@ -605,7 +605,8 @@ class GeneratingFunction:
                 colors[coord[1]][coord[0]] = float(coord_and_prob[coord])
 
             # Plot the colors array
-            c = plt.pcolormesh(colors, vmin=0, vmax=max_prob, shading='auto', ec="k", cmap="gnuplot2", linewidth=0.5, antialiased=True)
+            c = plt.pcolormesh(colors, vmin=0, vmax=max_prob, shading='auto', ec="k", cmap="gnuplot2", linewidth=0.5,
+                               antialiased=True)
             plt.colorbar(c)
             plt.gca().set_xlabel(f"{x}")
             plt.gca().set_xticks(range(0, maxima[x] + 1))
