@@ -240,9 +240,15 @@ def _query_handler(instr: Queries, input_gf: GeneratingFunction, config: Forward
         print(f"Expected value: {result}")
         return input_gf
     elif isinstance(instr, ProbabilityQueryInstr):
-        sat_part, _, _ = _safe_filter(input_gf, instr.expr)
-        prob = sat_part.coefficient_sum() if config.show_rational_probabilities else sat_part.coefficient_sum().evalf()
-        print(f"Probability of {instr.expr}: {prob}")
+        if isinstance(instr.expr, VarExpr):
+            marginal = input_gf
+            for var in input_gf.vars().difference({sympy.S(instr.expr.var)}):
+                marginal = marginal.linear_transformation(var, 0)
+            print(marginal)
+        else:
+            sat_part, _, _ = _safe_filter(input_gf, instr.expr)
+            prob = sat_part.coefficient_sum() if config.show_rational_probabilities else sat_part.coefficient_sum().evalf()
+            print(f"Probability of {instr.expr}: {prob}")
         return input_gf
     elif isinstance(instr, PlotInstr):
         vars = [instr.var_1.var]

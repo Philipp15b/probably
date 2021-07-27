@@ -398,7 +398,7 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
         cond_type = get_type(program, instr.expr)
         if isinstance(cond_type, CheckFail):
             return cond_type
-        if not is_compatible(BoolType(), cond_type):
+        if not (is_compatible(BoolType(), cond_type) or is_compatible(NatType(None), cond_type)):
             return CheckFail.expected_type_got(instr.expr, BoolType(),
                                                cond_type)
         return None
