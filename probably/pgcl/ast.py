@@ -692,7 +692,7 @@ def expr_str_parens(expr: ExprClass) -> str:
         return f'({expr})'
 
 
-Expr = Union[VarExpr, BoolLitExpr, NatLitExpr, RealLitExpr, RealLitExpr,
+Expr = Union[VarExpr, BoolLitExpr, NatLitExpr, RealLitExpr,
              UnopExpr, BinopExpr, CategoricalExpr,
              SubstExpr, TickExpr, DistrExpr]
 """Union type for all expression objects. See :class:`ExprClass` for use with isinstance."""
