@@ -2,9 +2,9 @@ nat x;
 nat y;
 
 
-x := binomial(50, 1/2)
-y := binomial(50, 1/2)
+x := binomial(10, 1/2)
+y := binomial(10, 1/2)
 
-?Pr[x*y=50]
-#!Plot[y, \infty]
+#?Pr[x*y=50]
+!Plot[x,y, \infty]
 
