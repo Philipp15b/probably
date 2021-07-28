@@ -5,6 +5,8 @@ nat y;
 x := binomial(10, 1/2)
 y := binomial(10, 1/2)
 
+observe(x=y & x=3)
+
 #?Pr[x*y=50]
 !Plot[x,y, \infty]
 

@@ -6,12 +6,12 @@ import sympy
 import matplotlib.pyplot as plt
 import operator
 from matplotlib.cm import ScalarMappable
-from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr
+from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr, BoolLitExpr
 from .exceptions import ComparisonException, NotComputable, ParameterError
 
 logger = logging.getLogger("probably.analysis.generating_function")
 logger.setLevel(logging.DEBUG)
-fhandler = logging.FileHandler(filename='test.log', mode='a')
+fhandler = logging.FileHandler(filename='test.log', mode='w')
 fhandler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger.addHandler(fhandler)
 
@@ -357,43 +357,32 @@ class GeneratingFunction:
                                   simplified.is_polynomial(),
                                   simplified.ratsimp().is_polynomial())
 
-    def evaluate(self, expression, monomial):
-        logger.debug(f"evaluate() call")
-        op = expression.operator
-        if isinstance(expression, UnopExpr):
-            if op == Unop.NEG:
-                return not self.evaluate(expression.expr, monomial)
-            else:
-                raise NotImplementedError(
-                    "Iverson brackets are not supported.")
-        elif isinstance(expression, BinopExpr):
+    @classmethod
+    def evaluate(cls, expression: str, monomial: sympy.Expr) -> sympy.Expr:
+        sexp = sympy.S(expression)
+        for var, value in monomial.as_powers_dict().items():
+            sexp = sexp.subs(var, value)
+        for var in sexp.free_symbols:
+            sexp = sexp.subs(var, 0)
+        return sexp
 
-            lhs = expression.lhs
-            rhs = expression.rhs
+    @classmethod
+    def evaluate_condition(cls, condition: BinopExpr, monomial: sympy.Expr) -> bool:
+        logger.debug(f"evaluate_condition() call")
+        if not isinstance(condition, BinopExpr):
+            raise AssertionError(f"Expression must be an (in-)equation, was {condition}")
 
-            if op == Binop.AND:
-                return self.evaluate(lhs, monomial) and self.evaluate(rhs, monomial)
-            elif op == Binop.OR:
-                return self.evaluate(lhs, monomial) or self.evaluate(rhs, monomial)
-            elif op == Binop.EQ or op == Binop.LEQ or op == Binop.LE:
-                if op == Binop.EQ:
-                    equation = sympy.S(f"{lhs} - ({rhs})").simplify()
-                else:
-                    equation = sympy.S(str(expression)).simplify()
-                variable_valuations = monomial.as_powers_dict()
-                for var in self._variables:
-                    if var not in variable_valuations.keys():
-                        equation = equation.subs(var, 0)
-                    else:
-                        equation = equation.subs(var, variable_valuations[var])
-                if op == Binop.EQ:
-                    equation = equation == 0
-                return equation
-            else:
-                raise AssertionError("Expression must be an (in-)equation!")
-        else:
-            raise AssertionError(
-                "Expression has an unknown format and/or type.")
+        lhs = str(condition.lhs)
+        rhs = str(condition.rhs)
+        op = condition.operator
+
+        if op == Binop.EQ:
+            return GeneratingFunction.evaluate(lhs, monomial) == GeneratingFunction.evaluate(rhs, monomial)
+        elif op == Binop.LEQ:
+            return GeneratingFunction.evaluate(lhs, monomial) <= GeneratingFunction.evaluate(rhs, monomial)
+        elif op == Binop.LE:
+            return GeneratingFunction.evaluate(lhs, monomial) < GeneratingFunction.evaluate(rhs, monomial)
+        raise AssertionError(f"Unexpected condition type. {condition}")
 
     def marginal(self, variables: List[str]) -> 'GeneratingFunction':
         """
@@ -401,12 +390,14 @@ class GeneratingFunction:
         :param variables: a list of variables for which the marginal distribution should be computed
         :return: the marginal distribution.
         """
+        logger.debug(f"Creating marginal for variables {variables} and joint probability distribution {self}")
         marginal = self.copy()
-        for var in self._variables:
+        for var in marginal._variables:
             if str(var) not in variables:
-                marginal = marginal._function.limit(var, 1, "-") if marginal._is_closed_form else marginal.subs(var, 1)
+                marginal._function = marginal._function.limit(var, 1, "-") if marginal._is_closed_form else marginal._function.subs(var, 1)
                 marginal._is_closed_form = not marginal._function.is_polynomial()
                 marginal._is_finite = marginal._function.ratsimp().is_polynomial()
+        marginal._variables = marginal._function.free_symbols
         return marginal
 
     def filter(self, expression: Expr) -> 'GeneratingFunction':
@@ -415,8 +406,11 @@ class GeneratingFunction:
         infinite support distributions.
         :return:
         """
-        logger.debug(f"filter({expression}) call")
+        logger.debug(f"filter({expression}) call on {self}")
 
+        # Boolean literals
+        if isinstance(expression, BoolLitExpr):
+            return self
         # Logical operators
         if expression.operator == Unop.NEG:
             result = self - self.filter(expression.expr)
@@ -447,13 +441,12 @@ class GeneratingFunction:
                                       preciseness=self._preciseness,
                                       closed=self._is_closed_form,
                                       finite=self._is_finite)
-        # evaluate on finite
         elif self._is_finite:
             result = sympy.S(0)
             addends = self._function.as_coefficients_dict() if not self._is_closed_form \
-                else self._function.factor().expand().as_coefficients_dict()
+                else self._function.cancel().expand().as_coefficients_dict()
             for monomial in addends:
-                if self.evaluate(expression, monomial):
+                if self.evaluate_condition(expression, monomial):
                     result += addends[monomial] * monomial
             return GeneratingFunction(result,
                                       self._variables,
@@ -461,8 +454,43 @@ class GeneratingFunction:
                                       closed=False,
                                       finite=True)
         else:
-            raise NotComputable(f"Instruction {expression} is not computable on infinite generating function"
-                                f" {self._function}")
+            expr = sympy.S(str(expression.rhs))
+            variables = [str(var) for var in expr.free_symbols]
+            marginal = self.marginal(variables)
+            left_side = True
+            if not marginal.is_finite():
+                left_side = False
+                expr = sympy.S(str(expression.lhs))
+                variables = [str(var) for var in expr.free_symbols]
+                marginal = self.marginal(variables)
+                if not marginal.is_finite():
+                    raise NotComputable(f"Instruction {expression} is not computable on infinite generating function"
+                                        f" {self._function}")
+            else:
+                print("generating terms")
+                filter_exprs = []
+                for term in marginal.as_series():
+                    state_filter = []
+                    tmp_expr = expr
+                    prob, mon = GeneratingFunction.split_addend(term)
+                    for var, val in self._monomial_to_state(mon).items():
+                        if var in marginal._variables:
+                            eq = BinopExpr(operator=Binop.EQ, lhs=VarExpr(str(var)), rhs=NatLitExpr(val))
+                            tmp_expr = tmp_expr.subs(var, val)
+                            state_filter.append(eq)
+                    filter_expr = functools.reduce(
+                        lambda right, left: BinopExpr(operator=Binop.AND, lhs=left, rhs=right),
+                        state_filter,
+                        BinopExpr(operator=expression.operator, lhs=expression.lhs, rhs=NatLitExpr(value=int(tmp_expr))) if left_side else
+                        BinopExpr(operator=expression.operator, lhs=NatLitExpr(value=int(tmp_expr)), rhs=expression.rhs)
+                    )
+                    filter_exprs.append(filter_expr)
+
+                new_expr = functools.reduce(lambda left, right: BinopExpr(operator=Binop.OR, lhs=left, rhs=right),
+                                            filter_exprs[1:],
+                                            filter_exprs[0]
+                )
+                return self.filter(new_expr)
 
     def limit(self, variable: Union[str, sympy.Symbol], value: str) -> 'GeneratingFunction':
         return GeneratingFunction(self._function.limit(sympy.S(variable), sympy.S(value), "-"),
