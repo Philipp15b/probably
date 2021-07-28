@@ -1,11 +1,12 @@
+import functools
 import logging
-from typing import Tuple, List, Set
+from typing import Tuple, List, Set, Dict, Union
 
 import sympy
 import matplotlib.pyplot as plt
 import operator
 from matplotlib.cm import ScalarMappable
-from probably.pgcl import Unop, VarExpr, NatLitExpr, UnopExpr, BinopExpr, Binop, Expr
+from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr
 from .exceptions import ComparisonException, NotComputable, ParameterError
 
 logger = logging.getLogger("probably.analysis.generating_function")
@@ -88,8 +89,8 @@ class GeneratingFunction:
         self._is_closed_form = closed if closed else not self._function.is_polynomial()
         self._is_finite = finite if finite else self._function.ratsimp().is_polynomial()
 
-    def copy(self):
-        return GeneratingFunction(self._function, self._variables, self._preciseness, self._is_closed_form,
+    def copy(self) -> 'GeneratingFunction':
+        return GeneratingFunction(str(self._function), self._variables, self._preciseness, self._is_closed_form,
                                   self._is_finite)
 
     def _arithmetic(self, other, op: operator):
@@ -194,7 +195,7 @@ class GeneratingFunction:
     def __ne__(self, other):
         return not (self == other)
 
-    def _monomial_to_state(self, monomial):
+    def _monomial_to_state(self, monomial) -> Dict[sympy.Expr, int]:
         result = dict()
         if monomial.free_symbols == set():
             for var in self._variables:
@@ -252,7 +253,7 @@ class GeneratingFunction:
             return _term_generator(func)
 
         else:
-            if 0 <= self._dimension <= 1:
+            if 0 <= len(self._variables) <= 1:
                 series = self._function.lseries()
                 if str(type(series)) == "<class 'generator'>":
                     return series
@@ -349,11 +350,12 @@ class GeneratingFunction:
         return self._is_finite
 
     def simplify(self):
-        return GeneratingFunction(self._function.simplify(),
+        simplified = self._function.simplify()
+        return GeneratingFunction(simplified,
                                   self._variables,
                                   self._preciseness,
-                                  self._is_closed_form,
-                                  self._is_finite)
+                                  simplified.is_polynomial(),
+                                  simplified.ratsimp().is_polynomial())
 
     def evaluate(self, expression, monomial):
         logger.debug(f"evaluate() call")
@@ -407,7 +409,7 @@ class GeneratingFunction:
                 marginal._is_finite = marginal._function.ratsimp().is_polynomial()
         return marginal
 
-    def filter(self, expression: Expr):
+    def filter(self, expression: Expr) -> 'GeneratingFunction':
         """
         Rough implementation of a filter. Can only handle distributions with finite support, or constant constraints on
         infinite support distributions.
@@ -462,11 +464,11 @@ class GeneratingFunction:
             raise NotComputable(f"Instruction {expression} is not computable on infinite generating function"
                                 f" {self._function}")
 
-    def limit(self, variable: str, value: str) -> 'GeneratingFunction':
+    def limit(self, variable: Union[str, sympy.Symbol], value: str) -> 'GeneratingFunction':
         return GeneratingFunction(self._function.limit(sympy.S(variable), sympy.S(value), "-"),
                                   preciseness=self._preciseness, closed=self._is_closed_form)
 
-    def linear_transformation(self, variable, expression) -> 'GeneratingFunction':
+    def linear_transformation(self, variable: str, expression: Expr) -> 'GeneratingFunction':
         logger.debug(f"linear_transformation() call")
         # Transform expression into sympy readable format
         rhs = sympy.S(str(expression))
