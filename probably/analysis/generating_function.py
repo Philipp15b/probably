@@ -431,8 +431,10 @@ class GeneratingFunction:
             constant = expression.rhs.value
             result = sympy.S(0)
             ranges = {Binop.LE: range(constant), Binop.LEQ: range(constant + 1), Binop.EQ: [constant]}
+
             for i in ranges[expression.operator]:
-                tmp = self._function.diff(variable, i) / sympy.factorial(i)
+                tmp = self._function.expand().diff(variable, i) if not self._is_finite else self._function.diff(variable,i)
+                tmp /= sympy.factorial(i)
                 tmp = tmp.subs(variable, 0) if tmp.is_polynomial() else tmp.limit(variable, 0, '-')
                 tmp *= variable ** i
                 result += tmp
