@@ -367,7 +367,7 @@ def _parse_instr(t: Tree) -> Instr:
             lit = _parse_literal(_child_tree(t, 2))
             if isinstance(lit, BoolLitExpr):
                 raise SyntaxError("Plot instructions cannot handle boolean literals as arguments")
-            if t.children[2].data == 'real':
+            if t.children[2].data == 'real' or t.children[2].data == 'infinity':
                 return PlotInstr(VarExpr(_parse_var(_child_tree(t, 0))),
                                  VarExpr(_parse_var(_child_tree(t, 1))),
                                  prob=lit)

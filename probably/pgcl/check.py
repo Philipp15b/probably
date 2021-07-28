@@ -429,7 +429,7 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
             if isinstance(int_type, CheckFail):
                 return int_type
             if not is_compatible(NatType(bounds=None), int_type):
-                return CheckFail.expected_type_got(instr.term_count, NatType(),
+                return CheckFail.expected_type_got(instr.term_count, NatType(None),
                                                    int_type)
         return None
     raise Exception("unreachable")
