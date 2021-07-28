@@ -27,12 +27,6 @@ def test_arithmetic():
     pass
 
 
-def test_dim():
-    count = random.randint(1, 10)
-    gf = create_random_gf(count, random.randint(1, 100))
-    assert gf.dim() == count
-
-
 def test_finite_leq():
     gf1 = GeneratingFunction("x**2*y**3")
     gf2 = GeneratingFunction("1/2*x**2*y**3")

@@ -1,5 +1,5 @@
 import logging
-from typing import Tuple
+from typing import Tuple, List, Set
 
 import sympy
 import matplotlib.pyplot as plt
@@ -52,6 +52,26 @@ class GeneratingFunction:
     verbose_mode = False
     simplified_output = False
 
+    @classmethod
+    def split_addend(cls, addend):
+        """
+        This method assumes that the addend is given in terms of :math:`\alpha \times X^{\sigma}`, where
+        :math:`\alpha \in [0,1], \sigma \in \mathbb{N}^k`.
+        :param addend: the addend to split into its factor and monomial.
+        :return: a tuple (factor, monomial)
+        """
+        if addend.free_symbols == set():
+            return addend, sympy.S(1)
+        else:
+            factor_powers = addend.as_powers_dict()
+            result = (sympy.S(1), sympy.S(1))
+            for factor in factor_powers:
+                if factor in addend.free_symbols:
+                    result = (result[0], result[1] * factor ** factor_powers[factor])
+                else:
+                    result = (result[0] * factor ** factor_powers[factor], result[1])
+            return result
+
     def __init__(self,
                  function: str = "",
                  variables: set = None,
@@ -59,13 +79,12 @@ class GeneratingFunction:
                  closed: bool = None,
                  finite: bool = None):
 
-        self._function = sympy.S(function, rational=True)
-        self._variables = self._function.free_symbols
+        self._function: sympy.Expr = sympy.S(function, rational=True)
+        self._variables: Set[sympy.Symbol] = self._function.free_symbols
         self._preciseness = sympy.S(str(preciseness), rational=True)
         if variables:
             for variable in variables:
                 self._variables = self._variables.union({sympy.S(variable)})
-        self._dimension = len(self._variables)
         self._is_closed_form = closed if closed else not self._function.is_polynomial()
         self._is_finite = finite if finite else self._function.ratsimp().is_polynomial()
 
@@ -189,31 +208,8 @@ class GeneratingFunction:
                     result[var] = 0
         return result
 
-    def is_precise(self):
-        return self._preciseness >= 1.0
-
     def precision(self):
         return self._preciseness
-
-    @classmethod
-    def split_addend(cls, addend):
-        """
-        This method assumes that the addend is given in terms of :math:`\alpha \times X^{\sigma}`, where
-        :math:`\alpha \in [0,1], \sigma \in \mathbb{N}^k`.
-        :param addend: the addend to split into its factor and monomial.
-        :return: a tuple (factor, monomial)
-        """
-        if addend.free_symbols == set():
-            return addend, sympy.S(1)
-        else:
-            factor_powers = addend.as_powers_dict()
-            result = (sympy.S(1), sympy.S(1))
-            for factor in factor_powers:
-                if factor in addend.free_symbols:
-                    result = (result[0], result[1] * factor ** factor_powers[factor])
-                else:
-                    result = (result[0] * factor ** factor_powers[factor], result[1])
-            return result
 
     def diff(self, variable, k):
         """
@@ -275,7 +271,7 @@ class GeneratingFunction:
                 f"Threshold cannot be larger than total coefficient sum! Threshold:" \
                 f" {sympy.S(threshold)}, CSum {self.coefficient_sum()}"
             for term in self.as_series():
-                if prec >= threshold:
+                if prec >= sympy.S(threshold):
                     break
                 approx += term
                 prec += self.split_addend(term)[0]
@@ -292,9 +288,6 @@ class GeneratingFunction:
                 n += 1
                 yield GeneratingFunction(str(approx.expand()), self._variables, preciseness=prec, closed=False,
                                          finite=True)
-
-    def dim(self):
-        return self._dimension
 
     def coefficient_sum(self):
         logger.debug(f"coefficient_sum() call")
@@ -321,15 +314,7 @@ class GeneratingFunction:
         :return: The probability for that state.
         """
         logger.debug(f"probability_of({state}) call")
-        marginal = self.copy()
-        for var in marginal._variables:
-            if var not in state:
-                if marginal._is_closed_form or not marginal._is_finite:
-                    marginal._function = marginal._function.limit(var, 1, '-')
-                    marginal._is_finite = marginal._function.ratsimp().is_polynomial()
-                    marginal._is_closed_form = not marginal._function.is_polynomial()
-                else:
-                    marginal._function = marginal._function.subs(var, 1)
+        marginal = self.marginal([str(var) for var in self._variables.difference(state.keys())])
         if marginal._is_closed_form or not marginal._is_finite:
             result = self._function
             for variable, value in state.items():
@@ -390,7 +375,7 @@ class GeneratingFunction:
                 return self.evaluate(lhs, monomial) or self.evaluate(rhs, monomial)
             elif op == Binop.EQ or op == Binop.LEQ or op == Binop.LE:
                 if op == Binop.EQ:
-                    equation = sympy.S(f"{lhs} - {rhs}").simplify()
+                    equation = sympy.S(f"{lhs} - ({rhs})").simplify()
                 else:
                     equation = sympy.S(str(expression)).simplify()
                 variable_valuations = monomial.as_powers_dict()
@@ -408,6 +393,20 @@ class GeneratingFunction:
             raise AssertionError(
                 "Expression has an unknown format and/or type.")
 
+    def marginal(self, variables: List[str]) -> 'GeneratingFunction':
+        """
+        Computes the marginal distribution in the given variables.
+        :param variables: a list of variables for which the marginal distribution should be computed
+        :return: the marginal distribution.
+        """
+        marginal = self.copy()
+        for var in self._variables:
+            if str(var) not in variables:
+                marginal = marginal._function.limit(var, 1, "-") if marginal._is_closed_form else marginal.subs(var, 1)
+                marginal._is_closed_form = not marginal._function.is_polynomial()
+                marginal._is_finite = marginal._function.ratsimp().is_polynomial()
+        return marginal
+
     def filter(self, expression: Expr):
         """
         Rough implementation of a filter. Can only handle distributions with finite support, or constant constraints on
@@ -415,6 +414,7 @@ class GeneratingFunction:
         :return:
         """
         logger.debug(f"filter({expression}) call")
+
         # Logical operators
         if expression.operator == Unop.NEG:
             result = self - self.filter(expression.expr)
@@ -462,11 +462,11 @@ class GeneratingFunction:
             raise NotComputable(f"Instruction {expression} is not computable on infinite generating function"
                                 f" {self._function}")
 
-    def limit(self, variable: str, value: str):
+    def limit(self, variable: str, value: str) -> 'GeneratingFunction':
         return GeneratingFunction(self._function.limit(sympy.S(variable), sympy.S(value), "-"),
                                   preciseness=self._preciseness, closed=self._is_closed_form)
 
-    def linear_transformation(self, variable, expression):
+    def linear_transformation(self, variable, expression) -> 'GeneratingFunction':
         logger.debug(f"linear_transformation() call")
         # Transform expression into sympy readable format
         rhs = sympy.S(str(expression))
@@ -495,7 +495,7 @@ class GeneratingFunction:
         return GeneratingFunction(result.subs(replacements) * const_correction_term, variables=self._variables,
                                   preciseness=self._preciseness, closed=self._is_closed_form, finite=self._is_finite)
 
-    def arithmetic_progression(self, variable: str, modulus: str):
+    def arithmetic_progression(self, variable: str, modulus: str) -> List['GeneratingFunction']:
         a = sympy.S(modulus)
         var = sympy.S(variable)
         primitive_uroot = sympy.S(f"exp(2 * {sympy.pi} * {sympy.I}/{a})")
@@ -590,7 +590,7 @@ class GeneratingFunction:
                 colors[coord[1]][coord[0]] = float(coord_and_prob[coord])
 
             # Plot the colors array
-            c = plt.imshow(colors, vmin=0.0, vmax=max_prob, interpolation='gaussian', cmap="turbo")
+            c = plt.imshow(colors, origin='lower', interpolation='nearest', cmap="turbo", aspect='auto')
             plt.colorbar(c)
             plt.gca().set_xlabel(f"{x}")
             plt.gca().set_xticks(range(0, maxima[x] + 1))
