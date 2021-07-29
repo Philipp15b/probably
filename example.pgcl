@@ -3,10 +3,14 @@ nat y;
 
 
 x := binomial(10, 1/2)
-y := binomial(10, 1/2)
+y := logdist(1/2)
 
-observe(x=y & x=3)
 
-#?Pr[x*y=50]
-!Plot[x,y, \infty]
+
+#observe(x=y & x=3)
+
+?Pr[x=0 & y =1]
+!Plot[y, 10]
+!Plot[x, 10]
+!Plot[x,y, .998]
 

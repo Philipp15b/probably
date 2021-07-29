@@ -235,9 +235,14 @@ class GeneratingFunction:
                 new_monomials = new_monomials[sympy.polys.monomials.monomial_count(len(self._variables), i - 1):]
             logger.debug(f"Monomial_generation done")
             for monomial in new_monomials:
+                state = dict()
+                if monomial == 1:
+                    for var in self._variables:
+                        state[var] = 0
+                else:
+                    state = monomial.as_expr().as_powers_dict()
                 logger.debug(f"create term for monomial {monomial}")
-                mon_expr = monomial.as_expr()
-                term = mon_expr * self.probability_of(mon_expr.as_powers_dict())
+                term = monomial.as_expr() * self.probability_of(state)
                 logger.debug(f"created term {term}")
                 yield term
             logger.debug(f"\t>Terms generated until total degree of {i}")
@@ -279,10 +284,10 @@ class GeneratingFunction:
                 yield GeneratingFunction(str(approx.expand()), self._variables, preciseness=prec, closed=False,
                                          finite=True)
         else:
-            assert nterms > 0, "Expanding to less than 0 terms is not valid."
+            assert sympy.S(nterms) > 0, "Expanding to less than 0 terms is not valid."
             n = 0
             for term in self.as_series():
-                if n >= nterms:
+                if n >= sympy.S(nterms):
                     break
                 approx += term
                 prec += self.split_addend(term)[0]
@@ -315,20 +320,27 @@ class GeneratingFunction:
         :return: The probability for that state.
         """
         logger.debug(f"probability_of({state}) call")
-        marginal = self.marginal([str(var) for var in self._variables.difference(state.keys())])
-        if marginal._is_closed_form or not marginal._is_finite:
+
+        # complete state by assuming every variable which is not occurring is zero.
+        complete_state = state
+        for var in self._variables:
+            if not state[var]:
+                complete_state[var] = 0
+
+        # When its a closed form, or not finite, do the maths.
+        if self._is_closed_form or not self._is_finite:
             result = self._function
-            for variable, value in state.items():
-                if not variable == 1:
-                    result = result.diff(sympy.S(variable), value)
-                    result /= sympy.factorial(value)
-                    result = result.limit(variable, 0, "-") if marginal._is_closed_form else result.subs(variable, 0)
+            for variable, value in complete_state.items():
+                result = result.diff(sympy.S(variable), value)
+                result /= sympy.factorial(value)
+                result = result.limit(variable, 0, "-")
             return result
+        # Otherwise use poly module and simply extract the correct coefficient from it
         else:
             monomial = sympy.S(1)
-            for variable, value in state.items():
+            for variable, value in complete_state.items():
                 monomial *= sympy.S(f"{variable} ** {value}")
-            probability = marginal._function.as_poly(gens=marginal._variables).coeff_monomial(monomial)
+            probability = self._function.as_poly(*self._variables).coeff_monomial(monomial)
             return probability if probability else sympy.core.numbers.Zero()
 
     def normalized(self):
@@ -433,7 +445,9 @@ class GeneratingFunction:
             ranges = {Binop.LE: range(constant), Binop.LEQ: range(constant + 1), Binop.EQ: [constant]}
 
             for i in ranges[expression.operator]:
-                tmp = self._function.expand().diff(variable, i) if not self._is_finite else self._function.diff(variable,i)
+                tmp = self._function
+                for j in range(i):
+                    tmp = tmp.diff(variable, 1).simplify() if not self._is_finite else tmp.diff(variable,1).simplify()
                 tmp /= sympy.factorial(i)
                 tmp = tmp.subs(variable, 0) if tmp.is_polynomial() else tmp.limit(variable, 0, '-')
                 tmp *= variable ** i
@@ -495,8 +509,13 @@ class GeneratingFunction:
                 return self.filter(new_expr)
 
     def limit(self, variable: Union[str, sympy.Symbol], value: str) -> 'GeneratingFunction':
-        return GeneratingFunction(self._function.limit(sympy.S(variable), sympy.S(value), "-"),
-                                  preciseness=self._preciseness, closed=self._is_closed_form)
+        func = self._function
+        if self._is_closed_form:
+            func = func.limit(sympy.S(variable), sympy.S(value), "-")
+        else:
+            func = func.subs(sympy.S(variable), sympy.S(value))
+        return GeneratingFunction(func, preciseness=self._preciseness, closed=self._is_closed_form,
+                                  finite=func.ratsimp().is_polynomial())
 
     def linear_transformation(self, variable: str, expression: Expr) -> 'GeneratingFunction':
         logger.debug(f"linear_transformation() call")
@@ -583,11 +602,8 @@ class GeneratingFunction:
         y = sympy.S(var_2)
 
         # Marginalize distribution to the variables of interest.
-        marginal = self._function
-        for var in self._variables:
-            if var != x and var != y:
-                marginal = marginal.limit(var, 1, "-")
-        marginal = GeneratingFunction(marginal.ratsimp())
+        marginal = self.marginal([var_1, var_2])
+        marginal._variables = self._variables
         logger.debug(f"Creating Histogram for {marginal}")
         # Collect relevant data from the distribution and plot it.
         if marginal._is_finite:
@@ -622,7 +638,7 @@ class GeneratingFunction:
                 colors[coord[1]][coord[0]] = float(coord_and_prob[coord])
 
             # Plot the colors array
-            c = plt.imshow(colors, origin='lower', interpolation='nearest', cmap="turbo", aspect='auto')
+            c = plt.imshow(colors, vmin=0, origin='lower', interpolation='nearest', cmap="turbo", aspect='auto')
             plt.colorbar(c)
             plt.gca().set_xlabel(f"{x}")
             plt.gca().set_xticks(range(0, maxima[x] + 1))
@@ -631,9 +647,9 @@ class GeneratingFunction:
             plt.show()
         else:
             # make the marginal finite.
-            for marginal in marginal.expand_until(sympy.S(p), sympy.S(n)):
-                if len(marginal._function.free_symbols) > 1:
-                    marginal._create_2d_hist(var_1, var_2, n, p)
+            plt.ion()
+            for subsum in marginal.expand_until(sympy.S(p), sympy.S(n)):
+                subsum._create_2d_hist(var_1, var_2, n, p)
 
     def create_histogram(self, n=None, p: str = None, var: [str] = None):
         """
