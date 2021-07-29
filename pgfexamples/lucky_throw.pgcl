@@ -1,14 +1,17 @@
-nat die1;
-nat die2;
-nat die3;
-nat die4;
+nat die;
+nat lucky_throw;
+nat hand;
 nat sum;
 
-die1 := unif(1,6)
-die2 := unif(1,6)
-die3 := unif(1,6)
-die4 := unif(1,6)
+
 sum := unif(4, 24)
 
-observe(die1+die2+die3+die4=sum)
-?Pr[die1 = 6 || die2=6 || die3=6 || die4=6]
+loop(4){
+die := unif(1,6)
+if (die =6){ lucky_throw := 1} else {skip}
+hand:= hand + die
+}
+
+
+observe(hand=sum)
+!Plot[lucky_throw, \infty]

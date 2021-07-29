@@ -785,6 +785,15 @@ class ChoiceInstr(InstrClass):
 
 
 @attr.s
+class LoopInstr(InstrClass):
+    """ iterating a block a constant amount of times"""
+    iterations: NatLitExpr = attr.ib()
+    body: List["Instr"] = attr.ib()
+
+    def __str__(self) -> str:
+        return f"loop({self.iterations}){_str_block(self.body)}"
+
+@attr.s
 class TickInstr(InstrClass):
     """
     An instruction that does not modify the program state, but only increases
@@ -853,7 +862,7 @@ class PlotInstr(InstrClass):
 
 Queries = Union[ProbabilityQueryInstr, ExpectationInstr, PlotInstr]
 
-Instr = Union[SkipInstr, WhileInstr, IfInstr, AsgnInstr, ChoiceInstr,
+Instr = Union[SkipInstr, WhileInstr, IfInstr, AsgnInstr, ChoiceInstr, LoopInstr,
               TickInstr, ObserveInstr, Queries]
 """Union type for all instruction objects. See :class:`InstrClass` for use with isinstance."""
 

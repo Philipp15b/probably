@@ -33,4 +33,5 @@ if (opendoor = 0){
         } else{skip}
     }
 }
+?Pr[player = prize ]
 !Plot[player, prize, 10]

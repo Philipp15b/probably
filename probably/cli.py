@@ -17,7 +17,7 @@ import click
 import probably.pgcl.compiler as pgcl
 from probably.analysis.config import ForwardAnalysisConfig
 from probably.pgcl.check import CheckFail
-from probably.analysis.discrete import loopfree_gf
+from probably.analysis.discrete import compute_distribution
 from probably.analysis.generating_function import GeneratingFunction
 
 
@@ -55,9 +55,9 @@ def main(program_file: IO, input_gf: str, intermediate_results: bool):
     GeneratingFunction.rational_preciseness = True
     GeneratingFunction.verbose_mode = False
     GeneratingFunction.simplified_output = False
-    gf = loopfree_gf(program.instructions, gf, ForwardAnalysisConfig(verbose_generating_functions=False,
-                                                                     show_intermediate_steps=intermediate_results)
-                     )
+    gf = compute_distribution(program.instructions, gf, ForwardAnalysisConfig(verbose_generating_functions=False,
+                                                                              show_intermediate_steps=intermediate_results)
+                              )
     print("\nGeneratingfunction\n", gf)
     # print("Generating plot")
     # gf.create_histogram(p=0.99)

@@ -20,11 +20,11 @@ from probably.pgcl import (Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr, Geo
                            CategoricalExpr, ChoiceInstr, TickInstr, ObserveInstr, DUniformExpr,
                            Expr, BinomialExpr, PoissonExpr, LogDistExpr, BernoulliExpr,
                            DistrExpr, Binop, BinopExpr, VarExpr, NatLitExpr, ExpectationInstr, RealLitExpr, UnopExpr,
-                           Unop, Queries, ProbabilityQueryInstr, PlotInstr)
+                           Unop, Queries, ProbabilityQueryInstr, PlotInstr, LoopInstr)
 from probably.pgcl.syntax import check_is_linear_expr
 
 logger = logging.getLogger("probably.analysis.discrete")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 fhandler = logging.FileHandler(filename='test.log', mode='a')
 fhandler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger.addHandler(fhandler)
@@ -44,7 +44,7 @@ def _while_handler(instr: WhileInstr,
         max_iter = int(input("Specify a maximum iteration limit: "))
         sat_part, non_sat_part, approx = input_gf.safe_filter(instr.cond)
         for i in range(max_iter):
-            iterated_part = loopfree_gf(instr.body, sat_part)
+            iterated_part = compute_distribution(instr.body, sat_part)
             iterated_sat, iterated_non_sat, iterated_approx = iterated_part.safe_filter(instr.cond)
             if iterated_non_sat == GeneratingFunction("0") and iterated_sat == sat_part:
                 print(f"Terminated already after {i} step(s)!")
@@ -56,7 +56,7 @@ def _while_handler(instr: WhileInstr,
         captured_probability_threshold = sympy.S(input("Enter the probability threshold: "))
         sat_part, non_sat_part, approx = input_gf.safe_filter(instr.cond)
         while non_sat_part.coefficient_sum() < captured_probability_threshold:
-            iterated_part = loopfree_gf(instr.body, sat_part)
+            iterated_part = compute_distribution(instr.body, sat_part)
             iterated_sat, iterated_non_sat, iterated_approx = iterated_part.safe_filter(instr.cond)
             non_sat_part += iterated_non_sat
             sat_part = iterated_sat
@@ -70,7 +70,7 @@ def _ite_handler(instr: IfInstr,
                  config: ForwardAnalysisConfig) -> GeneratingFunction:
     sat_part, non_sat_part, approx = input_gf.safe_filter(instr.cond)
     non_sat_part = input_gf - sat_part
-    return loopfree_gf(instr.true, sat_part) + loopfree_gf(instr.false, non_sat_part)
+    return compute_distribution(instr.true, sat_part) + compute_distribution(instr.false, non_sat_part)
 
 
 def _distr_handler(instr: AsgnInstr,
@@ -174,7 +174,7 @@ def _assignment_handler(instr: AsgnInstr,
         error = sympy.S(input("Continue with approximation. Enter an allowed relative error (0, 1.0):\t"))
         if 0 < error < 1:
             expanded = input_gf.expand_until((1 - error) * input_gf.coefficient_sum())
-            return loopfree_gf(instr, expanded)
+            return compute_distribution(instr, expanded)
         else:
             raise NotComputable("The assignment {} is not computable on {}".format(instr, input_gf))
 
@@ -182,8 +182,8 @@ def _assignment_handler(instr: AsgnInstr,
 def _pchoice_handler(instr: ChoiceInstr,
                      input_gf: GeneratingFunction,
                      config: ForwardAnalysisConfig) -> GeneratingFunction:
-    lhs_block = loopfree_gf(instr.lhs, input_gf)
-    rhs_block = loopfree_gf(instr.rhs, input_gf)
+    lhs_block = compute_distribution(instr.lhs, input_gf)
+    rhs_block = compute_distribution(instr.rhs, input_gf)
     return GeneratingFunction(str(instr.prob)) * lhs_block + GeneratingFunction(f"1-{instr.prob}") * rhs_block
 
 
@@ -275,9 +275,16 @@ def _query_handler(instr: Queries, input_gf: GeneratingFunction, config: Forward
         raise SyntaxError(f"Type {type(instr)} is not known.")
 
 
-def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
-                input_gf: GeneratingFunction,
-                config=ForwardAnalysisConfig()) -> GeneratingFunction:
+def _loop_handler(instr, input_gf, config):
+    for i in range(instr.iterations.value):
+        logger.debug(f"Computing iteration {i+1} out of {instr.iterations.value}")
+        input_gf = compute_distribution(instr.body, input_gf, config)
+    return input_gf
+
+
+def compute_distribution(instr: Union[Instr, Sequence[Instr]],
+                         input_gf: GeneratingFunction,
+                         config=ForwardAnalysisConfig()) -> GeneratingFunction:
     """
     Build the characteristic function as an expression.
 
@@ -291,12 +298,12 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
     """
 
     def _show_steps(gf, instr):
-        res = loopfree_gf(instr, gf, config)
+        res = compute_distribution(instr, gf, config)
         print(f"Instruction: {instr}\t Result: {res.simplify()}")
         return res
 
     def _dont_show_steps(gf, instr):
-        return loopfree_gf(instr, gf, config)
+        return compute_distribution(instr, gf, config)
 
     if isinstance(instr, list):
         func = _show_steps if config.show_intermediate_steps else _dont_show_steps
@@ -328,6 +335,9 @@ def loopfree_gf(instr: Union[Instr, Sequence[Instr]],
 
     elif isinstance(instr, get_args(Queries)):
         return _query_handler(instr, input_gf, config)
+
+    elif isinstance(instr, LoopInstr):
+        return _loop_handler(instr, input_gf, config)
 
     raise Exception("illegal instruction")
 

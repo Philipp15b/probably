@@ -53,6 +53,7 @@ _PGCL_GRAMMAR = """
                | "?Ex" "[" expression "]"                    -> expectation
                | "?Pr" "[" expression "]"                    -> prquery
                | "!Plot" "[" var ("," var)? ("," literal)?"]"                 -> plot
+               | "loop" "(" INT ")" block                    -> loop 
 
 
     block: "{" instruction* "}"
@@ -360,6 +361,8 @@ def _parse_instr(t: Tree) -> Instr:
         return ObserveInstr(_parse_expr(_child_tree(t, 0)))
     elif t.data == 'expectation':
         return ExpectationInstr(_parse_expr(_child_tree(t, 0)))
+    elif t.data == 'loop':
+        return LoopInstr(NatLitExpr(value=int(t.children[0])), _parse_instrs(_child_tree(t, 1)))
     elif t.data == 'prquery':
         return ProbabilityQueryInstr(_parse_expr(_child_tree(t, 0)))
     elif t.data == "plot":
