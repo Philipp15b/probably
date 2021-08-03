@@ -57,6 +57,9 @@ def _while_handler(instr: WhileInstr,
         captured_probability_threshold = sympy.S(input("Enter the probability threshold: "))
         sat_part, non_sat_part, approx = input_gf.safe_filter(instr.cond)
         while non_sat_part.coefficient_sum() < captured_probability_threshold:
+            logger.info(f"Collected {non_sat_part.coefficient_sum().evalf()} / {captured_probability_threshold.evalf()} "
+                        f"({(float((non_sat_part.coefficient_sum() / captured_probability_threshold).evalf()) * 100):.2f} %)"
+                        f"of the desired mass.")
             iterated_part = compute_distribution(instr.body, sat_part)
             iterated_sat, iterated_non_sat, iterated_approx = iterated_part.safe_filter(instr.cond)
             non_sat_part += iterated_non_sat
