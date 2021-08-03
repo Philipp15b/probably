@@ -146,6 +146,7 @@ def check_is_linear_expr(expr: Expr) -> Optional[CheckFail]:
         >>> check_is_linear_expr(parse_expectation("x/x"))
         CheckFail(location=..., message='General division is not linear (division of constants is)')
     """
+
     def has_variable(expr: Expr) -> bool:
         if isinstance(expr, UnopExpr) and expr.operator == Unop.IVERSON:
             return False
@@ -183,7 +184,11 @@ def check_is_modulus_condition(expression) -> bool:
     return False
 
 
-def check_is_constant_constraint(expression) -> bool:
+def check_is_constant_constraint(expression: Expr) -> bool:
+    if not isinstance(expression, BinopExpr):
+        return False
+    if expression.operator not in (Binop.EQ, Binop.LEQ, Binop.LE):
+        return False
     if isinstance(expression.lhs, VarExpr):
         if isinstance(expression.rhs, NatLitExpr):
             return True
@@ -192,6 +197,7 @@ def check_is_constant_constraint(expression) -> bool:
             return True
     else:
         return False
+
 
 def check_is_one_big_loop(instrs: Sequence[Instr],
                           *,
