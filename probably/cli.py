@@ -25,8 +25,9 @@ from probably.analysis.generating_function import GeneratingFunction
 @click.argument('program_file', type=click.File('r'))
 @click.argument('input_gf', type=str, required=False)
 @click.option('--intermediate-results', is_flag=True, required=False, default=False)
+@click.option('--no-simplification', is_flag=True, required=False, default=False)
 # pylint: disable=redefined-builtin
-def main(program_file: IO, input_gf: str, intermediate_results: bool):
+def main(program_file: IO, input_gf: str, intermediate_results: bool, no_simplification: bool):
     """
     Compile the given program and print some information about it.
     """
@@ -54,7 +55,7 @@ def main(program_file: IO, input_gf: str, intermediate_results: bool):
         gf = GeneratingFunction(input_gf, set(program.variables.keys()), 1.0)
     GeneratingFunction.rational_preciseness = True
     GeneratingFunction.verbose_mode = False
-    GeneratingFunction.simplified_output = False
+    GeneratingFunction.use_simplification = not no_simplification
     gf = compute_distribution(program.instructions, gf, ForwardAnalysisConfig(verbose_generating_functions=False,
                                                                               show_intermediate_steps=intermediate_results)
                               )

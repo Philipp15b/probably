@@ -16,6 +16,7 @@ fhandler = logging.FileHandler(filename='test.log', mode='w')
 fhandler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger.addHandler(fhandler)
 
+
 def _term_generator(function: sympy.Poly):
     assert isinstance(function, sympy.Poly), "Terms can only be generated for finite GF"
     poly = function
@@ -32,7 +33,7 @@ class GeneratingFunction:
     """
     rational_preciseness = False
     verbose_mode = False
-    simplified_output = False
+    use_simplification = False
 
     @classmethod
     def split_addend(cls, addend):
@@ -78,17 +79,18 @@ class GeneratingFunction:
             is_finite = self._is_finite and other._is_finite
             preciseness = (s + o) / (s / self._preciseness + o / other._preciseness)
             function = op(self._function, other._function)
-            logger.debug(f"Try simplification but stay in closed form!")
-            n, d = sympy.fraction(function)
-            logger.info("Factoring")
-            n = n.factor()
-            d = d.factor()
-            function = n / d
-            logger.debug(f"Closed-form simplification result: {function}")
-            if not is_closed_form:
-                logger.debug("Try to cancel terms")
-                function = function.expand()
-                logger.debug(f"Canceling result: {function}")
+            if GeneratingFunction.use_simplification:
+                logger.debug(f"Try simplification but stay in closed form!")
+                n, d = sympy.fraction(function)
+                logger.info("Factoring")
+                n = n.factor()
+                d = d.factor()
+                function = n / d
+                logger.debug(f"Closed-form simplification result: {function}")
+                if not is_closed_form:
+                    logger.debug("Try to cancel terms")
+                    function = function.expand()
+                    logger.debug(f"Canceling result: {function}")
             variables = self._variables.union(other._variables)
             return GeneratingFunction(function, variables, preciseness, is_closed_form, is_finite)
         else:
@@ -109,13 +111,13 @@ class GeneratingFunction:
 
     def __str__(self):
         if GeneratingFunction.rational_preciseness:
-            output = f"{str(self._function.simplify() if GeneratingFunction.simplified_output else self._function)}" \
+            output = f"{str(self._function.simplify() if GeneratingFunction.use_simplification else self._function)}" \
                      f" \t@{str(self._preciseness)}"
             if GeneratingFunction.verbose_mode:
                 output += f"\t({str(self._is_closed_form)},{str(self._is_finite)})"
             return output
         else:
-            output = str(self._function.simplify() if GeneratingFunction.simplified_output else self._function) + "\t@"
+            output = str(self._function.simplify() if GeneratingFunction.use_simplification else self._function) + "\t@"
             output += str(self._preciseness.evalf())
             if GeneratingFunction.verbose_mode:
                 output += f"\t({str(self._is_closed_form)},{str(self._is_finite)})"
@@ -274,7 +276,7 @@ class GeneratingFunction:
 
     def coefficient_sum(self):
         logger.debug(f"coefficient_sum() call")
-        coefficient_sum = self._function.simplify()
+        coefficient_sum = self._function.simplify() if GeneratingFunction.use_simplification else self._function
         for var in self._variables:
             coefficient_sum = coefficient_sum.limit(var, 1, "-") if self._is_closed_form else coefficient_sum.subs(var,
                                                                                                                    1)
@@ -339,12 +341,12 @@ class GeneratingFunction:
         return self._is_finite
 
     def simplify(self):
-        simplified = self._function.simplify()
-        return GeneratingFunction(simplified,
-                                  self._variables,
-                                  self._preciseness,
-                                  simplified.is_polynomial(),
-                                  simplified.ratsimp().is_polynomial())
+        if not GeneratingFunction.use_simplification:
+            return self.copy()
+        else:
+            simplified = self._function.simplify()
+            return GeneratingFunction(simplified, self._variables, self._preciseness, simplified.is_polynomial(),
+                                      simplified.ratsimp().is_polynomial())
 
     @classmethod
     def evaluate(cls, expression: str, monomial: sympy.Expr) -> sympy.Expr:
@@ -420,7 +422,18 @@ class GeneratingFunction:
             if isinstance(expression.rhs, VarExpr):
                 variable = sympy.S(str(expression.rhs))
                 constant = expression.lhs.value
-                # raise NotImplementedError("Noch nicht fertig implementiert.")
+                if expression.operator == Binop.LEQ:
+                    return self.filter(
+                        UnopExpr(operator=Unop.NEG,
+                                 expr=BinopExpr(operator=Binop.LE, lhs=expression.rhs, rhs=expression.lhs)
+                                 )
+                    )
+                elif expression.operator == Binop.LE:
+                    return self.filter(
+                        UnopExpr(operator=Unop.NEG,
+                                 expr=BinopExpr(operator=Binop.LEQ, lhs=expression.rhs, rhs=expression.lhs)
+                                 )
+                    )
             else:
                 variable = sympy.S(str(expression.lhs))
                 constant = expression.rhs.value
@@ -430,7 +443,9 @@ class GeneratingFunction:
             for i in ranges[expression.operator]:
                 tmp = self._function
                 for j in range(i):
-                    tmp = tmp.diff(variable, 1).simplify() if not self._is_finite else tmp.diff(variable,1).simplify()
+                    tmp = tmp.diff(variable, 1)
+                    if GeneratingFunction.use_simplification:
+                        tmp = tmp.simplify()
                 tmp /= sympy.factorial(i)
                 tmp = tmp.subs(variable, 0) if tmp.is_polynomial() else tmp.limit(variable, 0, '-')
                 tmp *= variable ** i
@@ -465,8 +480,9 @@ class GeneratingFunction:
                 variables = [str(var) for var in expr.free_symbols]
                 marginal = self.marginal(variables)
                 if not marginal.is_finite():
-                    raise NotComputableException(f"Instruction {expression} is not computable on infinite generating function"
-                                        f" {self._function}")
+                    raise NotComputableException(
+                        f"Instruction {expression} is not computable on infinite generating function"
+                        f" {self._function}")
             else:
                 print("generating terms")
                 filter_exprs = []
@@ -482,7 +498,8 @@ class GeneratingFunction:
                     filter_expr = functools.reduce(
                         lambda right, left: BinopExpr(operator=Binop.AND, lhs=left, rhs=right),
                         state_filter,
-                        BinopExpr(operator=expression.operator, lhs=expression.lhs, rhs=NatLitExpr(value=int(tmp_expr))) if left_side else
+                        BinopExpr(operator=expression.operator, lhs=expression.lhs,
+                                  rhs=NatLitExpr(value=int(tmp_expr))) if left_side else
                         BinopExpr(operator=expression.operator, lhs=NatLitExpr(value=int(tmp_expr)), rhs=expression.rhs)
                     )
                     filter_exprs.append(filter_expr)
@@ -490,7 +507,7 @@ class GeneratingFunction:
                 new_expr = functools.reduce(lambda left, right: BinopExpr(operator=Binop.OR, lhs=left, rhs=right),
                                             filter_exprs[1:],
                                             filter_exprs[0]
-                )
+                                            )
                 return self.filter(new_expr)
 
     def limit(self, variable: Union[str, sympy.Symbol], value: str) -> 'GeneratingFunction':
