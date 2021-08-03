@@ -22,12 +22,11 @@ from probably.pgcl import (Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr, Geo
                            DistrExpr, Binop, BinopExpr, VarExpr, NatLitExpr, ExpectationInstr, RealLitExpr, UnopExpr,
                            Unop, Queries, ProbabilityQueryInstr, PlotInstr, LoopInstr)
 from probably.pgcl.syntax import check_is_linear_expr
+from probably.analysis.plotter import Plotter
 
-logger = logging.getLogger("probably.analysis.discrete")
-logger.setLevel(logging.DEBUG)
-fhandler = logging.FileHandler(filename='test.log', mode='a')
-fhandler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-logger.addHandler(fhandler)
+
+from probably.util.logger import log_setup
+logger = log_setup(__name__, logging.INFO)
 
 
 def _while_handler(instr: WhileInstr,
@@ -96,32 +95,32 @@ def _distr_handler(instr: AsgnInstr,
     # rhs is geometric distribution
     if isinstance(instr.rhs, GeometricExpr):
         variable = instr.lhs
-        marginal = input_gf.marginal([variable])
+        marginal = marginal = input_gf.linear_transformation(variable, NatLitExpr(0))
         param = instr.rhs.param
         return marginal * PGFS.geometric(variable, str(param))
 
     # rhs is binomial distribution
     if isinstance(instr.rhs, BinomialExpr):
         variable = instr.lhs
-        marginal = input_gf.marginal([variable])
+        marginal = marginal = input_gf.linear_transformation(variable, NatLitExpr(0))
         return marginal * PGFS.binomial(variable, str(instr.rhs.n), str(instr.rhs.p))
 
     # rhs is poisson distribution
     if isinstance(instr.rhs, PoissonExpr):
         variable = instr.lhs
-        marginal = input_gf.marginal([variable])
+        marginal = marginal = input_gf.linear_transformation(variable, NatLitExpr(0))
         return marginal * PGFS.poisson(variable, str(instr.rhs.param))
 
     # rhs is bernoulli distribution
     if isinstance(instr.rhs, BernoulliExpr):
         variable = instr.lhs
-        marginal = input_gf.marginal([variable])
+        marginal = marginal = input_gf.linear_transformation(variable, NatLitExpr(0))
         return marginal * PGFS.bernoulli(variable, str(instr.rhs.param))
 
     # rhs is logarithmic distribution
     if isinstance(instr.rhs, LogDistExpr):
         variable = instr.lhs
-        marginal = input_gf.marginal([variable])
+        marginal = marginal = input_gf.linear_transformation(variable, NatLitExpr(0))
         return marginal * PGFS.log(variable, str(instr.rhs.param))
 
     # rhs is a categorical expression (explicit finite distr)
@@ -140,7 +139,7 @@ def _assignment_handler(instr: AsgnInstr,
         # currently only unnested modulo operations are supported...
         mod_expr = instr.rhs
         if isinstance(mod_expr.lhs, VarExpr) and isinstance(mod_expr.rhs, NatLitExpr):
-            result = PGFS.zero(input_gf.vars())
+            result = PGFS.zero(input_gf.get_variables())
             ap = input_gf.arithmetic_progression(str(mod_expr.lhs), str(mod_expr.rhs))
             for i in range(mod_expr.rhs.value):
                 func = ap[i]
@@ -164,14 +163,14 @@ def _assignment_handler(instr: AsgnInstr,
             for monomial in term:  # For each of these monomial probability pairs...
                 var_powers = monomial.as_powers_dict()  # check the individual powers from the variables
                 new_value = sympy.S(str(instr.rhs))
-                for var in input_gf.vars():  # for each variable check its current state
+                for var in input_gf.get_variables():  # for each variable check its current state
                     if var not in var_powers.keys():
                         new_value = new_value.subs(var, 0)
                     else:
                         new_value = new_value.subs(var, var_powers[var])
                 new_addend *= sympy.S(str(instr.lhs)) ** new_value  # and update
             result += new_addend
-        return GeneratingFunction(result, variables=input_gf.vars(), preciseness=input_gf.precision())
+        return GeneratingFunction(result, variables=input_gf.get_variables(), preciseness=input_gf.precision())
 
     # rhs is non-linear, precf is infinite support
     else:
@@ -246,14 +245,14 @@ def _expectation_handler(instr: Expr,
 def _query_handler(instr: Queries, input_gf: GeneratingFunction, config: ForwardAnalysisConfig) -> GeneratingFunction:
     if isinstance(instr, ExpectationInstr):
         result = _expectation_handler(instr.expr, input_gf, config)
-        for var in result.vars():
+        for var in result.get_variables():
             result = result.linear_transformation(var, 0)
         print(f"Expected value: {result}")
         return input_gf
     elif isinstance(instr, ProbabilityQueryInstr):
         if isinstance(instr.expr, VarExpr):
             marginal = input_gf.copy()
-            for var in marginal.vars().difference({sympy.S(instr.expr.var)}):
+            for var in marginal.get_variables().difference({sympy.S(instr.expr.var)}):
                 marginal = marginal.linear_transformation(var, 0)
             print(f"Marginal distribution of {instr.expr}: {marginal}")
         else:
@@ -267,16 +266,16 @@ def _query_handler(instr: Queries, input_gf: GeneratingFunction, config: Forward
 
         if instr.prob:
             if instr.prob.is_infinite():
-                input_gf.create_histogram(var=vars, p=str(1))
+                Plotter.plot(input_gf, *vars, p=str(1))
             else:
-                input_gf.create_histogram(var=vars, p=str(instr.prob))
+                Plotter.plot(input_gf, *vars, p=str(instr.prob))
         elif instr.term_count:
-            input_gf.create_histogram(var=vars, n=str(instr.term_count))
+            Plotter.plot(input_gf, *vars, n=instr.term_count.value)
         else:
             p = .1
             inc = .1
             while True:
-                input_gf.create_histogram(var=vars, p=str(p))
+                Plotter.plot(input_gf, *vars, p=str(p))
                 p = p + inc if p + inc < 1 else 1
                 cont = input(f"Continue with p={p}? [Y/n]")
                 if cont.lower() == 'n':

@@ -3,18 +3,13 @@ import logging
 from typing import Tuple, List, Set, Dict, Union
 
 import sympy
-import matplotlib.pyplot as plt
 import operator
-from matplotlib.cm import ScalarMappable
-from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr, BoolLitExpr
+from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr, BoolLitExpr, UnopExpr
 from probably.pgcl.syntax import check_is_constant_constraint, check_is_modulus_condition
-from .exceptions import ComparisonException, NotComputableException, ParameterError
+from .exceptions import ComparisonException, NotComputableException
+from ..util.logger import log_setup
 
-logger = logging.getLogger("probably.analysis.generating_function")
-logger.setLevel(logging.DEBUG)
-fhandler = logging.FileHandler(filename='test.log', mode='w')
-fhandler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-logger.addHandler(fhandler)
+logger = log_setup(__name__, logging.DEBUG)
 
 
 def _term_generator(function: sympy.Poly):
@@ -174,7 +169,7 @@ class GeneratingFunction:
     def __ne__(self, other):
         return not (self == other)
 
-    def _monomial_to_state(self, monomial) -> Dict[sympy.Expr, int]:
+    def monomial_to_state(self, monomial) -> Dict[sympy.Expr, int]:
         result = dict()
         if monomial.free_symbols == set():
             for var in self._variables:
@@ -231,9 +226,9 @@ class GeneratingFunction:
         logger.debug(f"as_series() call")
         if self._is_finite:
             if self._is_closed_form:
-                func = self._function.expand().ratsimp().as_poly(list(self._variables))
+                func = self._function.expand().ratsimp().as_poly(*self._variables)
             else:
-                func = self._function.as_poly(gens=list(self._variables))
+                func = self._function.as_poly(*self._variables)
             return _term_generator(func)
 
         else:
@@ -282,7 +277,7 @@ class GeneratingFunction:
                                                                                                                    1)
         return coefficient_sum
 
-    def vars(self):
+    def get_variables(self):
         return self._variables
 
     def expected_value_of(self, variable: str):
@@ -375,7 +370,7 @@ class GeneratingFunction:
             return GeneratingFunction.evaluate(lhs, monomial) < GeneratingFunction.evaluate(rhs, monomial)
         raise AssertionError(f"Unexpected condition type. {condition}")
 
-    def marginal(self, variables: List[str]) -> 'GeneratingFunction':
+    def marginal(self, *variables: sympy.Symbol) -> 'GeneratingFunction':
         """
         Computes the marginal distribution in the given variables.
         :param variables: a list of variables for which the marginal distribution should be computed
@@ -384,7 +379,7 @@ class GeneratingFunction:
         logger.debug(f"Creating marginal for variables {variables} and joint probability distribution {self}")
         marginal = self.copy()
         for var in marginal._variables:
-            if str(var) not in variables:
+            if var not in variables:
                 marginal._function = marginal._function.limit(var, 1, "-") if marginal._is_closed_form else marginal._function.subs(var, 1)
                 marginal._is_closed_form = not marginal._function.is_polynomial()
                 marginal._is_finite = marginal._function.ratsimp().is_polynomial()
@@ -471,14 +466,12 @@ class GeneratingFunction:
         # exhaustive search again. If this is not possible, we raise an NotComputableException
         else:
             expr = sympy.S(str(expression.rhs))
-            variables = [str(var) for var in expr.free_symbols]
-            marginal = self.marginal(variables)
+            marginal = self.marginal(expr.free_symbols)
             left_side = True
             if not marginal.is_finite():
                 left_side = False
                 expr = sympy.S(str(expression.lhs))
-                variables = [str(var) for var in expr.free_symbols]
-                marginal = self.marginal(variables)
+                marginal = self.marginal(expr.free_symbols)
                 if not marginal.is_finite():
                     raise NotComputableException(
                         f"Instruction {expression} is not computable on infinite generating function"
@@ -490,7 +483,7 @@ class GeneratingFunction:
                     state_filter = []
                     tmp_expr = expr
                     prob, mon = GeneratingFunction.split_addend(term)
-                    for var, val in self._monomial_to_state(mon).items():
+                    for var, val in self.monomial_to_state(mon).items():
                         if var in marginal._variables:
                             eq = BinopExpr(operator=Binop.EQ, lhs=VarExpr(str(var)), rhs=NatLitExpr(val))
                             tmp_expr = tmp_expr.subs(var, val)
@@ -510,7 +503,7 @@ class GeneratingFunction:
                                             )
                 return self.filter(new_expr)
 
-    def limit(self, variable: Union[str, sympy.Symbol], value: str) -> 'GeneratingFunction':
+    def limit(self, variable: Union[str, sympy.Symbol], value: Union[str, sympy.Expr]) -> 'GeneratingFunction':
         func = self._function
         if self._is_closed_form:
             func = func.limit(sympy.S(variable), sympy.S(value), "-")
@@ -560,120 +553,6 @@ class GeneratingFunction:
             result.append(GeneratingFunction(f"(1/{a}) * ({psum})", self._variables, self._preciseness,
                                              self._is_closed_form, self._is_finite))
         return result
-
-    def _create_histogram_for_variable(self, var: str, n: int, p: str):
-        marginal = self
-        for variable in self._variables.difference({sympy.S(var)}):
-            marginal = marginal.limit(variable, "1")
-        if marginal._is_finite:
-            data = []
-            ind = []
-            prob_sum = 0
-            terms = 0
-            for addend in marginal.as_series():
-                if n and terms >= sympy.S(n):
-                    break
-                if p and prob_sum > sympy.S(p):
-                    break
-                (prob, mon) = self.split_addend(addend)
-                state = self._monomial_to_state(mon)
-                data.append(float(prob))
-                ind.append(float(state[sympy.S(var)]))
-                prob_sum += prob
-                terms += 1
-            ax = plt.subplot()
-            my_cmap = plt.cm.get_cmap("Blues")
-            colors = my_cmap([x / max(data) for x in data])
-            sm = ScalarMappable(cmap=my_cmap, norm=plt.Normalize(0, max(data)))
-            sm.set_array([])
-            ax.bar(ind, data, 1, linewidth=.5, ec=(0, 0, 0), color=colors)
-            ax.set_xlabel(f"{var}")
-            ax.set_xticks(ind)
-            ax.set_ylabel(f'Probability p({var})')
-            plt.get_current_fig_manager().set_window_title("Histogram Plot")
-            plt.gcf().suptitle("Histogram")
-            plt.colorbar(sm)
-            plt.show()
-        else:
-            for gf in marginal.expand_until(p, n):
-                gf._create_histogram_for_variable(var, n, p)
-
-    def _create_2d_hist(self, var_1: str, var_2: str, n, p):
-
-        x = sympy.S(var_1)
-        y = sympy.S(var_2)
-
-        # Marginalize distribution to the variables of interest.
-        marginal = self.marginal([var_1, var_2])
-        marginal._variables = self._variables
-        logger.debug(f"Creating Histogram for {marginal}")
-        # Collect relevant data from the distribution and plot it.
-        if marginal._is_finite:
-            coord_and_prob = dict()
-            maxima = {x: 0, y: 0}
-            max_prob = 0
-            colors = []
-
-            # collect the coordinates and probabilities. Also compute maxima of probabilities and degrees
-            terms = 0
-            prob_sum = 0
-            for addend in marginal.as_series():
-                if p and prob_sum >= sympy.S(p):
-                    break
-                if n and terms >= sympy.S(n):
-                    break
-                (prob, mon) = marginal.split_addend(addend)
-                state = marginal._monomial_to_state(mon)
-                maxima[x], maxima[y] = max(maxima[x], state[x]), max(maxima[y], state[y])
-                coord = (state[x], state[y])
-                coord_and_prob[coord] = prob
-                max_prob = max(prob, max_prob)
-                terms += 1
-                prob_sum += prob
-
-            # Zero out the colors array
-            for _ in range(maxima[y] + 1):
-                colors.append(list(0.0 for _ in range(maxima[x] + 1)))
-
-            # Fill the colors array with the previously collected data.
-            for coord in coord_and_prob:
-                colors[coord[1]][coord[0]] = float(coord_and_prob[coord])
-
-            # Plot the colors array
-            c = plt.imshow(colors, vmin=0, origin='lower', interpolation='nearest', cmap="turbo", aspect='auto')
-            plt.colorbar(c)
-            plt.gca().set_xlabel(f"{x}")
-            plt.gca().set_xticks(range(0, maxima[x] + 1))
-            plt.gca().set_ylabel(f"{y}")
-            plt.gca().set_yticks(range(0, maxima[y] + 1))
-            plt.show()
-        else:
-            # make the marginal finite.
-            plt.ion()
-            for subsum in marginal.expand_until(sympy.S(p), sympy.S(n)):
-                subsum._create_2d_hist(var_1, var_2, n, p)
-
-    def create_histogram(self, n=None, p: str = None, var: [str] = None):
-        """
-        Shows the histogram of the marginal distribution of the specified variable(s).
-        """
-        if var:
-            if len(var) > 2:
-                raise ParameterError(f"create_histogram() cannot handle more than two variables!")
-            if len(var) == 2:
-                self._create_2d_hist(var_1=var[0], var_2=var[1], n=n, p=p)
-            if len(var) == 1:
-                self._create_histogram_for_variable(var=var[0], n=n, p=p)
-        else:
-            if len(self._function.free_symbols) > 2:
-                raise Exception("Multivariate distributions need to specify the variable to plot")
-
-            elif len(self._function.free_symbols) == 2:
-                vars = list(self._function.free_symbols)
-                self._create_2d_hist(var_1=vars[0], var_2=vars[1], n=n, p=p)
-            else:
-                for var in self._function.free_symbols:
-                    self._create_histogram_for_variable(str(var), n, p)
 
     def safe_filter(self, condition: Expr) -> Tuple['GeneratingFunction', 'GeneratingFunction', bool]:
         """
