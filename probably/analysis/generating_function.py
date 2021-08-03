@@ -412,11 +412,11 @@ class GeneratingFunction:
             return filtered + self.filter(expression.rhs) - filtered.filter(expression.rhs)
 
         # Modulo extractions
-        elif check_is_modulus_condition(expression) is None:
+        elif check_is_modulus_condition(expression):
             return self.arithmetic_progression(str(expression.lhs.lhs), str(expression.lhs.rhs))[expression.rhs.value]
 
         # Constant expressions
-        elif check_is_constant_constraint(expression) is None:
+        elif check_is_constant_constraint(expression):
             if isinstance(expression.rhs, VarExpr):
                 variable = sympy.S(str(expression.rhs))
                 constant = expression.lhs.value

@@ -94,7 +94,7 @@ from typing import Optional, Sequence
 from probably.util.ref import Mut
 
 from .ast import (AsgnInstr, Binop, BinopExpr, Expr, Instr, Program, Unop,
-                  UnopExpr, VarExpr, WhileInstr)
+                  UnopExpr, VarExpr, WhileInstr, NatLitExpr)
 from .check import CheckFail
 from .walk import Walk, instr_exprs, mut_expr_children, walk_expr, walk_instrs
 
@@ -170,6 +170,28 @@ def check_is_linear_expr(expr: Expr) -> Optional[CheckFail]:
 
     return None
 
+
+def check_is_modulus_condition(expression) -> bool:
+    if isinstance(expression, BinopExpr) \
+            and expression.operator == Binop.EQ \
+            and isinstance(expression.rhs, NatLitExpr) \
+            and isinstance(expression.lhs, BinopExpr) \
+            and expression.lhs.operator == Binop.MODULO:
+        mod_expr = expression.lhs
+        if isinstance(mod_expr.lhs, VarExpr) and isinstance(mod_expr.rhs, NatLitExpr):
+            return True
+    return False
+
+
+def check_is_constant_constraint(expression) -> bool:
+    if isinstance(expression.lhs, VarExpr):
+        if isinstance(expression.rhs, NatLitExpr):
+            return True
+    elif isinstance(expression.lhs, NatLitExpr):
+        if isinstance(expression.rhs, VarExpr):
+            return True
+    else:
+        return False
 
 def check_is_one_big_loop(instrs: Sequence[Instr],
                           *,
