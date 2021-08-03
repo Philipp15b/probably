@@ -7,33 +7,14 @@ import matplotlib.pyplot as plt
 import operator
 from matplotlib.cm import ScalarMappable
 from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr, BoolLitExpr
-from .exceptions import ComparisonException, NotComputable, ParameterError
+from probably.pgcl.syntax import check_is_constant_constraint, check_is_modulus_condition
+from .exceptions import ComparisonException, NotComputableException, ParameterError
 
 logger = logging.getLogger("probably.analysis.generating_function")
 logger.setLevel(logging.DEBUG)
 fhandler = logging.FileHandler(filename='test.log', mode='w')
 fhandler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger.addHandler(fhandler)
-
-
-def _is_constant_constraint(expression):  # Move this to expression checks etc.
-    if isinstance(expression.lhs, VarExpr):
-        if isinstance(expression.rhs, NatLitExpr):
-            return True
-    else:
-        return False
-
-
-def _is_modulus_condition(expression):
-    if isinstance(expression, BinopExpr) \
-            and expression.operator == Binop.EQ \
-            and isinstance(expression.rhs, NatLitExpr) \
-            and isinstance(expression.lhs, BinopExpr) \
-            and expression.lhs.operator == Binop.MODULO:
-        mod_expr = expression.lhs
-        if isinstance(mod_expr.lhs, VarExpr) and isinstance(mod_expr.rhs, NatLitExpr):
-            return True
-
 
 def _term_generator(function: sympy.Poly):
     assert isinstance(function, sympy.Poly), "Terms can only be generated for finite GF"
@@ -73,11 +54,7 @@ class GeneratingFunction:
                     result = (result[0] * factor ** factor_powers[factor], result[1])
             return result
 
-    def __init__(self,
-                 function: str = "",
-                 variables: set = None,
-                 preciseness=1.0,
-                 closed: bool = None,
+    def __init__(self, function: str = "", variables: set = None, preciseness=1.0, closed: bool = None,
                  finite: bool = None):
 
         self._function: sympy.Expr = sympy.S(function, rational=True)
@@ -414,15 +391,15 @@ class GeneratingFunction:
 
     def filter(self, expression: Expr) -> 'GeneratingFunction':
         """
-        Rough implementation of a filter. Can only handle distributions with finite support, or constant constraints on
-        infinite support distributions.
-        :return:
+        Filters out the terms of the generating function that satisfy the expression `expression`.
+        :return: The filtered generating function.
         """
         logger.debug(f"filter({expression}) call on {self}")
 
         # Boolean literals
         if isinstance(expression, BoolLitExpr):
             return self
+
         # Logical operators
         if expression.operator == Unop.NEG:
             result = self - self.filter(expression.expr)
@@ -435,12 +412,18 @@ class GeneratingFunction:
             return filtered + self.filter(expression.rhs) - filtered.filter(expression.rhs)
 
         # Modulo extractions
-        elif _is_modulus_condition(expression):
+        elif check_is_modulus_condition(expression) is None:
             return self.arithmetic_progression(str(expression.lhs.lhs), str(expression.lhs.rhs))[expression.rhs.value]
+
         # Constant expressions
-        elif _is_constant_constraint(expression):
-            variable = sympy.S(str(expression.lhs))
-            constant = expression.rhs.value
+        elif check_is_constant_constraint(expression) is None:
+            if isinstance(expression.rhs, VarExpr):
+                variable = sympy.S(str(expression.rhs))
+                constant = expression.lhs.value
+                # raise NotImplementedError("Noch nicht fertig implementiert.")
+            else:
+                variable = sympy.S(str(expression.lhs))
+                constant = expression.rhs.value
             result = sympy.S(0)
             ranges = {Binop.LE: range(constant), Binop.LEQ: range(constant + 1), Binop.EQ: [constant]}
 
@@ -452,11 +435,9 @@ class GeneratingFunction:
                 tmp = tmp.subs(variable, 0) if tmp.is_polynomial() else tmp.limit(variable, 0, '-')
                 tmp *= variable ** i
                 result += tmp
-            return GeneratingFunction(result,
-                                      variables=self._variables,
-                                      preciseness=self._preciseness,
-                                      closed=self._is_closed_form,
-                                      finite=self._is_finite)
+            return GeneratingFunction(result, self._variables, self._preciseness, self._is_closed_form, self._is_finite)
+
+        # all other conditions given that the Generating Function is finite (exhaustive search)
         elif self._is_finite:
             result = sympy.S(0)
             addends = self._function.as_coefficients_dict() if not self._is_closed_form \
@@ -469,6 +450,10 @@ class GeneratingFunction:
                                       self._preciseness,
                                       closed=False,
                                       finite=True)
+
+        # Worst case: infinite Generating function and  non-standard condition.
+        # Here we try marginalization and hope that the marginal is finite so we can do
+        # exhaustive search again. If this is not possible, we raise an NotComputableException
         else:
             expr = sympy.S(str(expression.rhs))
             variables = [str(var) for var in expr.free_symbols]
@@ -480,7 +465,7 @@ class GeneratingFunction:
                 variables = [str(var) for var in expr.free_symbols]
                 marginal = self.marginal(variables)
                 if not marginal.is_finite():
-                    raise NotComputable(f"Instruction {expression} is not computable on infinite generating function"
+                    raise NotComputableException(f"Instruction {expression} is not computable on infinite generating function"
                                         f" {self._function}")
             else:
                 print("generating terms")
@@ -653,7 +638,7 @@ class GeneratingFunction:
 
     def create_histogram(self, n=None, p: str = None, var: [str] = None):
         """
-        Shows the histogram of the marginal distribution of the specified variable.
+        Shows the histogram of the marginal distribution of the specified variable(s).
         """
         if var:
             if len(var) > 2:
@@ -674,12 +659,23 @@ class GeneratingFunction:
                     self._create_histogram_for_variable(str(var), n, p)
 
     def safe_filter(self, condition: Expr) -> Tuple['GeneratingFunction', 'GeneratingFunction', bool]:
+        """
+        Filtering the Generating Function for a given condition. If the generating function cannot be filtered for the
+        given `condition`, the function returns a filtered approximation. It can still raise an NotComputableException
+        depending on the result of the user prompt.
+        :param condition: The condition that has to be verified for each individual state.
+        :return: a tuple [sat, non_sat, approx] which returns the satisfying part, the non-satisfying part
+                and a flag whether the results are approximations or not.
+        """
         try:
+            # Try to filter with exact precision.
             logger.info(f"filtering for {condition}")
             sat_part = self.filter(condition)
             non_sat_part = self - sat_part
             return sat_part, non_sat_part, False
-        except NotComputable as err:
+        except NotComputableException as err:
+            # Exact filtering is not possible. Prompt the user to specify an error threshold
+            # and compute th approximation.
             print(err)
             probability = input("Continue with approximation. Enter a probability (0, {}):\t"
                                 .format(self.coefficient_sum()))
@@ -689,4 +685,4 @@ class GeneratingFunction:
                 approx_non_sat_part = approx - approx_sat_part
                 return approx_sat_part, approx_non_sat_part, True
             else:
-                raise NotComputable(str(err))
+                raise NotComputableException(str(err))

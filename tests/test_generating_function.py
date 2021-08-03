@@ -80,7 +80,7 @@ def test_filter():
     assert gf.filter(probably.pgcl.parse_expr("c <= 5")) == GeneratingFunction("c/2 + c**3/8 + c**5/16")
 
     # check non-const filter on infinite GF:
-    with pytest.raises(NotComputable):
+    with pytest.raises(NotComputableException):
         gf.filter(probably.pgcl.parse_expr("x*z <= 10"))
 
 

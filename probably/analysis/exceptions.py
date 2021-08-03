@@ -15,8 +15,9 @@ class ComparisonException(Exception):
     pass
 
 
-class NotComputable(Exception):
+class NotComputableException(Exception):
     pass
+
 
 class ParameterError(Exception):
     pass

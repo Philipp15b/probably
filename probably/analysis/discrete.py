@@ -14,7 +14,7 @@ from typing import Union, Sequence, get_args
 
 from probably.analysis.config import ForwardAnalysisConfig
 from probably.analysis.exceptions import ObserveZeroEventError
-from probably.analysis.generating_function import GeneratingFunction, NotComputable
+from probably.analysis.generating_function import GeneratingFunction, NotComputableException
 from probably.analysis.pgfs import PGFS
 from probably.pgcl import (Instr, SkipInstr, WhileInstr, IfInstr, AsgnInstr, GeometricExpr,
                            CategoricalExpr, ChoiceInstr, TickInstr, ObserveInstr, DUniformExpr,
@@ -28,6 +28,7 @@ logger.setLevel(logging.DEBUG)
 fhandler = logging.FileHandler(filename='test.log', mode='a')
 fhandler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger.addHandler(fhandler)
+
 
 def _while_handler(instr: WhileInstr,
                    input_gf: GeneratingFunction,
@@ -79,7 +80,7 @@ def _distr_handler(instr: AsgnInstr,
     # rhs is a uniform distribution
     if isinstance(instr.rhs, DUniformExpr):
         variable = instr.lhs
-        marginal = input_gf.linear_transformation(variable, "0")  # Seems weird but think of program assignments.
+        marginal = input_gf.linear_transformation(variable, NatLitExpr(0))  # Seems weird but think of program assignments.
         # either use the concise factorized representation of the uniform pgf ...
         start = str(instr.rhs.start.value)
         end = str(instr.rhs.end.value)
@@ -92,31 +93,32 @@ def _distr_handler(instr: AsgnInstr,
     # rhs is geometric distribution
     if isinstance(instr.rhs, GeometricExpr):
         variable = instr.lhs
-        marginal = input_gf.linear_transformation(variable, "0")
+        marginal = input_gf.marginal([variable])
         param = instr.rhs.param
         return marginal * PGFS.geometric(variable, str(param))
 
     # rhs is binomial distribution
     if isinstance(instr.rhs, BinomialExpr):
         variable = instr.lhs
-        marginal = input_gf.linear_transformation(variable, "0")
+        marginal = input_gf.marginal([variable])
         return marginal * PGFS.binomial(variable, str(instr.rhs.n), str(instr.rhs.p))
 
     # rhs is poisson distribution
     if isinstance(instr.rhs, PoissonExpr):
         variable = instr.lhs
-        marginal = input_gf.linear_transformation(variable, "0")
+        marginal = input_gf.marginal([variable])
         return marginal * PGFS.poisson(variable, str(instr.rhs.param))
 
+    # rhs is bernoulli distribution
     if isinstance(instr.rhs, BernoulliExpr):
         variable = instr.lhs
-        marginal = input_gf.linear_transformation(variable, "0")
+        marginal = input_gf.marginal([variable])
         return marginal * PGFS.bernoulli(variable, str(instr.rhs.param))
 
     # rhs is logarithmic distribution
     if isinstance(instr.rhs, LogDistExpr):
         variable = instr.lhs
-        marginal = input_gf.linear_transformation(variable, "0")
+        marginal = input_gf.marginal([variable])
         return marginal * PGFS.log(variable, str(instr.rhs.param))
 
     # rhs is a categorical expression (explicit finite distr)
@@ -139,7 +141,7 @@ def _assignment_handler(instr: AsgnInstr,
             ap = input_gf.arithmetic_progression(str(mod_expr.lhs), str(mod_expr.rhs))
             for i in range(mod_expr.rhs.value):
                 func = ap[i]
-                result += func.linear_transformation(mod_expr.lhs, 0) * GeneratingFunction(f"{mod_expr.lhs}**{i}")
+                result += func.linear_transformation(mod_expr.lhs.var, NatLitExpr(0)) * GeneratingFunction(f"{mod_expr.lhs}**{i}")
             print(result)
             return result
         else:
@@ -176,7 +178,7 @@ def _assignment_handler(instr: AsgnInstr,
             expanded = input_gf.expand_until((1 - error) * input_gf.coefficient_sum())
             return compute_distribution(instr, expanded)
         else:
-            raise NotComputable("The assignment {} is not computable on {}".format(instr, input_gf))
+            raise NotComputableException("The assignment {} is not computable on {}".format(instr, input_gf))
 
 
 def _pchoice_handler(instr: ChoiceInstr,
@@ -201,8 +203,11 @@ def _observe_handler(instr: ObserveInstr,
 def _expectation_handler(instr: Expr,
                          input_gf: GeneratingFunction,
                          config: ForwardAnalysisConfig) -> GeneratingFunction:
+    # Expectations of Variables can just be computed by derivatives and limits.
     if isinstance(instr, VarExpr):
         return input_gf.diff(str(instr.var), 1) * GeneratingFunction(str(instr.var))
+
+    # For constants, constant factors and addition, we make use of linearity of the expectation operator.
     elif isinstance(instr, NatLitExpr):
         return GeneratingFunction(str(instr))
     elif isinstance(instr, RealLitExpr):
@@ -215,6 +220,8 @@ def _expectation_handler(instr: Expr,
     elif isinstance(instr, BinopExpr):
         if instr.operator == Binop.PLUS:
             return _expectation_handler(instr.lhs, input_gf, config) + _expectation_handler(instr.rhs, input_gf, config)
+        elif instr.operator == Binop.MINUS:
+            return _expectation_handler(instr.lhs, input_gf, config) - _expectation_handler(instr.rhs, input_gf, config)
         elif instr.operator == Binop.TIMES:
             if isinstance(instr.lhs, (NatLitExpr, RealLitExpr)):
                 return _expectation_handler(instr.lhs, input_gf, config) * _expectation_handler(instr.rhs, input_gf,
@@ -222,10 +229,11 @@ def _expectation_handler(instr: Expr,
             if isinstance(instr.rhs, (NatLitExpr, RealLitExpr)):
                 return _expectation_handler(instr.lhs, input_gf, config) * _expectation_handler(instr.rhs, input_gf,
                                                                                                 config)
+            # This is the actual hard (non-linear) case. We can solve this by recursively compute the expected value.
             else:
                 return _expectation_handler(instr.rhs, _expectation_handler(instr.lhs, input_gf, config), config)
-        elif instr.operator == Binop.MINUS:
-            return _expectation_handler(instr.lhs, input_gf, config) - _expectation_handler(instr.rhs, input_gf, config)
+
+        # Currently we dont support division in expressions.
         elif instr.operator == Binop.DIVIDE:
             raise NotImplementedError("Division currently not supported.")
     else:
