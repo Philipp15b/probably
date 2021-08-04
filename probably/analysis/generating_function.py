@@ -5,7 +5,8 @@ from typing import Tuple, List, Set, Dict, Union
 import sympy
 import operator
 from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr, BoolLitExpr, UnopExpr
-from probably.pgcl.syntax import check_is_constant_constraint, check_is_modulus_condition
+from probably.pgcl.syntax import check_is_constant_constraint, check_is_modulus_condition, check_is_linear_expr
+from .distribution import Distribution, MarginalType
 from .exceptions import ComparisonException, NotComputableException
 from ..util.logger import log_setup
 
@@ -20,12 +21,66 @@ def _term_generator(function: sympy.Poly):
         poly -= poly.EC() * poly.EM().as_expr()
 
 
-class GeneratingFunction:
+class GeneratingFunction(Distribution):
     """
     This class represents a generating function. It wraps the sympy library.
     A GeneratingFunction object is designed to be immutable.
     This class does not ensure to be in a healthy state (i.e., every coefficient is non-negative).
     """
+
+    def update(self, expression: Expr) -> 'Distribution':
+
+        variable: str = expression.lhs.var
+
+        if isinstance(expression.rhs, BinopExpr) and expression.rhs.operator == Binop.MODULO:
+            # currently only unnested modulo operations are supported...
+            mod_expr = expression.rhs
+            if isinstance(mod_expr.lhs, VarExpr) and isinstance(mod_expr.rhs, NatLitExpr):
+                result = GeneratingFunction("0", *self._variables, preciseness=1, closed=True, finite=True)
+                ap = self.arithmetic_progression(str(mod_expr.lhs), str(mod_expr.rhs))
+                for i in range(mod_expr.rhs.value):
+                    func = ap[i]
+                    result += func.linear_transformation(mod_expr.lhs.var, NatLitExpr(0)) * GeneratingFunction(
+                        f"{mod_expr.lhs}**{i}")
+                return result
+            else:
+                raise NotImplementedError(f"Nested modulo expressions are currently not supported.")
+
+        # rhs is a linear expression
+        if check_is_linear_expr(expression.rhs) is None:
+            return self.linear_transformation(variable, expression.rhs)
+
+        # rhs is a non-linear expression, precf is finite
+        elif self.is_finite():
+            result = sympy.S(0)
+            for prob, monomial in self:  # Take the addends of the Taylor expansion
+                state = self.monomial_to_state(monomial)
+                new_addend = prob * monomial.subs(variable, 1)  # create the updated monomial.
+                new_value = sympy.S(str(expression.rhs))
+                for var in self._variables:  # for each variable check its current state
+                    if var not in state:
+                        new_value = new_value.subs(var, 0)
+                    else:
+                        new_value = new_value.subs(var, state[var])
+                new_addend *= sympy.S(str(expression.lhs)) ** new_value  # and update
+                result += new_addend
+            return GeneratingFunction(result, *self._variables, preciseness=self._preciseness)
+
+        # rhs is non-linear, precf is infinite support
+        else:
+            print(f"The assignment {expression} is not computable on {self}")
+            error = sympy.S(input("Continue with approximation. Enter an allowed relative error (0, 1.0):\t"))
+            if 0 < error < 1:
+                result = self
+                for expanded in self.expand_until((1 - error) * self.coefficient_sum()):
+                    result = expanded
+                return result.update(expression)
+            else:
+                raise NotComputableException(f"The assignment {expression} is not computable on {self}")
+
+    def get_expected_value_of(self, expression: Union[Expr, str]):
+        raise NotImplementedError("Expected Value not implemented yet.")
+
     rational_preciseness = False
     verbose_mode = False
     use_simplification = False
@@ -50,7 +105,7 @@ class GeneratingFunction:
                     result = (result[0] * factor ** factor_powers[factor], result[1])
             return result
 
-    def __init__(self, function: str = "", variables: set = None, preciseness=1.0, closed: bool = None,
+    def __init__(self, function: str = "", *variables: Union[str, sympy.Symbol], preciseness=1.0, closed: bool = None,
                  finite: bool = None):
 
         self._function: sympy.Expr = sympy.S(function, rational=True)
@@ -62,9 +117,10 @@ class GeneratingFunction:
         self._is_closed_form = closed if closed else not self._function.is_polynomial()
         self._is_finite = finite if finite else self._function.ratsimp().is_polynomial()
 
-    def copy(self) -> 'GeneratingFunction':
-        return GeneratingFunction(str(self._function), self._variables, self._preciseness, self._is_closed_form,
-                                  self._is_finite)
+    def copy(self, deep: bool = True) -> 'GeneratingFunction':
+        return GeneratingFunction(str(self._function), *self._variables, preciseness=self._preciseness,
+                                  closed=self._is_closed_form,
+                                  finite=self._is_finite)
 
     def _arithmetic(self, other, op: operator):
         if isinstance(other, GeneratingFunction):
@@ -87,7 +143,10 @@ class GeneratingFunction:
                     function = function.expand()
                     logger.debug(f"Canceling result: {function}")
             variables = self._variables.union(other._variables)
-            return GeneratingFunction(function, variables, preciseness, is_closed_form, is_finite)
+            return GeneratingFunction(function, *variables, preciseness=preciseness, closed=is_closed_form,
+                                      finite=is_finite)
+        elif isinstance(other, (str, float, int)):
+            return self._arithmetic(GeneratingFunction(other), op)
         else:
             raise SyntaxError(f"You cannot {str(op)} {type(self)} with {type(other)}.")
 
@@ -169,6 +228,19 @@ class GeneratingFunction:
     def __ne__(self, other):
         return not (self == other)
 
+    def __iter__(self):
+        logger.debug(f"iterating over {self}...")
+        if self._is_finite:
+            if self._is_closed_form:
+                func = self._function.expand().ratsimp().as_poly(*self._variables)
+            else:
+                func = self._function.as_poly(*self._variables)
+            return map(GeneratingFunction.split_addend, _term_generator(func))
+
+        else:
+            logger.debug("Multivariate Taylor expansion might take a while...")
+            return map(self.split_addend, self._mult_term_generator())
+
     def monomial_to_state(self, monomial) -> Dict[sympy.Expr, int]:
         result = dict()
         if monomial.free_symbols == set():
@@ -196,7 +268,7 @@ class GeneratingFunction:
         .. math:: \fraction{\delta G^`k`}{\delta `var`^`k`}
         """
         logger.debug(f"diff Call")
-        return GeneratingFunction(sympy.diff(self._function, sympy.S(variable), k), variables=self._variables,
+        return GeneratingFunction(sympy.diff(self._function, sympy.S(variable), k), *self._variables,
                                   preciseness=self._preciseness)
 
     def _mult_term_generator(self):
@@ -222,26 +294,6 @@ class GeneratingFunction:
             logger.debug(f"\t>Terms generated until total degree of {i}")
             i += 1
 
-    def as_series(self):
-        logger.debug(f"as_series() call")
-        if self._is_finite:
-            if self._is_closed_form:
-                func = self._function.expand().ratsimp().as_poly(*self._variables)
-            else:
-                func = self._function.as_poly(*self._variables)
-            return _term_generator(func)
-
-        else:
-            if 0 <= len(self._variables) <= 1:
-                series = self._function.lseries()
-                if str(type(series)) == "<class 'generator'>":
-                    return series
-                else:
-                    return {self._function}
-            else:
-                logger.debug("Multivariate Taylor expansion might take a while...")
-                return self._mult_term_generator()
-
     def expand_until(self, threshold=None, nterms=None):
         logger.debug(f"expand_until() call")
         approx = sympy.S("0")
@@ -250,23 +302,23 @@ class GeneratingFunction:
             assert sympy.S(threshold) < self.coefficient_sum(), \
                 f"Threshold cannot be larger than total coefficient sum! Threshold:" \
                 f" {sympy.S(threshold)}, CSum {self.coefficient_sum()}"
-            for term in self.as_series():
+            for prob, monomial in self:
                 if prec >= sympy.S(threshold):
                     break
-                approx += term
-                prec += self.split_addend(term)[0]
-                yield GeneratingFunction(str(approx.expand()), self._variables, preciseness=prec, closed=False,
+                approx += prob * monomial
+                prec += prob
+                yield GeneratingFunction(str(approx.expand()), *self._variables, preciseness=prec, closed=False,
                                          finite=True)
         else:
             assert sympy.S(nterms) > 0, "Expanding to less than 0 terms is not valid."
             n = 0
-            for term in self.as_series():
+            for prob, monomial in self:
                 if n >= sympy.S(nterms):
                     break
-                approx += term
-                prec += self.split_addend(term)[0]
+                approx += prob * monomial
+                prec += prob
                 n += 1
-                yield GeneratingFunction(str(approx.expand()), self._variables, preciseness=prec, closed=False,
+                yield GeneratingFunction(str(approx.expand()), *self._variables, preciseness=prec, closed=False,
                                          finite=True)
 
     def coefficient_sum(self):
@@ -277,8 +329,17 @@ class GeneratingFunction:
                                                                                                                    1)
         return coefficient_sum
 
-    def get_variables(self):
-        return self._variables
+    def get_probability_mass(self):
+        return self.coefficient_sum()
+
+    def get_parameters(self) -> Set[str]:
+        return set()
+
+    def get_variables(self) -> Set[str]:
+        return set(map(str, self._variables))
+
+    def is_zero_dist(self) -> bool:
+        return self._function == 0
 
     def expected_value_of(self, variable: str):
         logger.debug(f"expected_value_of() call")
@@ -286,6 +347,9 @@ class GeneratingFunction:
         for var in self._variables:
             result = sympy.limit(result, sympy.S(var), 1, '-')
         return result
+
+    def get_probability_of(self, condition: Union[Expr, str]):
+        return self.filter(condition).coefficient_sum()
 
     def probability_of(self, state: dict):
         """
@@ -317,13 +381,13 @@ class GeneratingFunction:
             probability = self._function.as_poly(*self._variables).coeff_monomial(monomial)
             return probability if probability else sympy.core.numbers.Zero()
 
-    def normalized(self):
+    def normalize(self) -> 'GeneratingFunction':
         logger.debug(f"normalized() call")
         mass = self.coefficient_sum()
         if mass == 0:
             raise ZeroDivisionError
         return GeneratingFunction(self._function / mass,
-                                  variables=self._variables,
+                                  *self._variables,
                                   preciseness=self._preciseness,
                                   closed=self._is_closed_form,
                                   finite=self._is_finite)
@@ -370,17 +434,20 @@ class GeneratingFunction:
             return GeneratingFunction.evaluate(lhs, monomial) < GeneratingFunction.evaluate(rhs, monomial)
         raise AssertionError(f"Unexpected condition type. {condition}")
 
-    def marginal(self, *variables: sympy.Symbol) -> 'GeneratingFunction':
+    def marginal(self, *variables: Union[str, VarExpr], method: MarginalType = MarginalType.Include) -> 'GeneratingFunction':
         """
         Computes the marginal distribution in the given variables.
+        :param method: The method of marginalization.
         :param variables: a list of variables for which the marginal distribution should be computed
         :return: the marginal distribution.
         """
         logger.debug(f"Creating marginal for variables {variables} and joint probability distribution {self}")
         marginal = self.copy()
         for var in marginal._variables:
-            if var not in variables:
-                marginal._function = marginal._function.limit(var, 1, "-") if marginal._is_closed_form else marginal._function.subs(var, 1)
+            check = {MarginalType.Include: str(var) not in variables, MarginalType.Exclude: str(var) in variables}
+            if check[method]:
+                marginal._function = marginal._function.limit(var, 1, "-") if marginal._is_closed_form \
+                    else marginal._function.subs(var, 1)
                 marginal._is_closed_form = not marginal._function.is_polynomial()
                 marginal._is_finite = marginal._function.ratsimp().is_polynomial()
         marginal._variables = marginal._function.free_symbols
@@ -445,7 +512,8 @@ class GeneratingFunction:
                 tmp = tmp.subs(variable, 0) if tmp.is_polynomial() else tmp.limit(variable, 0, '-')
                 tmp *= variable ** i
                 result += tmp
-            return GeneratingFunction(result, self._variables, self._preciseness, self._is_closed_form, self._is_finite)
+            return GeneratingFunction(result, *self._variables, preciseness=self._preciseness,
+                                      closed=self._is_closed_form, finite=self._is_finite)
 
         # all other conditions given that the Generating Function is finite (exhaustive search)
         elif self._is_finite:
@@ -456,8 +524,8 @@ class GeneratingFunction:
                 if self.evaluate_condition(expression, monomial):
                     result += addends[monomial] * monomial
             return GeneratingFunction(result,
-                                      self._variables,
-                                      self._preciseness,
+                                      *self._variables,
+                                      preciseness=self._preciseness,
                                       closed=False,
                                       finite=True)
 
@@ -479,7 +547,7 @@ class GeneratingFunction:
             else:
                 print("generating terms")
                 filter_exprs = []
-                for term in marginal.as_series():
+                for term in marginal:
                     state_filter = []
                     tmp_expr = expr
                     prob, mon = GeneratingFunction.split_addend(term)
@@ -538,7 +606,7 @@ class GeneratingFunction:
             # otherwise always assume we do an addition
             else:
                 replacements.append((var, var * subst_var ** terms[var]))
-        return GeneratingFunction(result.subs(replacements) * const_correction_term, variables=self._variables,
+        return GeneratingFunction(result.subs(replacements) * const_correction_term, *self._variables,
                                   preciseness=self._preciseness, closed=self._is_closed_form, finite=self._is_finite)
 
     def arithmetic_progression(self, variable: str, modulus: str) -> List['GeneratingFunction']:
@@ -550,8 +618,8 @@ class GeneratingFunction:
             psum = 0
             for m in range(a):
                 psum += primitive_uroot ** (-m * remainder) * self._function.subs(var, (primitive_uroot ** m) * var)
-            result.append(GeneratingFunction(f"(1/{a}) * ({psum})", self._variables, self._preciseness,
-                                             self._is_closed_form, self._is_finite))
+            result.append(GeneratingFunction(f"(1/{a}) * ({psum})", *self._variables, preciseness=self._preciseness,
+                                             closed=self._is_closed_form, finite=self._is_finite))
         return result
 
     def safe_filter(self, condition: Expr) -> Tuple['GeneratingFunction', 'GeneratingFunction', bool]:

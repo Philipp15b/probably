@@ -145,7 +145,7 @@ class Distribution(ABC):
         pass
 
     @abstractmethod
-    def update(self, expression: Union[Expr, str]) -> 'Distribution':
+    def update(self, expression: Expr) -> 'Distribution':
         """ Updates the distribution by the result of the expression. """
         pass
 

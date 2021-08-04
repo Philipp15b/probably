@@ -3,14 +3,17 @@ nat y;
 
 
 x := binomial(10, 1/2)
+
+#x := (x * x) + 3
+
 y := logdist(1/2)
 
 
 
 #observe(x=y & x=3)
 
-?Pr[x=0 & y =1]
-!Plot[y, 10]
-!Plot[x, 10]
+#?Pr[x=0 & y =1]
+#!Plot[y, 10]
+#!Plot[x, 10]
 !Plot[x,y, .998]
 

@@ -5,8 +5,10 @@ import sympy
 import matplotlib.pyplot as plt
 from matplotlib.cm import ScalarMappable
 
+from probably.analysis.distribution import Distribution
 from probably.analysis.exceptions import ParameterError
 from probably.analysis.generating_function import GeneratingFunction
+from probably.pgcl import VarExpr
 from probably.util.logger import log_setup
 
 logger = log_setup(__name__, logging.DEBUG)
@@ -16,14 +18,14 @@ class Plotter:
     """ Plotter that generates histogram plots using matplotlib."""
 
     @staticmethod
-    def _create_2d_hist(function: GeneratingFunction, var_1: sympy.Symbol, var_2: sympy.Symbol, n: Optional[int], p: Optional[sympy.Expr]):
+    def _create_2d_hist(function: Distribution, var_1: str, var_2: str, n: Optional[int], p: Optional[sympy.Expr]):
 
-        x = var_1
-        y = var_2
+        x = sympy.S(var_1)
+        y = sympy.S(var_2)
 
         # Marginalize distribution to the variables of interest.
         marginal = function.marginal(var_1, var_2)
-        marginal._variables = function.get_variables()
+        marginal._variables = set(map(sympy.S, function.get_variables()))
         logger.debug(f"Creating Histogram for {marginal}")
         # Collect relevant data from the distribution and plot it.
         if marginal.is_finite():
@@ -35,13 +37,12 @@ class Plotter:
             # collect the coordinates and probabilities. Also compute maxima of probabilities and degrees
             terms = 0
             prob_sum = 0
-            for addend in marginal.as_series():
+            for prob, monomial in marginal:
                 if p and prob_sum >= sympy.S(p):
                     break
                 if n and terms >= sympy.S(n):
                     break
-                (prob, mon) = marginal.split_addend(addend)
-                state = marginal.monomial_to_state(mon)
+                state = marginal.monomial_to_state(monomial)
                 maxima[x], maxima[y] = max(maxima[x], state[x]), max(maxima[y], state[y])
                 coord = (state[x], state[y])
                 coord_and_prob[coord] = prob
@@ -72,21 +73,20 @@ class Plotter:
                 Plotter._create_2d_hist(subsum, var_1, var_2, n, p)
 
     @staticmethod
-    def _create_histogram_for_variable(function: GeneratingFunction, var: sympy.Symbol, n: sympy.Expr, p: sympy.Expr) -> None:
+    def _create_histogram_for_variable(function: Distribution, var: Union[str, VarExpr], n: sympy.Expr, p: sympy.Expr) -> None:
         marginal = function.marginal(var)
         if marginal.is_finite():
             data = []
             ind = []
             terms = prob_sum = 0
-            for addend in marginal.as_series():
+            for prob, monomial in marginal:
                 if n and terms >= n:
                     break
                 if p and prob_sum > p:
                     break
-                (prob, mon) = GeneratingFunction.split_addend(addend)
-                state = function.monomial_to_state(mon)
+                state = function.monomial_to_state(monomial)
                 data.append(float(prob))
-                ind.append(float(state[var]))
+                ind.append(float(state[sympy.S(var)]))
                 prob_sum += prob
                 terms += 1
             ax = plt.subplot()
@@ -104,10 +104,11 @@ class Plotter:
             plt.show()
         else:
             for gf in marginal.expand_until(p, n):
-                Plotter._create_histogram_for_variable(gf, var, n, p)
+                if not gf.is_zero_dist():
+                    Plotter._create_histogram_for_variable(gf, var, n, p)
 
     @staticmethod
-    def plot(function: GeneratingFunction, *variables: Union[str, sympy.Symbol], n: int = None, p: str = None) -> None:
+    def plot(function: Distribution, *variables: Union[str, sympy.Symbol], n: int = None, p: str = None) -> None:
         """ Shows the histogram of the marginal distribution of the specified variable(s). """
 
         probability = sympy.S(p) if p else None
@@ -116,9 +117,9 @@ class Plotter:
             if len(variables) > 2:
                 raise ParameterError(f"create_plot() cannot handle more than two variables!")
             if len(variables) == 2:
-                Plotter._create_2d_hist(function, var_1=sympy.S(variables[0]), var_2=sympy.S(variables[1]), n=iterations, p=probability)
+                Plotter._create_2d_hist(function, var_1=variables[0], var_2=variables[1], n=iterations, p=probability)
             if len(variables) == 1:
-                Plotter._create_histogram_for_variable(function, var=sympy.S(variables[0]), n=iterations, p=probability)
+                Plotter._create_histogram_for_variable(function, var=variables[0], n=iterations, p=probability)
         else:
             if len(function.get_variables()) > 2:
                 raise Exception("Multivariate distributions need to specify the variable to plot")

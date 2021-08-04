@@ -6,14 +6,12 @@ from typing import get_args, Union, Sequence
 from probably.analysis.config import ForwardAnalysisConfig
 from probably.analysis.distribution import Distribution, MarginalType
 from probably.analysis.exceptions import ObserveZeroEventError
-from probably.analysis.generating_function import GeneratingFunction
 from probably.analysis.pgfs import PGFS
 from probably.analysis.plotter import Plotter
 from probably.pgcl import Instr, WhileInstr, ChoiceInstr, IfInstr, LoopInstr, ObserveInstr, AsgnInstr, DistrExpr, \
     BinopExpr, Binop, VarExpr, NatLitExpr, DUniformExpr, GeometricExpr, BinomialExpr, PoissonExpr, BernoulliExpr, \
     LogDistExpr, CategoricalExpr, Queries, PlotInstr, ProbabilityQueryInstr, ExpectationInstr, RealLitExpr, UnopExpr, \
     Unop, Expr, SkipInstr
-from probably.pgcl.syntax import check_is_linear_expr
 
 from probably.util.logger import log_setup
 
@@ -224,57 +222,7 @@ class AssignmentHandler(InstructionHandler):
         if isinstance(instr.rhs, get_args(DistrExpr)):
             return SampleGFHandler.compute(instr, dist, config)
 
-        return dist.update(str(instr))
-
-        # rhs is a modulo expression
-        if isinstance(instr.rhs, BinopExpr) and instr.rhs.operator == Binop.MODULO:
-            # currently only unnested modulo operations are supported...
-            mod_expr = instr.rhs
-            if isinstance(mod_expr.lhs, VarExpr) and isinstance(mod_expr.rhs, NatLitExpr):
-                result = PGFS.zero(dist.get_variables())
-                ap = dist.arithmetic_progression(str(mod_expr.lhs), str(mod_expr.rhs))
-                for i in range(mod_expr.rhs.value):
-                    func = ap[i]
-                    result += func.linear_transformation(mod_expr.lhs.var, NatLitExpr(0)) * GeneratingFunction(
-                        f"{mod_expr.lhs}**{i}")
-                print(result)
-                return result
-            else:
-                raise NotImplementedError(f"Nested modulo expressions are currently not supported.")
-
-        # rhs is a linear expression
-        if check_is_linear_expr(instr.rhs) is None:
-            variable = instr.lhs
-            return dist.linear_transformation(variable, instr.rhs)
-
-        # rhs is a non-linear expression, precf is finite
-        elif dist.is_finite():
-            result = sympy.S(0)
-            for addend in dist:  # Take the addends of the Taylor expressions
-                term = addend.as_coefficients_dict()  # Convert them into a dict separating monomials from coefficients
-                new_addend = sympy.S(addend).subs(str(instr.lhs), 1)  # create the updated monomial.
-                for monomial in term:  # For each of these monomial probability pairs...
-                    var_powers = monomial.as_powers_dict()  # check the individual powers from the variables
-                    new_value = sympy.S(str(instr.rhs))
-                    for var in dist.get_variables():  # for each variable check its current state
-                        if var not in var_powers.keys():
-                            new_value = new_value.subs(var, 0)
-                        else:
-                            new_value = new_value.subs(var, var_powers[var])
-                    new_addend *= sympy.S(str(instr.lhs)) ** new_value  # and update
-                result += new_addend
-            return GeneratingFunction(result, variables=dist.get_variables(), preciseness=dist.precision())
-
-        # rhs is non-linear, precf is infinite support
-        else:
-            print("The assignment {} is not computable on {}".format(instr, dist))
-            error = sympy.S(input("Continue with approximation. Enter an allowed relative error (0, 1.0):\t"))
-            if 0 < error < 1:
-                expanded = dist.expand_until((1 - error) * dist.coefficient_sum())
-                return compute_distribution(instr, expanded)
-            else:
-                raise NotComputableException("The assignment {} is not computable on {}".format(instr, dist))
-
+        return dist.update(BinopExpr(operator=Binop.EQ, lhs=VarExpr(instr.lhs), rhs=instr.rhs))
 
 class ObserveHandler(InstructionHandler):
 
