@@ -21,3 +21,7 @@ class NotComputableException(Exception):
 
 class ParameterError(Exception):
     pass
+
+
+class ExpressionError(Exception):
+    pass
