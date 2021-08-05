@@ -5,7 +5,7 @@ from typing import get_args, Union, Sequence
 
 from probably.analysis.config import ForwardAnalysisConfig
 from probably.analysis.distribution import Distribution, MarginalType
-from probably.analysis.exceptions import ObserveZeroEventError
+from probably.analysis.exceptions import ObserveZeroEventError, ForwardAnalysisError
 from probably.analysis.pgfs import PGFS
 from probably.analysis.plotter import Plotter
 from probably.pgcl import Instr, WhileInstr, ChoiceInstr, IfInstr, LoopInstr, ObserveInstr, AsgnInstr, DistrExpr, \
@@ -18,7 +18,7 @@ from probably.util.logger import log_setup
 logger = log_setup(__name__, logging.DEBUG)
 
 
-def __assume(instruction: Instr, instr_type, clsname: str):
+def _assume(instruction: Instr, instr_type, clsname: str):
     """ Checks that the instruction is given as the right type."""
     assert isinstance(instruction, instr_type), f"The Instruction handled by a {clsname} must be of type" \
                                                 f" {instr_type} got {type(instruction)}"
@@ -54,31 +54,34 @@ class SequenceHandler(InstructionHandler):
             func = _show_steps if config.show_intermediate_steps else _dont_show_steps
             return functools.reduce(func, instr, dist)
 
-        # Only log instructions when its not a list
-        logger.info(f"{instr} gets handled")
-
         if isinstance(instr, SkipInstr):
             return dist
 
         elif isinstance(instr, WhileInstr):
+            logger.info(f"{instr} gets handled")
             return WhileHandler.compute(instr, dist, config)
 
         elif isinstance(instr, IfInstr):
+            logger.info(f"{instr} gets handled")
             return ITEHandler.compute(instr, dist, config)
 
         elif isinstance(instr, AsgnInstr):
             return AssignmentHandler.compute(instr, dist, config)
 
         elif isinstance(instr, ChoiceInstr):
+            logger.info(f"{instr} gets handled")
             return PChoiceHandler.compute(instr, dist, config)
 
         elif isinstance(instr, ObserveInstr):
+            logger.info(f"{instr} gets handled")
             return ObserveHandler.compute(instr, dist, config)
 
         elif isinstance(instr, get_args(Queries)):
+            logger.info(f"{instr} gets handled")
             return QueryHandler.compute(instr, dist, config)
 
         elif isinstance(instr, LoopInstr):
+            logger.info(f"{instr} gets handled")
             return LoopHandler.compute(instr, dist, config)
 
         raise Exception("illegal instruction")
@@ -99,8 +102,7 @@ class QueryHandler(InstructionHandler):
 
     @staticmethod
     def compute(instr: Instr, dist: Distribution, config: ForwardAnalysisConfig) -> Distribution:
-
-        #__assume(instr, get_args(Queries), 'QueryHandler')
+        _assume(instr, get_args(Queries), 'QueryHandler')
 
         # User wants to compute an expected value of an expression
         if isinstance(instr, ExpectationInstr):
@@ -120,49 +122,56 @@ class QueryHandler(InstructionHandler):
 
         # User wants to compute a marginal, or the probability of a condition.
         elif isinstance(instr, ProbabilityQueryInstr):
-            # Marginal computation
-            if isinstance(instr.expr, VarExpr):
-                marginal = dist.marginal(instr.expr, method=MarginalType.Include)
-                print(f"Marginal distribution of {instr.expr}: {marginal}")
-            # Probability of condition computation.
-            else:
-                sat_part = dist.filter(instr.expr)
-                prob = sat_part.get_probability_mass()
-                print(f"Probability of {instr.expr}: {prob}")
-            return dist
+            return QueryHandler.__query_probability_of(instr.expr, dist)
 
         # User wants to Plot something
         elif isinstance(instr, PlotInstr):
+            return QueryHandler.__query_plot(instr, dist)
 
-            # Gather the variables to plot.
-            variables = [instr.var_1.var]
-            variables += [instr.var_2.var] if instr.var_2 else []
-
-            # User can specify either a probability threshold or a number of terms which are shown in the histogram.
-            if instr.prob:
-                # User chose a probability or oo (meaning, try to compute the whole histogram).
-                if instr.prob.is_infinite():
-                    Plotter.plot(dist, *variables, p=str(1))
-                else:
-                    Plotter.plot(dist, *variables, p=str(instr.prob))
-
-            elif instr.term_count:
-                # User has chosen a term limit.
-                Plotter.plot(dist, *variables, n=instr.term_count.value)
-            # User did neither specify a term limit nor a threshold probability. We try an iterative approach...
-            else:
-                p = .1
-                inc = .1
-                while True:
-                    Plotter.plot(dist, *variables, p=str(p))
-                    p = p + inc if p + inc < 1 else 1
-                    cont = input(f"Continue with p={p}? [Y/n]")
-                    if cont.lower() == 'n':
-                        break
-            return dist
         else:
-            raise SyntaxError(f"Type {type(instr)} is not known.")
+            raise SyntaxError("This should not happen.")
 
+    @staticmethod
+    def __query_plot(instr: PlotInstr, dist: Distribution) -> Distribution:
+        # Gather the variables to plot.
+        variables = [instr.var_1.var]
+        variables += [instr.var_2.var] if instr.var_2 else []
+
+        # User can specify either a probability threshold or a number of terms which are shown in the histogram.
+        if instr.prob:
+            # User chose a probability or oo (meaning, try to compute the whole histogram).
+            if instr.prob.is_infinite():
+                Plotter.plot(dist, *variables, threshold=str(1))
+            else:
+                Plotter.plot(dist, *variables, threshold=str(instr.prob))
+
+        elif instr.term_count:
+            # User has chosen a term limit.
+            Plotter.plot(dist, *variables, threshold=instr.term_count.value)
+            # User did neither specify a term limit nor a threshold probability. We try an iterative approach...
+        else:
+            p = .1
+            inc = .1
+            while True:
+                Plotter.plot(dist, *variables, threshold=str(p))
+                p = p + inc if p + inc < 1 else 1
+                cont = input(f"Continue with p={p}? [Y/n]")
+                if cont.lower() == 'n':
+                    break
+        return dist
+
+    @staticmethod
+    def __query_probability_of(expression: Expr, dist: Distribution) -> Distribution:
+        # Marginal computation
+        if isinstance(expression, VarExpr):
+            marginal = dist.marginal(expression, method=MarginalType.Include)
+            print(f"Marginal distribution of {expression}: {marginal}")
+        # Probability of condition computation.
+        else:
+            sat_part = dist.filter(expression)
+            prob = sat_part.get_probability_mass()
+            print(f"Probability of {expression}: {prob}")
+        return dist
 
 class SampleGFHandler(InstructionHandler):
 
@@ -171,7 +180,7 @@ class SampleGFHandler(InstructionHandler):
                 dist: Distribution,
                 config: ForwardAnalysisConfig) -> Distribution:
 
-        #__assume(instr, AsgnInstr, 'SampleGFHandler')
+        _assume(instr, AsgnInstr, 'SampleGFHandler')
         assert isinstance(instr.rhs, get_args(DistrExpr)), f"The Instruction handled by a SampleHandler must be of type" \
                                                  f" DistrExpr got {type(instr)}"
 
@@ -217,7 +226,7 @@ class AssignmentHandler(InstructionHandler):
                 dist: Distribution,
                 config: ForwardAnalysisConfig) -> Distribution:
 
-        #__assume(instr, AsgnInstr, 'AssignmentHandler')
+        _assume(instr, AsgnInstr, 'AssignmentHandler')
 
         if isinstance(instr.rhs, get_args(DistrExpr)):
             return SampleGFHandler.compute(instr, dist, config)
@@ -231,7 +240,7 @@ class ObserveHandler(InstructionHandler):
                 distribution: Distribution,
                 config: ForwardAnalysisConfig) -> Distribution:
 
-        #__assume(instruction, ObserveInstr, 'ObserverHandler')
+        _assume(instruction, ObserveInstr, 'ObserverHandler')
 
         try:
             sat_part = distribution.filter(instruction.cond)
@@ -247,7 +256,7 @@ class PChoiceHandler(InstructionHandler):
     def compute(instr: Instr,
                 dist: Distribution,
                 config: ForwardAnalysisConfig) -> Distribution:
-        #__assume(instr, ChoiceInstr, 'PChoiceHandlerGF')
+        _assume(instr, ChoiceInstr, 'PChoiceHandlerGF')
 
         lhs_block = SequenceHandler.compute(instr.lhs, dist)
         rhs_block = SequenceHandler.compute(instr.rhs, dist)
@@ -260,7 +269,7 @@ class ITEHandler(InstructionHandler):
     def compute(instr: Instr,
                 dist: Distribution,
                 config: ForwardAnalysisConfig) -> Distribution:
-        #__assume(instr, IfInstr, 'ITEHandler')
+        _assume(instr, IfInstr, 'ITEHandler')
 
         sat_part = dist.filter(instr.cond)
         non_sat_part = dist - sat_part
@@ -271,7 +280,7 @@ class LoopHandler(InstructionHandler):
 
     @staticmethod
     def compute(instr: Instr, dist: Distribution, config: ForwardAnalysisConfig) -> Distribution:
-        __assume(instr, LoopInstr, 'LoopHandler')
+        _assume(instr, LoopInstr, 'LoopHandler')
         for i in range(instr.iterations.value):
             logger.debug(f"Computing iteration {i + 1} out of {instr.iterations.value}")
             dist = SequenceHandler.compute(instr.body, dist, config)
@@ -285,7 +294,7 @@ class WhileHandler(InstructionHandler):
                 dist: Distribution,
                 config: ForwardAnalysisConfig) -> Distribution:
 
-        #__assume(instr, WhileInstr, 'WhileHandler')
+        _assume(instr, WhileInstr, 'WhileHandler')
 
         user_choice = int(input("While Instruction has only limited support. Choose an option:\n"
                                 "[1]: Solve using invariants (Checks whether the invariant over-approximates the loop)\n"
