@@ -28,6 +28,21 @@ class GeneratingFunction(Distribution):
     This class does not ensure to be in a healthy state (i.e., every coefficient is non-negative).
     """
 
+    def __init__(self, function: Union[str, sympy.Expr] = "",
+                 *variables: Union[str, sympy.Symbol],
+                 preciseness=1.0,
+                 closed: bool = None,
+                 finite: bool = None):
+
+        self._function: sympy.Expr = sympy.S(function, rational=True)
+        self._variables: Set[sympy.Symbol] = self._function.free_symbols
+        self._preciseness = sympy.S(str(preciseness), rational=True)
+        if variables:
+            for variable in variables:
+                self._variables = self._variables.union({sympy.S(variable)})
+        self._is_closed_form = closed if closed else not self._function.is_polynomial()
+        self._is_finite = finite if finite else self._function.ratsimp().is_polynomial()
+
     def update(self, expression: Expr) -> 'Distribution':
 
         variable: str = expression.lhs.var
@@ -40,7 +55,7 @@ class GeneratingFunction(Distribution):
                 ap = self.arithmetic_progression(str(mod_expr.lhs), str(mod_expr.rhs))
                 for i in range(mod_expr.rhs.value):
                     func = ap[i]
-                    result += func.linear_transformation(mod_expr.lhs.var, NatLitExpr(0)) * GeneratingFunction(
+                    result += func.marginal(mod_expr.lhs.var, method=MarginalType.Exclude) * GeneratingFunction(
                         f"{mod_expr.lhs}**{i}")
                 return result
             else:
@@ -50,23 +65,23 @@ class GeneratingFunction(Distribution):
         if check_is_linear_expr(expression.rhs) is None:
             return self.linear_transformation(variable, expression.rhs)
 
-        # rhs is a non-linear expression, precf is finite
+        # rhs is a non-linear expression, self is finite
         elif self.is_finite():
             result = sympy.S(0)
-            for prob, monomial in self:  # Take the addends of the Taylor expansion
-                state = self.monomial_to_state(monomial)
-                new_addend = prob * monomial.subs(variable, 1)  # create the updated monomial.
+            for prob, state in self:  # Take the addends of the Taylor expansion
+                monomial = self.state_to_monomial(state)
+                new_addend = sympy.S(prob) * monomial.subs(variable, 1)  # create the updated monomial.
                 new_value = sympy.S(str(expression.rhs))
-                for var in self._variables:  # for each variable check its current state
-                    if var not in state:
-                        new_value = new_value.subs(var, 0)
+                for s_var in self._variables:  # for each variable check its current state
+                    if str(s_var) not in state:
+                        new_value = new_value.subs(s_var, 0)
                     else:
-                        new_value = new_value.subs(var, state[var])
+                        new_value = new_value.subs(s_var, state[str(s_var)])
                 new_addend *= sympy.S(str(expression.lhs)) ** new_value  # and update
                 result += new_addend
             return GeneratingFunction(result, *self._variables, preciseness=self._preciseness)
 
-        # rhs is non-linear, precf is infinite support
+        # rhs is non-linear, self is infinite support
         else:
             print(f"The assignment {expression} is not computable on {self}")
             error = sympy.S(input("Continue with approximation. Enter an allowed relative error (0, 1.0):\t"))
@@ -104,18 +119,6 @@ class GeneratingFunction(Distribution):
                 else:
                     result = (result[0] * factor ** factor_powers[factor], result[1])
             return result
-
-    def __init__(self, function: str = "", *variables: Union[str, sympy.Symbol], preciseness=1.0, closed: bool = None,
-                 finite: bool = None):
-
-        self._function: sympy.Expr = sympy.S(function, rational=True)
-        self._variables: Set[sympy.Symbol] = self._function.free_symbols
-        self._preciseness = sympy.S(str(preciseness), rational=True)
-        if variables:
-            for variable in variables:
-                self._variables = self._variables.union({sympy.S(variable)})
-        self._is_closed_form = closed if closed else not self._function.is_polynomial()
-        self._is_finite = finite if finite else self._function.ratsimp().is_polynomial()
 
     def copy(self, deep: bool = True) -> 'GeneratingFunction':
         return GeneratingFunction(str(self._function), *self._variables, preciseness=self._preciseness,
@@ -245,25 +248,34 @@ class GeneratingFunction(Distribution):
                 func = self._function.expand().ratsimp().as_poly(*self._variables)
             else:
                 func = self._function.as_poly(*self._variables)
-            return map(GeneratingFunction.split_addend, _term_generator(func))
-
+            return map(lambda term: (term[0], self.monomial_to_state(term[1])), _term_generator(func))
         else:
             logger.debug("Multivariate Taylor expansion might take a while...")
-            return map(self.split_addend, self._mult_term_generator())
+            return map(lambda term: (term[0], self.monomial_to_state(term[1])), self._mult_term_generator())
 
-    def monomial_to_state(self, monomial) -> Dict[sympy.Expr, int]:
-        result = dict()
+    def monomial_to_state(self, monomial: sympy.Expr) -> Dict[str, int]:
+        """ Converts a `monomial` into a state."""
+        result: Dict[str, int] = dict()
         if monomial.free_symbols == set():
             for var in self._variables:
-                result[var] = 0
+                result[str(var)] = 0
         else:
             variables_and_powers = monomial.as_powers_dict()
             for var in self._variables:
                 if var in variables_and_powers.keys():
-                    result[var] = variables_and_powers[var]
+                    result[str(var)] = int(variables_and_powers[var])
                 else:
-                    result[var] = 0
+                    result[str(var)] = 0
         return result
+
+    def state_to_monomial(self, state: Dict[str, int]) -> sympy.Expr:
+        """ Returns the monomial generated from a specific state."""
+        assert state, f"State is not valid. {state}"
+        monomial = sympy.S(1)
+        for var in self._variables:
+            if str(var) in state:
+                monomial *= var ** state[str(var)]
+        return monomial
 
     def precision(self):
         return self._preciseness
@@ -297,10 +309,7 @@ class GeneratingFunction(Distribution):
                         state[var] = 0
                 else:
                     state = monomial.as_expr().as_powers_dict()
-                logger.debug(f"create term for monomial {monomial}")
-                term = monomial.as_expr() * self.probability_of(state)
-                logger.debug(f"created term {term}")
-                yield term
+                yield self.probability_of(state), monomial.as_expr()
             logger.debug(f"\t>Terms generated until total degree of {i}")
             i += 1
 
@@ -339,12 +348,11 @@ class GeneratingFunction(Distribution):
             raise DistributionParameterError(f"Parameter threshold can only be of type str or int,"
                                              f" not {type(threshold)}.")
 
-    def coefficient_sum(self):
+    def coefficient_sum(self) -> sympy.Expr:
         logger.debug(f"coefficient_sum() call")
         coefficient_sum = self._function.simplify() if GeneratingFunction.use_simplification else self._function
         for var in self._variables:
-            coefficient_sum = coefficient_sum.limit(var, 1, "-") if self._is_closed_form else coefficient_sum.subs(var,
-                                                                                                                   1)
+            coefficient_sum = coefficient_sum.limit(var, 1, "-") if self._is_closed_form else coefficient_sum.subs(var, 1)
         return coefficient_sum
 
     def get_probability_mass(self):
@@ -369,7 +377,7 @@ class GeneratingFunction(Distribution):
     def get_probability_of(self, condition: Union[Expr, str]):
         return self.filter(condition).coefficient_sum()
 
-    def probability_of(self, state: dict):
+    def probability_of(self, state: Dict[str, int]) -> sympy.Expr:
         """
         Determines the probability of a single program state encoded by a monomial (discrete only).
         :param state: The queried program state.
@@ -379,9 +387,9 @@ class GeneratingFunction(Distribution):
 
         # complete state by assuming every variable which is not occurring is zero.
         complete_state = state
-        for var in self._variables:
-            if not state[var]:
-                complete_state[var] = 0
+        for s_var in self._variables:
+            if str(s_var) not in state:
+                complete_state[str(s_var)] = 0
 
         # When its a closed form, or not finite, do the maths.
         if self._is_closed_form or not self._is_finite:
@@ -418,24 +426,35 @@ class GeneratingFunction(Distribution):
         return self._is_finite
 
     def simplify(self):
+        """ Simplifies the Generating function using sympys simplify method.
+            Does not simplify when the option `use_simplification` is set to False.
+        """
         if not GeneratingFunction.use_simplification:
             return self.copy()
         else:
             simplified = self._function.simplify()
-            return GeneratingFunction(simplified, self._variables, self._preciseness, simplified.is_polynomial(),
-                                      simplified.ratsimp().is_polynomial())
+            return GeneratingFunction(simplified, *self._variables, preciseness=self._preciseness,
+                                      closed=simplified.is_polynomial(),
+                                      finite=simplified.ratsimp().is_polynomial())
 
-    @classmethod
-    def evaluate(cls, expression: str, monomial: sympy.Expr) -> sympy.Expr:
-        sexp = sympy.S(expression)
-        for var, value in monomial.as_powers_dict().items():
-            sexp = sexp.subs(var, value)
-        for var in sexp.free_symbols:
-            sexp = sexp.subs(var, 0)
-        return sexp
+    @staticmethod
+    def evaluate(expression: str, state: Dict[str, int]) -> sympy.Expr:
+        """ Evaluates the expression in a given state. """
 
-    @classmethod
-    def evaluate_condition(cls, condition: BinopExpr, monomial: sympy.Expr) -> bool:
+        s_exp = sympy.S(expression)
+        # Iterate over the variable, value pairs in the state
+        for var, value in state.items():
+            # Convert the variable into a sympy symbol and substitute
+            s_var = sympy.S(var)
+            s_exp = s_exp.subs(s_var, value)
+
+        # If the state did not interpret all variables in the condition, interpret the remaining variables as 0
+        for free_var in s_exp.free_symbols:
+            s_exp = s_exp.subs(free_var, 0)
+        return s_exp
+
+    @staticmethod
+    def evaluate_condition(condition: BinopExpr, state: Dict[str, int]) -> bool:
         logger.debug(f"evaluate_condition() call")
         if not isinstance(condition, BinopExpr):
             raise AssertionError(f"Expression must be an (in-)equation, was {condition}")
@@ -445,14 +464,15 @@ class GeneratingFunction(Distribution):
         op = condition.operator
 
         if op == Binop.EQ:
-            return GeneratingFunction.evaluate(lhs, monomial) == GeneratingFunction.evaluate(rhs, monomial)
+            return GeneratingFunction.evaluate(lhs, state) == GeneratingFunction.evaluate(rhs, state)
         elif op == Binop.LEQ:
-            return GeneratingFunction.evaluate(lhs, monomial) <= GeneratingFunction.evaluate(rhs, monomial)
+            return GeneratingFunction.evaluate(lhs, state) <= GeneratingFunction.evaluate(rhs, state)
         elif op == Binop.LE:
-            return GeneratingFunction.evaluate(lhs, monomial) < GeneratingFunction.evaluate(rhs, monomial)
+            return GeneratingFunction.evaluate(lhs, state) < GeneratingFunction.evaluate(rhs, state)
         raise AssertionError(f"Unexpected condition type. {condition}")
 
-    def marginal(self, *variables: Union[str, VarExpr], method: MarginalType = MarginalType.Include) -> 'GeneratingFunction':
+    def marginal(self, *variables: Union[str, VarExpr],
+                 method: MarginalType = MarginalType.Include) -> 'GeneratingFunction':
         """
         Computes the marginal distribution in the given variables.
         :param method: The method of marginalization.
@@ -461,11 +481,11 @@ class GeneratingFunction(Distribution):
         """
         logger.debug(f"Creating marginal for variables {variables} and joint probability distribution {self}")
         marginal = self.copy()
-        for var in marginal._variables:
-            check = {MarginalType.Include: str(var) not in variables, MarginalType.Exclude: str(var) in variables}
+        for s_var in marginal._variables:
+            check = {MarginalType.Include: str(s_var) not in map(str, variables), MarginalType.Exclude: str(s_var) in map(str, variables)}
             if check[method]:
-                marginal._function = marginal._function.limit(var, 1, "-") if marginal._is_closed_form \
-                    else marginal._function.subs(var, 1)
+                marginal._function = marginal._function.limit(s_var, 1, "-") if marginal._is_closed_form \
+                    else marginal._function.subs(s_var, 1)
                 marginal._is_closed_form = not marginal._function.is_polynomial()
                 marginal._is_finite = marginal._function.ratsimp().is_polynomial()
         marginal._variables = marginal._function.free_symbols
@@ -536,11 +556,9 @@ class GeneratingFunction(Distribution):
         # all other conditions given that the Generating Function is finite (exhaustive search)
         elif self._is_finite:
             result = sympy.S(0)
-            addends = self._function.as_coefficients_dict() if not self._is_closed_form \
-                else self._function.cancel().expand().as_coefficients_dict()
-            for monomial in addends:
-                if self.evaluate_condition(expression, monomial):
-                    result += addends[monomial] * monomial
+            for prob, state in self:
+                if self.evaluate_condition(expression, state):
+                    result += sympy.S(prob) * self.state_to_monomial(state)
             return GeneratingFunction(result,
                                       *self._variables,
                                       preciseness=self._preciseness,
@@ -565,14 +583,13 @@ class GeneratingFunction(Distribution):
             else:
                 print("generating terms")
                 filter_exprs = []
-                for term in marginal:
+                for prob, state in marginal:
                     state_filter = []
                     tmp_expr = expr
-                    prob, mon = GeneratingFunction.split_addend(term)
-                    for var, val in self.monomial_to_state(mon).items():
+                    for var, val in state.items():
                         if var in marginal._variables:
-                            eq = BinopExpr(operator=Binop.EQ, lhs=VarExpr(str(var)), rhs=NatLitExpr(val))
-                            tmp_expr = tmp_expr.subs(var, val)
+                            eq = BinopExpr(operator=Binop.EQ, lhs=VarExpr(str(var)), rhs=NatLitExpr(int(var)))
+                            tmp_expr = tmp_expr.subs(sympy.S(var), val)
                             state_filter.append(eq)
                     filter_expr = functools.reduce(
                         lambda right, left: BinopExpr(operator=Binop.AND, lhs=left, rhs=right),

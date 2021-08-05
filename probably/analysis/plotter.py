@@ -7,7 +7,6 @@ from matplotlib.cm import ScalarMappable
 
 from probably.analysis.distribution import Distribution
 from probably.analysis.exceptions import ParameterError
-from probably.analysis.generating_function import GeneratingFunction
 from probably.pgcl import VarExpr
 from probably.util.logger import log_setup
 
@@ -18,14 +17,14 @@ class Plotter:
     """ Plotter that generates histogram plots using matplotlib."""
 
     @staticmethod
-    def _create_2d_hist(function: Distribution, var_1: str, var_2: str, n: Optional[int], p: Optional[sympy.Expr]):
+    def _create_2d_hist(function: Distribution, var_1: str, var_2: str, threshold: Union[str, int]):
 
         x = sympy.S(var_1)
         y = sympy.S(var_2)
 
         # Marginalize distribution to the variables of interest.
-        marginal = function.marginal(var_1, var_2)
-        marginal._variables = set(map(sympy.S, function.get_variables()))
+        marginal = function.marginal(x, y)
+        marginal = marginal.set_variables(*function.get_variables())
         logger.debug(f"Creating Histogram for {marginal}")
         # Collect relevant data from the distribution and plot it.
         if marginal.is_finite():
@@ -37,18 +36,18 @@ class Plotter:
             # collect the coordinates and probabilities. Also compute maxima of probabilities and degrees
             terms = 0
             prob_sum = 0
-            for prob, monomial in marginal:
-                if p and prob_sum >= sympy.S(p):
+            for prob, state in marginal:
+                if isinstance(threshold, str) and prob_sum >= sympy.S(threshold):
                     break
-                if n and terms >= sympy.S(n):
+                if isinstance(threshold, int) and terms >= threshold:
                     break
-                state = marginal.monomial_to_state(monomial)
-                maxima[x], maxima[y] = max(maxima[x], state[x]), max(maxima[y], state[y])
-                coord = (state[x], state[y])
-                coord_and_prob[coord] = prob
-                max_prob = max(prob, max_prob)
+                s_prob = sympy.S(prob)
+                maxima[x], maxima[y] = max(maxima[x], state[var_1]), max(maxima[y], state[var_2])
+                coord = (state[var_1], state[var_2])
+                coord_and_prob[coord] = s_prob
+                max_prob = max(s_prob, max_prob)
                 terms += 1
-                prob_sum += prob
+                prob_sum += s_prob
 
             # Zero out the colors array
             for _ in range(maxima[y] + 1):
@@ -69,24 +68,27 @@ class Plotter:
         else:
             # make the marginal finite.
             plt.ion()
-            for subsum in marginal.expand_until(sympy.S(p), sympy.S(n)):
-                Plotter._create_2d_hist(subsum, var_1, var_2, n, p)
+            prev_sum = marginal
+            for subsum in marginal.approximate(threshold):
+                if subsum == prev_sum:
+                    continue
+                Plotter._create_2d_hist(subsum, var_1, var_2, threshold)
+                prev_sum = subsum
 
     @staticmethod
-    def _create_histogram_for_variable(function: Distribution, var: Union[str, VarExpr], n: sympy.Expr, p: sympy.Expr) -> None:
+    def _create_histogram_for_variable(function: Distribution, var: Union[str, VarExpr], threshold: Union[str, int]) -> None:
         marginal = function.marginal(var)
         if marginal.is_finite():
             data = []
             ind = []
             terms = prob_sum = 0
-            for prob, monomial in marginal:
-                if n and terms >= n:
+            for prob, state in marginal:
+                if isinstance(threshold, int) and terms >= threshold:
                     break
-                if p and prob_sum > p:
+                if isinstance(threshold, str) and prob_sum > sympy.S(threshold):
                     break
-                state = function.monomial_to_state(monomial)
                 data.append(float(prob))
-                ind.append(float(state[sympy.S(var)]))
+                ind.append(float(state[var]))
                 prob_sum += prob
                 terms += 1
             ax = plt.subplot()
@@ -103,30 +105,29 @@ class Plotter:
             plt.colorbar(sm)
             plt.show()
         else:
-            for gf in marginal.expand_until(p, n):
-                if not gf.is_zero_dist():
-                    Plotter._create_histogram_for_variable(gf, var, n, p)
+            prev_gf = marginal
+            for gf in marginal.approximate(threshold):
+                if not gf.is_zero_dist() and not prev_gf == gf:
+                    Plotter._create_histogram_for_variable(gf, var, threshold)
+                prev_gf = gf
 
     @staticmethod
-    def plot(function: Distribution, *variables: Union[str, sympy.Symbol], n: int = None, p: str = None) -> None:
+    def plot(function: Distribution, *variables: Union[str, sympy.Symbol], threshold: Union[str, int]) -> None:
         """ Shows the histogram of the marginal distribution of the specified variable(s). """
-
-        probability = sympy.S(p) if p else None
-        iterations = sympy.S(n) if n else None
         if variables:
             if len(variables) > 2:
                 raise ParameterError(f"create_plot() cannot handle more than two variables!")
             if len(variables) == 2:
-                Plotter._create_2d_hist(function, var_1=variables[0], var_2=variables[1], n=iterations, p=probability)
+                Plotter._create_2d_hist(function, var_1=variables[0], var_2=variables[1], threshold=threshold)
             if len(variables) == 1:
-                Plotter._create_histogram_for_variable(function, var=variables[0], n=iterations, p=probability)
+                Plotter._create_histogram_for_variable(function, var=variables[0], threshold=threshold)
         else:
             if len(function.get_variables()) > 2:
                 raise Exception("Multivariate distributions need to specify the variable to plot")
 
             elif len(function.get_variables()) == 2:
                 vars = list(function.get_variables())
-                Plotter._create_2d_hist(function, var_1=vars[0], var_2=vars[1], n=iterations, p=probability)
+                Plotter._create_2d_hist(function, var_1=vars[0], var_2=vars[1], threshold=threshold)
             else:
                 for var in function.get_variables():
-                    Plotter._create_histogram_for_variable(var, n=iterations, p=probability)
+                    Plotter._create_histogram_for_variable(var, threshold=threshold)
