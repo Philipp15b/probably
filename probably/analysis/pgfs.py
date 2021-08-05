@@ -33,7 +33,7 @@ class PGFS(CommonDistributionsFactory):
 
     @staticmethod
     def poisson(var: Union[str, VarExpr], lam: str) -> 'Distribution':
-        if sp.S(l) < 0:
+        if sp.S(lam) < 0:
             raise DistributionParameterError(f"Parameter of Poisson Distribution must be in [0, oo), but was {l}")
         return GeneratingFunction(f"exp({lam} * ({var} - 1))", closed=True, finite=False)
 
