@@ -4,7 +4,7 @@ nat y;
 
 x := binomial(10, 1/2)
 
-#x := (x * x) + 3
+x := x + 3
 
 y := logdist(1/2)
 
