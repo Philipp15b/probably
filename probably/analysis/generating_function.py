@@ -1,23 +1,23 @@
 import functools
 import logging
-from typing import Tuple, List, Set, Dict, Union
+from typing import Tuple, List, Set, Dict, Union, Generator
 
 import sympy
 import operator
 from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr, BoolLitExpr, UnopExpr
 from probably.pgcl.syntax import check_is_constant_constraint, check_is_modulus_condition, check_is_linear_expr
 from .distribution import Distribution, MarginalType
-from .exceptions import ComparisonException, NotComputableException
+from .exceptions import ComparisonException, NotComputableException, DistributionParameterError
 from ..util.logger import log_setup
 
-logger = log_setup(__name__, logging.DEBUG)
+logger = log_setup(__name__, logging.DEBUG, file="GF_operations.log")
 
 
 def _term_generator(function: sympy.Poly):
     assert isinstance(function, sympy.Poly), "Terms can only be generated for finite GF"
     poly = function
     while poly.as_expr() != 0:
-        yield sympy.S(poly.EC() * poly.EM().as_expr())
+        yield poly.EC(), poly.EM().as_expr()
         poly -= poly.EC() * poly.EM().as_expr()
 
 
@@ -122,9 +122,20 @@ class GeneratingFunction(Distribution):
                                   closed=self._is_closed_form,
                                   finite=self._is_finite)
 
-    def _arithmetic(self, other, op: operator):
-        if isinstance(other, GeneratingFunction):
+    def set_variables(self, *variables: str) -> 'GeneratingFunction':
+        if not len(variables):
+            raise DistributionParameterError("The free-variables of a distribution cannot be empty!")
+        else:
+            remove_dups = set(variables)
+            return GeneratingFunction(self._function,
+                                      *remove_dups,
+                                      preciseness=self._preciseness,
+                                      closed=self._is_closed_form,
+                                      finite=self._is_finite)
 
+    def _arithmetic(self, other, op: operator):
+        logger.debug(f"Computing the {str(op)} of {self} with {other}")
+        if isinstance(other, GeneratingFunction):
             s, o = self.coefficient_sum(), other.coefficient_sum()
             is_closed_form = self._is_closed_form and other._is_closed_form
             is_finite = self._is_finite and other._is_finite
@@ -154,7 +165,6 @@ class GeneratingFunction(Distribution):
         return self._arithmetic(other, operator.add)
 
     def __sub__(self, other):
-        logger.debug(f"Subtraction of {other} from {self}")
         return self._arithmetic(other, operator.sub)
 
     def __mul__(self, other):
@@ -294,32 +304,40 @@ class GeneratingFunction(Distribution):
             logger.debug(f"\t>Terms generated until total degree of {i}")
             i += 1
 
-    def expand_until(self, threshold=None, nterms=None):
+    def approximate(self, threshold: Union[str, int]) -> Generator['GeneratingFunction', None, None]:
         logger.debug(f"expand_until() call")
         approx = sympy.S("0")
-        prec = sympy.S(0)
-        if threshold:
-            assert sympy.S(threshold) < self.coefficient_sum(), \
-                f"Threshold cannot be larger than total coefficient sum! Threshold:" \
-                f" {sympy.S(threshold)}, CSum {self.coefficient_sum()}"
-            for prob, monomial in self:
-                if prec >= sympy.S(threshold):
+        precision = sympy.S(0)
+
+        if isinstance(threshold, int):
+            assert threshold > 0, "Expanding to less than 0 terms is not valid."
+            n = 0
+            for prob, state in self:
+                if n >= threshold:
                     break
-                approx += prob * monomial
-                prec += prob
-                yield GeneratingFunction(str(approx.expand()), *self._variables, preciseness=prec, closed=False,
+                s_prob = sympy.S(prob)
+                approx += s_prob * self.state_to_monomial(state)
+                precision += s_prob
+                n += 1
+                yield GeneratingFunction(approx, *self._variables, preciseness=precision, closed=False,
+                                         finite=True)
+
+        elif isinstance(threshold, str):
+            s_threshold = sympy.S(threshold)
+            assert s_threshold < self.coefficient_sum(), \
+                f"Threshold cannot be larger than total coefficient sum! Threshold:" \
+                f" {s_threshold}, CSum {self.coefficient_sum()}"
+            for prob, state in self:
+                if precision >= sympy.S(threshold):
+                    break
+                s_prob = sympy.S(prob)
+                approx += s_prob * self.state_to_monomial(state)
+                precision += s_prob
+                yield GeneratingFunction(str(approx.expand()), *self._variables, preciseness=precision, closed=False,
                                          finite=True)
         else:
-            assert sympy.S(nterms) > 0, "Expanding to less than 0 terms is not valid."
-            n = 0
-            for prob, monomial in self:
-                if n >= sympy.S(nterms):
-                    break
-                approx += prob * monomial
-                prec += prob
-                n += 1
-                yield GeneratingFunction(str(approx.expand()), *self._variables, preciseness=prec, closed=False,
-                                         finite=True)
+            raise DistributionParameterError(f"Parameter threshold can only be of type str or int,"
+                                             f" not {type(threshold)}.")
 
     def coefficient_sum(self):
         logger.debug(f"coefficient_sum() call")
@@ -644,7 +662,7 @@ class GeneratingFunction(Distribution):
             probability = input("Continue with approximation. Enter a probability (0, {}):\t"
                                 .format(self.coefficient_sum()))
             if sympy.S(probability) > sympy.S(0):
-                approx = list(self.expand_until(probability))[-1]
+                approx = list(self.approximate(probability))[-1]
                 approx_sat_part = approx.filter(condition)
                 approx_non_sat_part = approx - approx_sat_part
                 return approx_sat_part, approx_non_sat_part, True

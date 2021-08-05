@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Union, Set, Dict, Iterator, Tuple
+from typing import Union, Set, Dict, Iterator, Tuple, Generator
 
 from probably.pgcl import Expr, VarExpr
 
@@ -153,5 +153,23 @@ class Distribution(ABC):
     def marginal(self, *variables: Union[str, VarExpr], method: MarginalType = MarginalType.Include) -> 'Distribution':
         """ Computes the marginal distribution for the given variables (MarginalType.Include),
             or for all but the given variables (MarginalType.Exclude).
+        """
+        pass
+
+    @abstractmethod
+    def set_variables(self, *variables: str) -> 'Distribution':
+        """
+        Sets the free variables in a distribution.
+        :param variables: The variables.
+        :return:  The distribution with free variables `variables`
+        """
+        pass
+
+    @abstractmethod
+    def approximate(self, threshold: Union[str, int]) -> Generator['Distribution', None, None]:
+        """
+        Computes the approximation until the given threshold is reached. (Might not terminate)
+        :param threshold: The threshold either as a maximum number of states, or a certain probability mass.
+        :return: The approximated (truncated) probability distribution.
         """
         pass
