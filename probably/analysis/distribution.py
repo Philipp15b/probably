@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Union, Set
+from typing import Union, Set, Dict, Iterator, Tuple
 
 from probably.pgcl import Expr, VarExpr
 
@@ -86,8 +86,8 @@ class Distribution(ABC):
         pass
 
     @abstractmethod
-    def __iter__(self):
-        """ Returns an iterator that iterates over the state, probability pairs of the distribution."""
+    def __iter__(self) -> Iterator[Tuple[str, Dict[str, int]]]:
+        """ Returns an iterator that iterates over the probability, state pairs of the distribution."""
         pass
 
     @abstractmethod
