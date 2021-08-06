@@ -352,7 +352,8 @@ class GeneratingFunction(Distribution):
         logger.debug(f"coefficient_sum() call")
         coefficient_sum = self._function.simplify() if GeneratingFunction.use_simplification else self._function
         for var in self._variables:
-            coefficient_sum = coefficient_sum.limit(var, 1, "-") if self._is_closed_form else coefficient_sum.subs(var, 1)
+            coefficient_sum = coefficient_sum.limit(var, 1, "-") if self._is_closed_form else coefficient_sum.subs(var,
+                                                                                                                   1)
         return coefficient_sum
 
     def get_probability_mass(self):
@@ -482,7 +483,8 @@ class GeneratingFunction(Distribution):
         logger.debug(f"Creating marginal for variables {variables} and joint probability distribution {self}")
         marginal = self.copy()
         for s_var in marginal._variables:
-            check = {MarginalType.Include: str(s_var) not in map(str, variables), MarginalType.Exclude: str(s_var) in map(str, variables)}
+            check = {MarginalType.Include: str(s_var) not in map(str, variables),
+                     MarginalType.Exclude: str(s_var) in map(str, variables)}
             if check[method]:
                 marginal._function = marginal._function.limit(s_var, 1, "-") if marginal._is_closed_form \
                     else marginal._function.subs(s_var, 1)
@@ -519,39 +521,7 @@ class GeneratingFunction(Distribution):
 
         # Constant expressions
         elif check_is_constant_constraint(expression):
-            if isinstance(expression.rhs, VarExpr):
-                variable = sympy.S(str(expression.rhs))
-                constant = expression.lhs.value
-                if expression.operator == Binop.LEQ:
-                    return self.filter(
-                        UnopExpr(operator=Unop.NEG,
-                                 expr=BinopExpr(operator=Binop.LE, lhs=expression.rhs, rhs=expression.lhs)
-                                 )
-                    )
-                elif expression.operator == Binop.LE:
-                    return self.filter(
-                        UnopExpr(operator=Unop.NEG,
-                                 expr=BinopExpr(operator=Binop.LEQ, lhs=expression.rhs, rhs=expression.lhs)
-                                 )
-                    )
-            else:
-                variable = sympy.S(str(expression.lhs))
-                constant = expression.rhs.value
-            result = sympy.S(0)
-            ranges = {Binop.LE: range(constant), Binop.LEQ: range(constant + 1), Binop.EQ: [constant]}
-
-            for i in ranges[expression.operator]:
-                tmp = self._function
-                for j in range(i):
-                    tmp = tmp.diff(variable, 1)
-                    if GeneratingFunction.use_simplification:
-                        tmp = tmp.simplify()
-                tmp /= sympy.factorial(i)
-                tmp = tmp.subs(variable, 0) if tmp.is_polynomial() else tmp.limit(variable, 0, '-')
-                tmp *= variable ** i
-                result += tmp
-            return GeneratingFunction(result, *self._variables, preciseness=self._preciseness,
-                                      closed=self._is_closed_form, finite=self._is_finite)
+            self._filter_constant_condition(expression)
 
         # all other conditions given that the Generating Function is finite (exhaustive search)
         elif self._is_finite:
@@ -569,42 +539,105 @@ class GeneratingFunction(Distribution):
         # Here we try marginalization and hope that the marginal is finite so we can do
         # exhaustive search again. If this is not possible, we raise an NotComputableException
         else:
-            expr = sympy.S(str(expression.rhs))
-            marginal = self.marginal(expr.free_symbols)
-            left_side = True
-            if not marginal.is_finite():
-                left_side = False
-                expr = sympy.S(str(expression.lhs))
-                marginal = self.marginal(expr.free_symbols)
-                if not marginal.is_finite():
-                    raise NotComputableException(
-                        f"Instruction {expression} is not computable on infinite generating function"
-                        f" {self._function}")
-            else:
-                print("generating terms")
-                filter_exprs = []
-                for prob, state in marginal:
-                    state_filter = []
-                    tmp_expr = expr
-                    for var, val in state.items():
-                        if var in marginal._variables:
-                            eq = BinopExpr(operator=Binop.EQ, lhs=VarExpr(str(var)), rhs=NatLitExpr(int(var)))
-                            tmp_expr = tmp_expr.subs(sympy.S(var), val)
-                            state_filter.append(eq)
-                    filter_expr = functools.reduce(
-                        lambda right, left: BinopExpr(operator=Binop.AND, lhs=left, rhs=right),
-                        state_filter,
-                        BinopExpr(operator=expression.operator, lhs=expression.lhs,
-                                  rhs=NatLitExpr(value=int(tmp_expr))) if left_side else
-                        BinopExpr(operator=expression.operator, lhs=NatLitExpr(value=int(tmp_expr)), rhs=expression.rhs)
-                    )
-                    filter_exprs.append(filter_expr)
+            return self.filter(self._explicit_state_unfolding(expression))
 
-                new_expr = functools.reduce(lambda left, right: BinopExpr(operator=Binop.OR, lhs=left, rhs=right),
-                                            filter_exprs[1:],
-                                            filter_exprs[0]
-                                            )
-                return self.filter(new_expr)
+    def _filter_constant_condition(self, condition: Expr) -> 'GeneratingFunction':
+        """
+        Filters out the terms that satisfy a constant condition, i.e, (var <= 5) (var > 5) (var = 5).
+        :param condition: The condition to filter.
+        :return: The filtered generating function.
+        """
+        if isinstance(condition.rhs, VarExpr):
+            variable = sympy.S(str(condition.rhs))
+            constant = condition.lhs.value
+            if condition.operator == Binop.LEQ:
+                return self.filter(
+                    UnopExpr(operator=Unop.NEG,
+                             expr=BinopExpr(operator=Binop.LE, lhs=condition.rhs, rhs=condition.lhs)
+                             )
+                )
+            elif condition.operator == Binop.LE:
+                return self.filter(
+                    UnopExpr(operator=Unop.NEG,
+                             expr=BinopExpr(operator=Binop.LEQ, lhs=condition.rhs, rhs=condition.lhs)
+                             )
+                )
+        else:
+            variable = sympy.S(str(condition.lhs))
+            constant = condition.rhs.value
+        result = sympy.S(0)
+        ranges = {Binop.LE: range(constant), Binop.LEQ: range(constant + 1), Binop.EQ: [constant]}
+
+        for i in ranges[condition.operator]:
+            tmp = self._function
+            for j in range(i):
+                tmp = tmp.diff(variable, 1)
+                if GeneratingFunction.use_simplification:
+                    tmp = tmp.simplify()
+            tmp /= sympy.factorial(i)
+            tmp = tmp.subs(variable, 0) if tmp.is_polynomial() else tmp.limit(variable, 0, '-')
+            tmp *= variable ** i
+            result += tmp
+        return GeneratingFunction(result, *self._variables, preciseness=self._preciseness,
+                                  closed=self._is_closed_form, finite=self._is_finite)
+
+    def _explicit_state_unfolding(self, condition: Expr) -> BinopExpr:
+        """
+        Checks whether one side of the condition has only finitely many valuations and explicitly creates a new
+        condition which is the disjunction of each individual evaluations.
+        :param condition: The condition to unfold.
+        :return: The disjunction condition of explicitly encoded state conditions.
+        """
+        expr = sympy.S(str(condition.rhs))
+        marginal = self.marginal(expr.free_symbols)
+
+        # Marker to express which side of the equation has only finitely many interpretations.
+        left_side_original = True
+
+        # Check whether left hand side has only finitely many interpretations.
+        if not marginal.is_finite():
+            # Failed, so we have to check the right hand side
+            left_side_original = False
+            expr = sympy.S(str(condition.lhs))
+            marginal = self.marginal(expr.free_symbols)
+
+            if not marginal.is_finite():
+                # We are not able to marginalize into a finite amount of states! -> FAIL filtering.
+                raise NotComputableException(
+                    f"Instruction {condition} is not computable on infinite generating function"
+                    f" {self._function}")
+
+        # Now we know that `expr` can be instantiated with finitely many states.
+        # We generate these explicit state.
+        state_expressions: List[BinopExpr] = []
+
+        # Compute for all states the explicit condition checking that specific valuation.
+        for prob, state in marginal:
+
+            # Evaluate the current expression
+            evaluated_expr = self.evaluate(str(expr), state)
+
+            # create the equalities for each variable, value pair in a given state
+            # i.e., {x:1, y:0, c:3} -> [x=1, y=0, c=3]
+            encoded_state = self._state_to_equality_expression(state)
+
+            # Create the equality which assigns the original side the anticipated value.
+            other_side_expr = BinopExpr(condition.operator, condition.lhs, NatLitExpr(int(evaluated_expr)))
+            if not left_side_original:
+                other_side_expr = BinopExpr(condition.operator, NatLitExpr(int(evaluated_expr)), condition.rhs)
+
+            state_expressions.append(BinopExpr(Binop.AND, encoded_state, other_side_expr))
+
+        # Get all individual conditions and make one big disjunction.
+        return functools.reduce(lambda left, right: BinopExpr(operator=Binop.OR, lhs=left, rhs=right),
+                                state_expressions)
+
+    @staticmethod
+    def _state_to_equality_expression(state: Dict[str, int]) -> BinopExpr:
+        equalities: List[BinopExpr] = []
+        for var, val in state.items():
+            equalities.append(BinopExpr(Binop.EQ, lhs=VarExpr(var), rhs=NatLitExpr(val)))
+        return functools.reduce(lambda expr1, expr2: BinopExpr(Binop.AND, expr1, expr2), equalities)
 
     def limit(self, variable: Union[str, sympy.Symbol], value: Union[str, sympy.Expr]) -> 'GeneratingFunction':
         func = self._function
