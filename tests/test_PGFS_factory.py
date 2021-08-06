@@ -29,15 +29,11 @@ def test_log():
                                                                                                  probability)
 
 
-@pytest.mark.xfail(reason="Somehow comparison needs a lot of time...?", run=False)
 def test_poisson():
-    rate = str(rng.uniform(0, 10))
+    rate = str(rng.randint(0, 10))
     hand = GeneratingFunction(f"exp({rate} * (variable -1))")
-    print("Hand done.")
     factory = PGFS.poisson("variable", str(rate))
-    print("Factory done.")
     equal = hand == factory
-    print("Equality check done")
     assert equal
 
 

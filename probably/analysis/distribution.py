@@ -81,6 +81,11 @@ class Distribution(ABC):
         pass
 
     @abstractmethod
+    def __eq__(self, other):
+        """ Checks whether two distributions are equal. """
+        pass
+
+    @abstractmethod
     def __str__(self):
         """ The string representation of a distribution. """
         pass
