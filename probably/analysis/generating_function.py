@@ -217,14 +217,14 @@ class GeneratingFunction(Distribution):
                 for monomial in terms:
                     variables = monomial.as_powers_dict()
                     for var in variables:
-                        if terms[monomial] >= other.probability_of({var: variables[var]}):
+                        if terms[monomial] >= other.probability_of_state({var: variables[var]}):
                             return False
                 return True
             elif other._is_finite:
                 func = other._function.expand() if other._is_closed_form else other._function
                 terms = func.as_coefficients_dict()
                 for monomial in terms:
-                    if terms[monomial] >= self.probability_of(monomial):
+                    if terms[monomial] >= self.probability_of_state(monomial):
                         return False
                 return True
             else:
@@ -309,7 +309,7 @@ class GeneratingFunction(Distribution):
                         state[var] = 0
                 else:
                     state = monomial.as_expr().as_powers_dict()
-                yield self.probability_of(state), monomial.as_expr()
+                yield self.probability_of_state(state), monomial.as_expr()
             logger.debug(f"\t>Terms generated until total degree of {i}")
             i += 1
 
@@ -378,7 +378,7 @@ class GeneratingFunction(Distribution):
     def get_probability_of(self, condition: Union[Expr, str]):
         return self.filter(condition).coefficient_sum()
 
-    def probability_of(self, state: Dict[str, int]) -> sympy.Expr:
+    def probability_of_state(self, state: Dict[str, int]) -> sympy.Expr:
         """
         Determines the probability of a single program state encoded by a monomial (discrete only).
         :param state: The queried program state.
@@ -490,7 +490,7 @@ class GeneratingFunction(Distribution):
                     else marginal._function.subs(s_var, 1)
                 marginal._is_closed_form = not marginal._function.is_polynomial()
                 marginal._is_finite = marginal._function.ratsimp().is_polynomial()
-        marginal._variables = marginal._function.free_symbols
+        marginal._variables = marginal._variables.difference(variables)
         return marginal
 
     def filter(self, expression: Expr) -> 'GeneratingFunction':
@@ -502,7 +502,7 @@ class GeneratingFunction(Distribution):
 
         # Boolean literals
         if isinstance(expression, BoolLitExpr):
-            return self
+            return self if expression.value else GeneratingFunction("0", *self._variables)
 
         # Logical operators
         if expression.operator == Unop.NEG:
@@ -521,7 +521,7 @@ class GeneratingFunction(Distribution):
 
         # Constant expressions
         elif check_is_constant_constraint(expression):
-            self._filter_constant_condition(expression)
+            return self._filter_constant_condition(expression)
 
         # all other conditions given that the Generating Function is finite (exhaustive search)
         elif self._is_finite:
@@ -547,9 +547,9 @@ class GeneratingFunction(Distribution):
         :param condition: The condition to filter.
         :return: The filtered generating function.
         """
+
+        # Normalize the condition into the format _var_ (< | <= | =) const. I.e., having the variable on the lhs.
         if isinstance(condition.rhs, VarExpr):
-            variable = sympy.S(str(condition.rhs))
-            constant = condition.lhs.value
             if condition.operator == Binop.LEQ:
                 return self.filter(
                     UnopExpr(operator=Unop.NEG,
@@ -562,22 +562,18 @@ class GeneratingFunction(Distribution):
                              expr=BinopExpr(operator=Binop.LEQ, lhs=condition.rhs, rhs=condition.lhs)
                              )
                 )
-        else:
-            variable = sympy.S(str(condition.lhs))
-            constant = condition.rhs.value
+
+        # Now we have an expression of the form _var_ (< | <=, =) const).
+        variable = str(condition.lhs)
+        constant = condition.rhs.value
         result = sympy.S(0)
         ranges = {Binop.LE: range(constant), Binop.LEQ: range(constant + 1), Binop.EQ: [constant]}
 
+        # Compute the probabilities of the states _var_ = i where i ranges depending on the operator (< , <=, =).
         for i in ranges[condition.operator]:
-            tmp = self._function
-            for j in range(i):
-                tmp = tmp.diff(variable, 1)
-                if GeneratingFunction.use_simplification:
-                    tmp = tmp.simplify()
-            tmp /= sympy.factorial(i)
-            tmp = tmp.subs(variable, 0) if tmp.is_polynomial() else tmp.limit(variable, 0, '-')
-            tmp *= variable ** i
-            result += tmp
+            probability = self.probability_of_state({variable: i})
+            result += probability * sympy.S(variable) ** i
+
         return GeneratingFunction(result, *self._variables, preciseness=self._preciseness,
                                   closed=self._is_closed_form, finite=self._is_finite)
 
@@ -589,7 +585,7 @@ class GeneratingFunction(Distribution):
         :return: The disjunction condition of explicitly encoded state conditions.
         """
         expr = sympy.S(str(condition.rhs))
-        marginal = self.marginal(expr.free_symbols)
+        marginal = self.marginal(*expr.free_symbols)
 
         # Marker to express which side of the equation has only finitely many interpretations.
         left_side_original = True
