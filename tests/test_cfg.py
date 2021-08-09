@@ -1,8 +1,6 @@
 from textwrap import dedent
 
 import pytest
-
-from probably.pgcl.ast import *
 from probably.pgcl.cfg import program_one_big_loop
 from probably.pgcl.compiler import parse_pgcl
 
@@ -22,7 +20,6 @@ def test_one_big_loop1():
         x := 6
     """)
     program = program_one_big_loop(program, 'pc')
-    print(str(program))
 
     assert 'pc' in program.variables
     expected = dedent("""
@@ -62,7 +59,7 @@ def test_one_big_loop1():
     assert str(program) == expected
 
 
-@pytest.mark.xfail(reason="known bug")
+@pytest.mark.xfail(reason="known bug", run=False)
 def test_one_big_loop2():
     program = parse_pgcl("")
     # the call below crashes

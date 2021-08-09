@@ -6,6 +6,8 @@ import random
 
 import pytest
 
+from probably.analysis.pgfs import PGFS
+
 
 def create_random_gf(vars: int = 1, terms: int = 1):
     # This does most likely does not create a PGF!
@@ -70,23 +72,27 @@ def test_linear_transformation():
     assert gf == GeneratingFunction("1/2*x**13*c + 1/4 * x**10 + 1/4*x**2")
 
 
-def test_filter():
-    # check filter on finite GF
-    gf = GeneratingFunction("1/2*x*c + 1/4 * x**2 + 1/4")
-    assert gf.filter(probably.pgcl.parse_expr("x*c < 150")) == gf
+class TestFiltering:
 
-    # check filter on infinite GF
-    gf = GeneratingFunction("(1-sqrt(1-c**2))/c")
-    assert gf.filter(probably.pgcl.parse_expr("c <= 5")) == GeneratingFunction("c/2 + c**3/8 + c**5/16")
+    def test_zero_filtering(self):
+        gf = PGFS.zero("x")
+        assert gf.filter(probably.pgcl.parse_expr("x*3 < 25*y")) == gf
 
-    # check non-const filter on infinite GF:
-    with pytest.raises(NotComputableException):
-        gf.filter(probably.pgcl.parse_expr("x*z <= 10"))
+    def test_constant_filtering(self):
+        # check filter on infinite GF
+        gf = GeneratingFunction("(1-sqrt(1-c**2))/c")
+        assert gf.filter(probably.pgcl.parse_expr("c <= 5")) == GeneratingFunction("c/2 + c**3/8 + c**5/16")
+
+    def test_nonlinear_finite_filter(self):
+        # check filter on finite GF
+        gf = GeneratingFunction("1/2*x*c + 1/4 * x**2 + 1/4")
+        assert gf.filter(probably.pgcl.parse_expr("x*c < 123")) == gf
+
+    def test_non_existing_variabls_filter(self):
+        gf = GeneratingFunction("(1-sqrt(1-c**2))/c")
+        assert gf.filter(probably.pgcl.parse_expr("x*z <= 10")) == PGFS.zero()
 
 
 def test_expand_until():
     gf = GeneratingFunction("2/(2-x) - 1")
-    assert list(gf.expand_until(0.99))[-1] == GeneratingFunction("1/2*x + 1/4*x**2 + 1/8 * x**3 + 1/16 * x**4 + 1/32 * x**5 + 1/64 * x**6 + 1/128 * x**7")
-
-    with pytest.raises(RuntimeError):
-        gf.expand_until(random.randint(2, 10))
+    assert list(gf.approximate("0.99"))[-1] == GeneratingFunction("1/2*x + 1/4*x**2 + 1/8 * x**3 + 1/16 * x**4 + 1/32 * x**5 + 1/64 * x**6 + 1/128 * x**7")
