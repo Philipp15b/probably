@@ -20,7 +20,7 @@ class PGFS(CommonDistributionsFactory):
 
     @staticmethod
     def uniform(var: Union[str, VarExpr], a: str, b: str) -> 'Distribution':
-        if not (0 <= sp.S(a) < sp.S(b)):
+        if not (0 <= sp.S(a) <= sp.S(b)):
             raise DistributionParameterError(f"Distribution parameters must satisfy 0 <= a < b < oo")
         return GeneratingFunction(f"1/({b} - {a} + 1) * {var}**{a} * ({var}**({b} - {a} + 1) - 1) / ({var} - 1)",
                                   closed=True, finite=True)
