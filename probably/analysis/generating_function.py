@@ -4,8 +4,9 @@ from typing import Tuple, List, Set, Dict, Union, Generator
 
 import sympy
 import operator
-from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr, BoolLitExpr, UnopExpr
+from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr, BoolLitExpr, UnopExpr, RealLitExpr
 from probably.pgcl.syntax import check_is_constant_constraint, check_is_modulus_condition, check_is_linear_expr
+from probably.pgcl.parser import parse_expr
 from .distribution import Distribution, MarginalType
 from .exceptions import ComparisonException, NotComputableException, DistributionParameterError
 from ..util.logger import log_setup
@@ -93,8 +94,24 @@ class GeneratingFunction(Distribution):
             else:
                 raise NotComputableException(f"The assignment {expression} is not computable on {self}")
 
-    def get_expected_value_of(self, expression: Union[Expr, str]):
-        raise NotImplementedError("Expected Value not implemented yet.")
+    def get_expected_value_of(self, expression: Union[Expr, str]) -> Expr:
+
+        expr = sympy.S(str(expression)).ratsimp().expand()
+        if not expr.is_polynomial():
+            raise NotImplementedError("Expected Value only computable for polynomial expressions.")
+        gf = GeneratingFunction(expr)
+        expected_value = GeneratingFunction('0')
+        for prob, state in gf:
+            tmp = self.copy()
+            for var, val in state.items():
+                for i in range(val):
+                    tmp = self.diff(var, 1) * GeneratingFunction(var)
+                    tmp = tmp.limit(var, 1)
+            expected_value += GeneratingFunction(prob) * tmp
+        if expected_value._function == sympy.S('oo'):
+            return RealLitExpr.infinity()
+        else:
+            return parse_expr(str(expected_value._function))
 
     rational_preciseness = False
     verbose_mode = False
@@ -248,10 +265,10 @@ class GeneratingFunction(Distribution):
                 func = self._function.expand().ratsimp().as_poly(*self._variables)
             else:
                 func = self._function.as_poly(*self._variables)
-            return map(lambda term: (term[0], self.monomial_to_state(term[1])), _term_generator(func))
+            return map(lambda term: (str(term[0]), self.monomial_to_state(term[1])), _term_generator(func))
         else:
             logger.debug("Multivariate Taylor expansion might take a while...")
-            return map(lambda term: (term[0], self.monomial_to_state(term[1])), self._mult_term_generator())
+            return map(lambda term: (str(term[0]), self.monomial_to_state(term[1])), self._mult_term_generator())
 
     def monomial_to_state(self, monomial: sympy.Expr) -> Dict[str, int]:
         """ Converts a `monomial` into a state."""
@@ -356,8 +373,8 @@ class GeneratingFunction(Distribution):
                                                                                                                    1)
         return coefficient_sum
 
-    def get_probability_mass(self):
-        return self.coefficient_sum()
+    def get_probability_mass(self) -> Expr:
+        return parse_expr(str(self.coefficient_sum()))
 
     def get_parameters(self) -> Set[str]:
         return set()
@@ -376,7 +393,7 @@ class GeneratingFunction(Distribution):
         return result
 
     def get_probability_of(self, condition: Union[Expr, str]):
-        return self.filter(condition).coefficient_sum()
+        return parse_expr(str(self.filter(condition).coefficient_sum()))
 
     def probability_of_state(self, state: Dict[str, int]) -> sympy.Expr:
         """
