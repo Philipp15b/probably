@@ -4,13 +4,9 @@ Type Checking
 -------------
 """
 
-from typing import Dict, Iterable, List, Optional, TypeVar, Union
-
+from typing import Dict, Optional, Union
 import attr
-
-from probably.util.ref import Mut
 from probably.pgcl.ast import *
-from probably.pgcl.ast.walk import Walk, walk_expr
 
 _T = TypeVar('_T')
 
@@ -70,6 +66,11 @@ def get_type(program: Program,
         variable_type = program.variables.get(expr.var)
         if variable_type is not None:
             return variable_type
+
+        # maybe a parameter
+        parameter_type = program.parameters.get(expr.var)
+        if parameter_type is not None:
+            return parameter_type
 
         # it must be a constant
         constant_type = program.constants.get(expr.var)
@@ -168,6 +169,18 @@ def get_type(program: Program,
         return NatType(bounds=None)
 
     if isinstance(expr, BinomialExpr):
+        n = expr.n
+        p = expr.p
+        typ_n = get_type(program, expr.n, check=check)
+        typ_p = get_type(program, expr.p, check=check)
+        if isinstance(typ_p, CheckFail):
+            return typ_p
+        if isinstance(typ_n, CheckFail):
+            return typ_n
+        if not is_compatible(typ_n, NatType(bounds=None)):
+            return CheckFail.expected_type_got(expr, NatType(bounds=None), typ_n)
+        if not is_compatible(typ_p, RealType()):
+            return CheckFail.expected_type_got(expr, RealType(), typ_p)
         return NatType(bounds=None)
 
     if isinstance(expr, CategoricalExpr):
@@ -205,7 +218,7 @@ def is_compatible(lhs: Type, rhs: Type) -> bool:
     return lhs == rhs
 
 
-def _check_constant_declarations(program: Program) -> Optional[CheckFail]:
+def check_constant_declarations(program: Program) -> Optional[CheckFail]:
     """
     Check that constants are defined before they are used.
     Also check that constants only contain other constants.
@@ -229,7 +242,7 @@ def _check_constant_declarations(program: Program) -> Optional[CheckFail]:
     return None
 
 
-def _check_declaration_list(program: Program) -> Optional[CheckFail]:
+def check_declaration_list(program: Program) -> Optional[CheckFail]:
     """
     Check that all variables/constants are defined at most once and that real
     variables are only declared if they are allowed in the config.
@@ -249,8 +262,8 @@ def _check_declaration_list(program: Program) -> Optional[CheckFail]:
     return None
 
 
-def _check_instrs(program: Program,
-                  *instrs: List[Instr]) -> Optional[CheckFail]:
+def check_instrs(program: Program,
+                 *instrs: List[Instr]) -> Optional[CheckFail]:
     for instrs_list in instrs:
         for instr in instrs_list:
             res = check_instr(program, instr)
@@ -273,7 +286,7 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
         if not is_compatible(BoolType(), cond_type):
             return CheckFail.expected_type_got(instr.cond, BoolType(),
                                                cond_type)
-        return _check_instrs(program, instr.body)
+        return check_instrs(program, instr.body)
 
     if isinstance(instr, IfInstr):
         cond_type = get_type(program, instr.cond)
@@ -282,7 +295,7 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
         if not is_compatible(BoolType(), cond_type):
             return CheckFail.expected_type_got(instr.cond, BoolType(),
                                                cond_type)
-        return _check_instrs(program, instr.true, instr.false)
+        return check_instrs(program, instr.true, instr.false)
 
     if isinstance(instr, AsgnInstr):
         lhs_type = program.variables.get(instr.lhs)
@@ -302,7 +315,7 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
         if not is_compatible(RealType(), prob_type):
             return CheckFail.expected_type_got(instr.prob, RealType(),
                                                prob_type)
-        return _check_instrs(program, instr.lhs, instr.rhs)
+        return check_instrs(program, instr.lhs, instr.rhs)
 
     if isinstance(instr, ObserveInstr):
         cond_type = get_type(program, instr.cond)
@@ -358,20 +371,20 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
         if not is_compatible(NatType(bounds=None), int_type):
             return CheckFail.expected_type_got(instr.iterations, NatType(None),
                                                int_type)
-        return _check_instrs(program, instr.body)
+        return check_instrs(program, instr.body)
 
     raise Exception("unreachable")
 
 
 def check_program(program: Program) -> Optional[CheckFail]:
     """Check a program for type-safety."""
-    check_result = _check_constant_declarations(program)
+    check_result = check_constant_declarations(program)
     if check_result is not None:
         return check_result
-    check_result = _check_declaration_list(program)
+    check_result = check_declaration_list(program)
     if check_result is not None:
         return check_result
-    return _check_instrs(program, program.instructions)
+    return check_instrs(program, program.instructions)
 
 
 def check_expression(program, expr: Expr) -> Optional[CheckFail]:

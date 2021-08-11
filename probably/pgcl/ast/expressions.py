@@ -418,7 +418,7 @@ class BinomialExpr(ExprClass):
     expressions are only allowed as the right-hand side of an assignment
     statement and not somewhere in a nested expression.
     """
-    n: NatLitExpr = attr.ib()
+    n: Union[NatLitExpr, VarExpr] = attr.ib()
     p: RealLitExpr = attr.ib()
 
     def __str__(self) -> str:

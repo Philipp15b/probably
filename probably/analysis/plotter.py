@@ -1,11 +1,11 @@
-import logging
 from typing import Union
 
 import sympy
+import logging
 import matplotlib.pyplot as plt
 from matplotlib.cm import ScalarMappable
 
-from .forward import *
+from .forward import Distribution, ParameterError
 from probably.pgcl import VarExpr
 from probably.util.logger import log_setup
 
@@ -113,6 +113,8 @@ class Plotter:
     @staticmethod
     def plot(function: Distribution, *variables: Union[str, sympy.Symbol], threshold: Union[str, int]) -> None:
         """ Shows the histogram of the marginal distribution of the specified variable(s). """
+        if function.get_parameters():
+            raise Exception("Cannot Plot parametrized functions.")
         if variables:
             if len(variables) > 2:
                 raise ParameterError(f"create_plot() cannot handle more than two variables!")

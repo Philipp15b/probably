@@ -81,6 +81,7 @@ _PGCL_GRAMMAR = """
            | "\\infty" -> infinity
 
     var: CNAME
+    
 
     %ignore /#.*$/m
     %ignore /\\/\\/.*$/m
@@ -190,7 +191,7 @@ def _parse_declaration(t: Tree) -> Decl:
     elif t.data == "rparam":
         return ParameterDecl(var0(), RealType())
     elif t.data == "nparam":
-        return ParameterDecl(var0(), NatType())
+        return ParameterDecl(var0(), NatType(bounds=None))
     else:
         raise Exception(f'invalid AST: {t.data}')
 
@@ -305,15 +306,13 @@ def _parse_rvalue(t: Tree) -> Expr:
         return LogDistExpr(param)
     elif t.data == 'bernoulli':
         param = _parse_expr(_child_tree(t, 0))
-        if not isinstance(param, RealLitExpr):
-            raise Exception(f"{param} is not a real number")
         return BernoulliExpr(param)
     elif t.data == 'binomial':
         param_0 = _parse_expr(_child_tree(t, 0))
-        if not isinstance(param_0, NatLitExpr):
+        if not isinstance(param_0, (NatLitExpr, VarExpr)):
             raise Exception(f"{param_0} is not a natural number")
         param_1 = _parse_expr(_child_tree(t, 1))
-        if not isinstance(param_1, RealLitExpr):
+        if not isinstance(param_1, (RealLitExpr, VarExpr)):
             raise Exception(f"{param_1} is not a real number")
         return BinomialExpr(param_0, param_1)
 

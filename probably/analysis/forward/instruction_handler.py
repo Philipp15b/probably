@@ -204,7 +204,9 @@ class SampleGFHandler(InstructionHandler):
 
         # rhs is binomial distribution
         if isinstance(instr.rhs, BinomialExpr):
-            return marginal * PGFS.binomial(variable, str(instr.rhs.n), str(instr.rhs.p))
+            p = instr.rhs.p if isinstance(instr.rhs.p, VarExpr) else str(instr.rhs.p)
+            n = instr.rhs.n if isinstance(instr.rhs.n, VarExpr) else str(instr.rhs.n)
+            return marginal * PGFS.binomial(variable, n, p)
 
         # rhs is poisson distribution
         if isinstance(instr.rhs, PoissonExpr):
@@ -212,7 +214,7 @@ class SampleGFHandler(InstructionHandler):
 
         # rhs is bernoulli distribution
         if isinstance(instr.rhs, BernoulliExpr):
-            return marginal * PGFS.bernoulli(variable, str(instr.rhs.param))
+            return marginal * PGFS.bernoulli(variable, instr.rhs.param)
 
         # rhs is logarithmic distribution
         if isinstance(instr.rhs, LogDistExpr):

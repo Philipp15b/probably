@@ -415,8 +415,8 @@ class GeneratingFunction(Distribution):
                                                                                                                    1)
         return coefficient_sum
 
-    def get_probability_mass(self) -> Expr:
-        return parse_expr(str(self.coefficient_sum()))
+    def get_probability_mass(self):
+        return str(self.coefficient_sum())
 
     def get_parameters(self) -> Set[str]:
         return set(map(str, self._parameters))

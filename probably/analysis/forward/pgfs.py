@@ -26,8 +26,8 @@ class PGFS(CommonDistributionsFactory):
                                   closed=True, finite=True)
 
     @staticmethod
-    def bernoulli(var: Union[str, VarExpr], p: str) -> Distribution:
-        if not (0 <= sp.S(p) <= 1):
+    def bernoulli(var: Union[str, VarExpr], p: Union[str, VarExpr]) -> Distribution:
+        if not isinstance(p, VarExpr) and not (0 <= sp.S(p) <= 1):
             raise DistributionParameterError(f"Parameter of Bernoulli Distribution must be in [0,1], but was {p}")
         return GeneratingFunction(f"1 - {p} + {p} * {var}", closed=True, finite=True)
 
@@ -44,12 +44,12 @@ class PGFS(CommonDistributionsFactory):
         return GeneratingFunction(f"log(1-{p}*{var})/log(1-{p})", closed=True, finite=False)
 
     @staticmethod
-    def binomial(var: Union[str, VarExpr], n: str, p: str) -> Distribution:
-        if not (0 <= sp.S(p) <= 1):
+    def binomial(var: Union[str, VarExpr], n: Union[str, VarExpr], p: Union[str, VarExpr]) -> Distribution:
+        if not isinstance(p, VarExpr) and not (0 <= sp.S(p) <= 1):
             raise DistributionParameterError(f"Parameter of Binomial Distribution must be in [0,1], but was {p}")
-        if not (0 <= sp.S(n)):
+        if not isinstance(n, VarExpr) and not (0 <= sp.S(n)):
             raise DistributionParameterError(f"Parameter of Binomial Distribution must be in [0,oo), but was {n}")
-        return GeneratingFunction(f"(1-{p}+{p}*{var})**{n}", closed=True, finite=True)
+        return GeneratingFunction(f"(1-{p}+{p}*{var})**{n}", var, closed=True, finite=True)
 
     @staticmethod
     def zero(*variables: Union[str, sympy.Symbol]):

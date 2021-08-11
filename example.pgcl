@@ -1,19 +1,22 @@
 nat x;
 nat y;
 rparam p;
+nparam n;
 
 
-x := binomial(10, 1/2)
+x := binomial(n, p)
 
-x := x + 3
+//x := binomial(10, 1/2)
 
-y := logdist(p)
+//x := x + 3
+
+//y := logdist(p)
 
 
 
-#observe(x=y & x=3)
+observe(x < 4)
 
-#?Pr[x=0 & y =1]
+?Pr[x=5]
 #!Plot[y, 10]
 #!Plot[x, 10]
 !Plot[x,y, .998]
