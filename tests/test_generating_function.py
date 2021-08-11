@@ -91,7 +91,7 @@ class TestDistributionInterface:
 
     def test_expected_value_of(self):
         gf = GeneratingFunction("(1-sqrt(1-x**2))/x")
-        assert gf.get_expected_value_of("x") == probably.pgcl.parse_expr("\infty")
+        assert gf.get_expected_value_of("x") == probably.pgcl.parse_expr("\\infty")
 
         gf = PGFS.zero("x")
         assert gf.get_expected_value_of("x") == probably.pgcl.parse_expr("0")
@@ -164,19 +164,19 @@ class TestDistributionInterface:
         expr = BinopExpr(Binop.EQ, VarExpr('x'), BinopExpr(Binop.TIMES, VarExpr('x'), VarExpr('x')))
         assert gf.update(expr) == GeneratingFunction("1/6 * (1 + x + x**4 + x**9 + x**16 + x**25)")
 
-    def test_marginal(self, *variables: Union[str, VarExpr], method: MarginalType = MarginalType.Include):
-        """ Computes the marginal distribution for the given variables (MarginalType.Include),
-            or for all but the given variables (MarginalType.Exclude).
-        """
-        pass
+    def test_marginal(self):
+        gf = GeneratingFunction("(1-sqrt(1-c**2))/c")
+        assert gf.marginal("x") == GeneratingFunction('1', 'x')
 
-    def test_set_variables(self, *variables: str):
-        """
-        Sets the free variables in a distribution.
-        :param variables: The variables.
-        :return:  The distribution with free variables `variables`
-        """
-        pass
+        gf = PGFS.uniform("x", '0', '10') * PGFS.binomial('y', n='10', p='1/2')
+        assert gf.marginal('x') == PGFS.uniform("x", '0', '10')
+        assert gf.marginal('x', method=MarginalType.Exclude) == PGFS.binomial('y', n='10', p='1/2')
+        assert gf.marginal('x','y') == gf
+
+    def test_set_variables(self):
+        gf = create_random_gf(3, 5)
+        gf = gf.set_variables("a", "b", "c")
+        assert all([x in gf.get_variables() for x in {'a', 'b', 'c'}])
 
     def test_approximate(self):
         gf = GeneratingFunction("2/(2-x) - 1")

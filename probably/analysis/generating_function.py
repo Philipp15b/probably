@@ -88,7 +88,7 @@ class GeneratingFunction(Distribution):
             error = sympy.S(input("Continue with approximation. Enter an allowed relative error (0, 1.0):\t"))
             if 0 < error < 1:
                 result = self
-                for expanded in self.expand_until((1 - error) * self.coefficient_sum()):
+                for expanded in self.approximate(f"{(1 - error) * self.coefficient_sum()}"):
                     result = expanded
                 return result.update(expression)
             else:
@@ -385,13 +385,6 @@ class GeneratingFunction(Distribution):
     def is_zero_dist(self) -> bool:
         return self._function == 0
 
-    def expected_value_of(self, variable: str):
-        logger.debug(f"expected_value_of() call")
-        result = sympy.diff(self._function, sympy.S(variable))
-        for var in self._variables:
-            result = sympy.limit(result, sympy.S(var), 1, '-')
-        return result
-
     def get_probability_of(self, condition: Union[Expr, str]):
         return parse_expr(str(self.filter(condition).coefficient_sum()))
 
@@ -661,7 +654,7 @@ class GeneratingFunction(Distribution):
         return GeneratingFunction(func, preciseness=self._preciseness, closed=self._is_closed_form,
                                   finite=func.ratsimp().is_polynomial())
 
-    def linear_transformation(self, variable: str, expression: Expr) -> 'GeneratingFunction':
+    def linear_transformation(self, variable: str, expression: Union[Expr, str]) -> 'GeneratingFunction':
         logger.debug(f"linear_transformation() call")
         # Transform expression into sympy readable format
         rhs = sympy.S(str(expression))
