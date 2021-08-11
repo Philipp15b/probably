@@ -3,10 +3,10 @@ import logging
 from abc import ABC, abstractmethod
 from typing import get_args, Union, Sequence
 
-from probably.analysis.config import ForwardAnalysisConfig
-from probably.analysis.distribution import Distribution, MarginalType
-from probably.analysis.exceptions import ObserveZeroEventError, ForwardAnalysisError
-from probably.analysis.pgfs import PGFS
+from probably.analysis.forward.config import ForwardAnalysisConfig
+from probably.analysis.forward.distribution import Distribution, MarginalType
+from probably.analysis.forward.exceptions import ObserveZeroEventError
+from probably.analysis.forward.pgfs import PGFS
 from probably.analysis.plotter import Plotter
 from probably.pgcl import Instr, WhileInstr, ChoiceInstr, IfInstr, LoopInstr, ObserveInstr, AsgnInstr, DistrExpr, \
     BinopExpr, Binop, VarExpr, NatLitExpr, DUniformExpr, GeometricExpr, BinomialExpr, PoissonExpr, BernoulliExpr, \

@@ -1,12 +1,13 @@
 nat x;
 nat y;
+rparam p;
 
 
 x := binomial(10, 1/2)
 
 x := x + 3
 
-y := logdist(1/2)
+y := logdist(p)
 
 
 

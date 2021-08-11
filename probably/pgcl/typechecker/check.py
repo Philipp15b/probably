@@ -9,15 +9,8 @@ from typing import Dict, Iterable, List, Optional, TypeVar, Union
 import attr
 
 from probably.util.ref import Mut
-
-from .ast import (AsgnInstr, Binop, BinopExpr, BoolLitExpr, BoolType,
-                  CategoricalExpr, ChoiceInstr, Decl, Expr, RealLitExpr,
-                  RealType, IfInstr, Instr, NatLitExpr, NatType, Node, ObserveInstr,
-                  Program, SkipInstr, Type, DUniformExpr, CUniformExpr, Unop, UnopExpr,
-                  Var, VarExpr, WhileInstr, VarDecl, GeometricExpr, BernoulliExpr, BinomialExpr, PoissonExpr,
-                  LogDistExpr, ExpectationInstr, ProbabilityQueryInstr, PlotInstr, LoopInstr)
-from .ast import ProgramConfig  # pylint:disable=unused-import
-from .walk import Walk, walk_expr
+from probably.pgcl.ast import *
+from probably.pgcl.ast.walk import Walk, walk_expr
 
 _T = TypeVar('_T')
 
@@ -70,21 +63,6 @@ def get_type(program: Program,
     Get the type of the expression or expectation.
 
     Set `check` to `True` to force checking correctness of all subexpressions, even if that is not necessary to determine the given expression's type.
-
-    .. doctest::
-
-        >>> from .ast import *
-        >>> nat = NatLitExpr(10)
-        >>> program = Program(ProgramConfig(), list(), dict(), dict(), list())
-
-        >>> get_type(program, BinopExpr(Binop.TIMES, nat, nat))
-        NatType(bounds=None)
-
-        >>> get_type(program, VarExpr('x'))
-        CheckFail(location=VarExpr('x'), message='variable is not declared')
-
-        >>> get_type(program, UnopExpr(Unop.IVERSON, BoolLitExpr(True)))
-        RealType()
     """
 
     if isinstance(expr, VarExpr):
@@ -221,22 +199,6 @@ def is_compatible(lhs: Type, rhs: Type) -> bool:
 
     * Natural numbers are compatible with variables of every other type of number (bounded or unbounded).
     * Otherwise the types must be exactly equal for values to be compatible.
-
-    .. doctest::
-
-        >>> from .ast import Bounds
-
-        >>> is_compatible(BoolType(), BoolType())
-        True
-        >>> is_compatible(NatType(bounds=None), NatType(bounds=None))
-        True
-        >>> is_compatible(NatType(bounds=Bounds(NatLitExpr(1), NatLitExpr(5))), NatType(bounds=Bounds(NatLitExpr(1), NatLitExpr(5))))
-        True
-        >>> is_compatible(NatType(bounds=Bounds(NatLitExpr(1), NatLitExpr(5))), NatType(bounds=None))
-        True
-
-        >>> is_compatible(BoolType(), NatType(bounds=None))
-        False
     """
     if isinstance(lhs, NatType) and isinstance(rhs, NatType):
         return True
@@ -247,17 +209,6 @@ def _check_constant_declarations(program: Program) -> Optional[CheckFail]:
     """
     Check that constants are defined before they are used.
     Also check that constants only contain other constants.
-
-    .. doctest::
-
-        >>> from .parser import parse_pgcl
-        >>> program = parse_pgcl("const x := y; const y := x")
-        >>> _check_constant_declarations(program)
-        CheckFail(location=VarExpr('y'), message='Constant is not yet defined')
-
-        >>> program = parse_pgcl("nat x; const y := x")
-        >>> _check_constant_declarations(program)
-        CheckFail(location=VarExpr('x'), message='Variable used in constant definition is not a constant')
     """
     declared = set()
     for name, value in program.constants.items():
@@ -282,17 +233,6 @@ def _check_declaration_list(program: Program) -> Optional[CheckFail]:
     """
     Check that all variables/constants are defined at most once and that real
     variables are only declared if they are allowed in the config.
-
-    .. doctest::
-
-        >>> from .parser import parse_pgcl
-        >>> program = parse_pgcl("const x := 1; const x := 1")
-        >>> _check_declaration_list(program)
-        CheckFail(location=..., message='Already declared variable/constant before.')
-
-        >>> program = parse_pgcl("real x;", config=ProgramConfig(allow_real_vars=False))
-        >>> _check_declaration_list(program)
-        CheckFail(location=... message='Real number variables are not allowed by the program config.')
     """
     declared: Dict[Var, Decl] = dict()
     for decl in program.declarations:
@@ -322,27 +262,6 @@ def _check_instrs(program: Program,
 def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
     """
     Check a single instruction for type-safety.
-
-    .. doctest::
-
-        >>> from .parser import parse_pgcl
-
-        >>> program = parse_pgcl("bool x; x := true")
-        >>> check_instr(program, program.instructions[0])
-
-        >>> program = parse_pgcl("nat x; x := true")
-        >>> check_instr(program, program.instructions[0])
-        CheckFail(location=..., message='Expected value of type NatType(bounds=None), got BoolType().')
-
-        >>> program = parse_pgcl("const x := true; x := true")
-        >>> check_instr(program, program.instructions[0])
-        CheckFail(location=..., message='x is not a variable.')
-
-        >>> program = parse_pgcl("nat x [1,5]; x := 3")
-        >>> check_instr(program, program.instructions[0])
-
-        >>> program = parse_pgcl("nat x [1,5]; nat y; x := x + 3")
-        >>> check_instr(program, program.instructions[0])
     """
     if isinstance(instr, SkipInstr):
         return None
@@ -458,12 +377,6 @@ def check_program(program: Program) -> Optional[CheckFail]:
 def check_expression(program, expr: Expr) -> Optional[CheckFail]:
     """
     Check an expression for type-safety.
-
-    .. doctest::
-
-        >>> program = Program(ProgramConfig(), list(), dict(), dict(), list())
-        >>> check_expression(program, RealLitExpr("1.0"))
-        CheckFail(location=..., message='A program expression may not return a probability.')
     """
     expr_type = get_type(program, expr, check=True)
     if isinstance(expr_type, CheckFail):

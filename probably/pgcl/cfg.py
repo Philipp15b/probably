@@ -49,7 +49,7 @@ from .ast import (AsgnInstr, Binop, BinopExpr, BoolLitExpr, ChoiceInstr, Expr,
                   IfInstr, Instr, NatLitExpr, NatType, Program, SkipInstr, Var,
                   VarExpr, WhileInstr)
 from .compiler import parse_pgcl
-from .simplify import simplifying_neg
+from probably.analysis.backward.simplify import simplifying_neg
 
 BasicBlockId = NewType('BasicBlockId', int)
 
@@ -473,7 +473,7 @@ class JumpTable:
         comparisons using :math:`\leq` (therefore logarithmic size in the number
         of jumps), we decide against it. Inequalities make it harder to see
         which conditions exclude each other and this makes debugging e.g.
-        weakest preexpectation generation (see :mod:`probably.pgcl.wp`) a bit
+        weakest preexpectation generation (see :mod:`probably.pgcl.backward`) a bit
         harder.
         """
         pc_expr = VarExpr(self._pc_var)

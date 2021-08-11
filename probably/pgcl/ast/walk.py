@@ -33,11 +33,12 @@ This makes it hard to forget calling a recursive traversal call, which could eas
 """
 
 from enum import Enum, auto
-from typing import Callable, Iterable, TypeVar
+from typing import Callable, Iterable, TypeVar, List
 
+from .instructions import Instr, InstrClass
+from .expressions import Expr, ExprClass
 from probably.util.ref import Mut
 
-from .ast import *
 
 T = TypeVar("T")
 
@@ -108,12 +109,6 @@ def walk_instrs(walk: Walk, instrs: List[Instr]) -> Iterable[Mut[Instr]]:
 def instr_exprs(node: Instr) -> Iterable[Expr]:
     """
     Get the expressions that are direct children of this instruction as values.
-
-    .. doctest::
-
-        >>> from .ast import *
-        >>> list(instr_exprs(AsgnInstr('x', BoolLitExpr(True))))
-        [BoolLitExpr(True)]
     """
     for value in node.__dict__.values():
         if isinstance(value, ExprClass):
@@ -123,11 +118,6 @@ def instr_exprs(node: Instr) -> Iterable[Expr]:
 def mut_instr_exprs(node: Instr) -> Iterable[Mut[Expr]]:
     """
     Get refs to the expressions of an instruction.
-
-    .. doctest::
-
-        >>> list(mut_instr_exprs(ChoiceInstr(VarExpr('x'), [SkipInstr()], [SkipInstr()])))
-        [Mut(val=VarExpr('x'))]
     """
     for ref in Mut.dict_values(node.__dict__):
         if not isinstance(ref.val, ExprClass):

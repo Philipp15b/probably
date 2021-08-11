@@ -1,7 +1,7 @@
 import pytest
 from lark.exceptions import UnexpectedCharacters
 
-from probably.pgcl.check import CheckFail
+from probably.pgcl.typechecker.check import CheckFail
 from probably.pgcl.compiler import compile_pgcl
 
 

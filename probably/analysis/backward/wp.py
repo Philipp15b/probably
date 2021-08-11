@@ -22,7 +22,7 @@ represented in the computed expectations as a
 
 .. doctest::
 
-    >>> from .parser import parse_pgcl
+    >>> from probably.pgcl.parser import parse_pgcl
     >>> program = parse_pgcl("x := 5; tick(5)")
     >>> transformer = loopfree_wp_transformer(program, program.instructions)
     >>> print(transformer)
@@ -36,7 +36,7 @@ Theorem 7.11 of [kam19]_ (page 173):
 
 .. math::
 
-    \mathrm{ert}\llbracket{}C\rrbracket(t) = \mathrm{ert}\llbracket{}C\rrbracket(0) + \mathrm{wp}\llbracket{}C\rrbracket{}(t)
+    \mathrm{ert}\llbracket{}C\rrbracket(t) = \mathrm{ert}\llbracket{}C\rrbracket(0) + \mathrm{backward}\llbracket{}C\rrbracket{}(t)
 
 Therefore the weakest pre-expectation of a program with ``tick`` instructions
 can be obtained by simply ignoring all :class:`probably.pgcl.ast.TickExpr` in
@@ -61,7 +61,7 @@ Transformers
 Loops
 #####
 
-The :math:`\mathrm{wp}` semantics of loops require a least fixed-point. It is
+The :math:`\mathrm{backward}` semantics of loops require a least fixed-point. It is
 undecidable to compute. We do not represent least-fixed points explicitely in
 our AST (see :mod:`probably.pgcl.ast`), but instead represent the weakest
 pre-expectation transformer of a **single loop** (without any more nested loops)
@@ -81,19 +81,14 @@ compute the :class:`LoopExpectationTransformer`.
 """
 import functools
 from copy import deepcopy
-from typing import Dict, List, Sequence, Union
+from typing import Dict, Sequence, Union
 
 import attr
 
-from probably.util.ref import Mut
-
-from .ast import (AsgnInstr, Binop, BinopExpr, CategoricalExpr, ChoiceInstr,
-                  Expr, RealLitExpr, IfInstr, Instr, Program, SkipInstr,
-                  SubstExpr, TickExpr, TickInstr, DUniformExpr, CUniformExpr,
-                  Unop, UnopExpr, Var, VarExpr, WhileInstr)
-from .substitute import substitute_expr
-from .syntax import check_is_one_big_loop
-from .walk import Walk, walk_expr
+from probably.pgcl.ast import *
+from probably.pgcl.substitute import substitute_expr
+from probably.pgcl.analyzer.syntax import check_is_one_big_loop
+from probably.pgcl.ast.walk import Walk, walk_expr
 
 
 def loopfree_wp(instr: Union[Instr, Sequence[Instr]],
@@ -115,8 +110,8 @@ def loopfree_wp(instr: Union[Instr, Sequence[Instr]],
 
     .. doctest::
 
-        >>> from .parser import parse_pgcl
-        >>> from .ast import RealLitExpr, VarExpr
+        >>> from probably.pgcl.parser import parse_pgcl
+        >>> from probably.pgcl.ast import RealLitExpr, VarExpr
 
         >>> program = parse_pgcl("bool a; bool x; if (a) { x := 1 } {}")
         >>> res = loopfree_wp(program.instructions, RealLitExpr("1.0"))
@@ -139,7 +134,7 @@ def loopfree_wp(instr: Union[Instr, Sequence[Instr]],
         '(0.5 * ((x)[x/true])) + (0.5 * ((x)[x/false]))'
 
     Args:
-        instr: The instruction to calculate the wp for, or a list of instructions.
+        instr: The instruction to calculate the backward for, or a list of instructions.
         postexpectation: The postexpectation.
     """
 
@@ -151,7 +146,7 @@ def loopfree_wp(instr: Union[Instr, Sequence[Instr]],
         return postexpectation
 
     if isinstance(instr, WhileInstr):
-        raise Exception("While instruction not supported for wp generation")
+        raise Exception("While instruction not supported for backward generation")
 
     if isinstance(instr, IfInstr):
         true_block = loopfree_wp(instr.true, postexpectation)
@@ -176,7 +171,7 @@ def loopfree_wp(instr: Union[Instr, Sequence[Instr]],
                                     branches)
         if isinstance(instr.rhs, CUniformExpr):
             raise Exception(
-                "continuous uniform not supported for wp generation")
+                "continuous uniform not supported for backward generation")
 
         subst: Dict[Var, Expr] = {instr.lhs: instr.rhs}
         return SubstExpr(subst, postexpectation)
@@ -249,12 +244,12 @@ class ExpectationTransformer:
 
         .. doctest::
 
-            >>> from .parser import parse_pgcl
+            >>> from probably.pgcl.parser import parse_pgcl
             >>> program = parse_pgcl("x := 3")
-            >>> wp = loopfree_wp_transformer(program, program.instructions)
-            >>> print(wp)
+            >>> backward = loopfree_wp_transformer(program, program.instructions)
+            >>> print(backward)
             λ𝑋. (𝑋)[x/3]
-            >>> print(wp.apply(VarExpr("x")))
+            >>> print(backward.apply(VarExpr("x")))
             3
 
         Args:
@@ -322,16 +317,16 @@ class LoopExpectationTransformer:
     because the term in the weakest pre-expectation semantics for termination of
     the while loop never contains the post-expectation :math:`f` (it is just
     multiplied with it). A simpler representation allows for more convenient
-    further use. The :math:`\mathrm{wp}` semantics of a ``while`` loop are shown
+    further use. The :math:`\mathrm{backward}` semantics of a ``while`` loop are shown
     below:
 
     .. math::
 
-        \mathrm{wp}\llbracket{}\mathtt{while} (b) \{ C \}\rrbracket(f) = \mathrm{lfp}~X.~ \underbrace{[b] \cdot \mathrm{wp}\llbracket{}C\rrbracket{}(X)}_{\text{body}} + \underbrace{[\neg b]}_{\text{done}} \cdot f
+        \mathrm{backward}\llbracket{}\mathtt{while} (b) \{ C \}\rrbracket(f) = \mathrm{lfp}~X.~ \underbrace{[b] \cdot \mathrm{backward}\llbracket{}C\rrbracket{}(X)}_{\text{body}} + \underbrace{[\neg b]}_{\text{done}} \cdot f
 
     .. doctest::
 
-        >>> from .parser import parse_pgcl
+        >>> from probably.pgcl.parser import parse_pgcl
         >>> program = parse_pgcl("bool x; x := true; while (x) { x := false }")
         >>> transformer = one_loop_wp_transformer(program, program.instructions)
         >>> print(transformer)
@@ -373,7 +368,7 @@ def one_loop_wp_transformer(
 
     .. doctest::
 
-        >>> from .parser import parse_pgcl
+        >>> from probably.pgcl.parser import parse_pgcl
 
         >>> program = parse_pgcl("bool x; bool y; while(x) { { x := true } [0.5] { x := y } }")
         >>> print(one_loop_wp_transformer(program, program.instructions))
@@ -430,7 +425,7 @@ def general_wp_transformer(
 
     .. doctest::
 
-        >>> from .parser import parse_pgcl
+        >>> from probably.pgcl.parser import parse_pgcl
 
         >>> program = parse_pgcl("bool x; while(x) { while (y) {} }")
         >>> print(general_wp_transformer(program))
@@ -441,7 +436,7 @@ def general_wp_transformer(
         substitute: Whether to call :meth:`ExpectationTransformer.substitute` on the ``body``.
     """
     # avoid a cyclic import
-    from .cfg import \
+    from probably.pgcl.cfg import \
         program_one_big_loop  # pylint: disable=import-outside-toplevel,cyclic-import
 
     one_big_loop_err = check_is_one_big_loop(program.instructions)

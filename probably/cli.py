@@ -15,10 +15,10 @@ import logging
 import click
 
 import probably.pgcl.compiler as pgcl
-from probably.analysis.config import ForwardAnalysisConfig
-from probably.pgcl.check import CheckFail
+from probably.analysis import ForwardAnalysisConfig
+from probably.pgcl.typechecker.check import CheckFail
 import probably.analysis
-from probably.analysis.generating_function import GeneratingFunction
+from probably.analysis import GeneratingFunction
 
 
 @click.command()

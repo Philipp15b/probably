@@ -3,7 +3,7 @@
 Expression Simplification
 -------------------------
 
-Expressions and expectations become ugly after wp calculation?
+Expressions and expectations become ugly after backward calculation?
 Your program has dumb expressions a toddler could simplify?
 This is the right place for you!
 """
@@ -12,15 +12,13 @@ from typing import Dict, List, Union, Optional
 
 import attr
 
+from probably.pgcl.ast.expressions import expr_str_parens
 from probably.util.ref import Mut
 
-from .ast import VarExpr  # pylint:disable=unused-import
-from .ast import (Binop, BinopExpr, BoolLitExpr, Expr, NatLitExpr, NatType,
-                  RealLitExpr, RealType, Program, SubstExpr, TickExpr, Unop,
-                  UnopExpr, Var, expr_str_parens)
-from .check import CheckFail, get_type
-from .walk import Walk, walk_expr
-from .wp import ExpectationTransformer
+from probably.pgcl.ast import *
+from probably.pgcl.typechecker.check import CheckFail, get_type
+from probably.pgcl.ast.walk import Walk, walk_expr
+from probably.analysis.backward.wp import ExpectationTransformer
 
 
 def simplifying_and(lhs: Expr, rhs: Expr) -> Expr:
@@ -232,7 +230,7 @@ class SnfExpectationTransformerProduct:
 class SnfExpectationTransformer:
     """
     An expectation transformer
-    (:class:`probably.pgcl.wp.ExpectationTransformer`) is in *summation normal
+    (:class:`probably.pgcl.backward.ExpectationTransformer`) is in *summation normal
     form (SNF)* if it is a sum of products
     (:class:`SnfExpectationTransformerProduct`). This class can be accessed just
     like a list over :class:`SnfExpectationTransformerProduct`.
@@ -242,7 +240,7 @@ class SnfExpectationTransformer:
 
     The multiplication operator is implemented (``*``), but only one operand may
     include substitutions. This is always the case for transformers generated
-    from weakest pre-expectation semantics (see :mod:`probably.pgcl.wp`).
+    from weakest pre-expectation semantics (see :mod:`probably.pgcl.backward`).
 
     .. doctest::
 

@@ -1,7 +1,6 @@
-from probably.analysis.generating_function import GeneratingFunction
-from probably.analysis.pgfs import PGFS
+from probably.analysis.forward.generating_function import GeneratingFunction
+from probably.analysis.forward.pgfs import PGFS
 import random as rng
-import pytest
 
 
 def test_bernoulli():

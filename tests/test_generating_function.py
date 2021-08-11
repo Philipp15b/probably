@@ -1,13 +1,13 @@
-import sympy
-
-from probably.analysis.generating_function import *
 import probably.pgcl
-from probably.pgcl.parser import _parse_instr
 import random
-
+import sympy
 import pytest
 
-from probably.analysis.pgfs import PGFS
+from probably.analysis.forward.distribution import MarginalType
+from probably.analysis.forward.exceptions import ComparisonException
+from probably.analysis.forward.pgfs import PGFS
+from probably.analysis.forward.generating_function import GeneratingFunction
+from probably.pgcl import Binop, BinopExpr, VarExpr, NatLitExpr
 
 
 def create_random_gf(vars: int = 1, terms: int = 1):

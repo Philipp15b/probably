@@ -17,8 +17,8 @@ from probably.pgcl import substitute
 from probably.util.ref import Mut
 
 from .ast import Expr, Program
-from .check import (CheckFail, check_expectation, check_expression,
-                    check_program)
+from probably.pgcl.typechecker.check import (CheckFail, check_expectation, check_expression,
+                                             check_program)
 from .parser import parse_expectation, parse_expr, parse_pgcl
 
 

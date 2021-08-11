@@ -93,8 +93,8 @@ import attr
 from probably.util.ref import Mut
 
 from .ast import Expr, ExprClass, Program, SubstExpr, Var, VarExpr
-from .walk import (Walk, mut_expr_children, mut_instr_exprs, walk_expr,
-                   walk_instrs)
+from probably.pgcl.ast.walk import (Walk, mut_expr_children, mut_instr_exprs, walk_expr,
+                                    walk_instrs)
 
 
 @attr.s(hash=True)

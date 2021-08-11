@@ -1,7 +1,7 @@
 from probably.pgcl.ast import VarExpr
 from probably.pgcl.compiler import compile_pgcl
 from probably.pgcl.substitute import substitute_expr
-from probably.pgcl.wp import loopfree_wp
+from probably.analysis.backward.wp import loopfree_wp
 from probably.util.ref import Mut
 
 

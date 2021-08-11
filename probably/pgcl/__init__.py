@@ -9,7 +9,7 @@ The most important modules are the two below:
 1. :mod:`probably.pgcl.compiler`. Functions that do parsing and type-checking all at once.
 2. :mod:`probably.pgcl.ast`. The abstract syntax tree (AST) with all its types that define it.
 
-It is also possible to calculate weakest pre-expectations of programs (see :mod:`probably.pgcl.wp`) for some specific types of programs.
+It is also possible to calculate weakest pre-expectations of programs (see :mod:`probably.pgcl.backward`) for some specific types of programs.
 
 .. doctest::
 
@@ -38,7 +38,7 @@ For more details on what syntax is accepted for pGCL programs, you can view the 
 .. automodule:: probably.pgcl.compiler
 .. automodule:: probably.pgcl.ast
     :no-members:
-.. automodule:: probably.pgcl.wp
+.. automodule:: probably.pgcl.backward
     :no-members:
 .. automodule:: probably.pgcl.cf
 .. automodule:: probably.pgcl.syntax
@@ -52,6 +52,6 @@ For more details on what syntax is accepted for pGCL programs, you can view the 
 """
 
 from .ast import *
-from .check import *
+from probably.pgcl.typechecker.check import *
 from .parser import parse_pgcl, parse_expr
-from .walk import *
+from probably.pgcl.ast.walk import *

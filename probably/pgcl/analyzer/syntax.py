@@ -47,7 +47,7 @@ and monus).
 arithmetic and linear Boolean expressions. Probabilistic choices must be done
 with a constant probability expression.
 
-The weakest pre-expectations of linear programs (see :py:mod:`probably.pgcl.wp`)
+The weakest pre-expectations of linear programs (see :py:mod:`probably.pgcl.backward`)
 are also linear in the sense that they can be easily rewritten as *linear
 expectations*. You can use for example :py:func:`probably.pgcl.simplify.normalize_expectation`.
 
@@ -93,10 +93,10 @@ from typing import Optional, Sequence
 
 from probably.util.ref import Mut
 
-from .ast import (AsgnInstr, Binop, BinopExpr, Expr, Instr, Program, Unop,
-                  UnopExpr, VarExpr, WhileInstr, NatLitExpr)
-from .check import CheckFail
-from .walk import Walk, instr_exprs, mut_expr_children, walk_expr, walk_instrs
+from probably.pgcl.ast import (AsgnInstr, Binop, BinopExpr, Expr, Instr, Program, Unop,
+                               UnopExpr, VarExpr, WhileInstr, NatLitExpr)
+from probably.pgcl.typechecker.check import CheckFail
+from probably.pgcl.ast.walk import Walk, instr_exprs, mut_expr_children, walk_expr, walk_instrs
 
 
 def check_is_linear_program(program: Program) -> Optional[CheckFail]:

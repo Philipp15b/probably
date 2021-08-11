@@ -18,13 +18,16 @@ we collect all `LikelyExpr` and flatten them into a single
 :class:`CategoricalExpr`. `LikelyExpr` never occur outside of this parser.
 """
 import textwrap
+from fractions import Fraction
+
+import attr
 from decimal import Decimal
-from typing import List, Optional
+from typing import Optional, Union
 
 from lark import Lark, Tree
 
 from probably.pgcl.ast import *
-from probably.pgcl.walk import Walk, walk_expr
+from probably.pgcl.ast.walk import Walk, walk_expr
 from probably.util.lark_expr_parser import (atom, build_expr_parser, infixl,
                                             prefix)
 from probably.util.ref import Mut
@@ -38,6 +41,8 @@ _PGCL_GRAMMAR = """
                | "nat" var bounds?           -> nat
                | "real" var bounds?          -> real
                | "const" var ":=" expression -> const
+               | "rparam" var                -> rparam
+               | "nparam" var                -> nparam
 
     bounds: "[" expression "," expression "]"
 
@@ -182,6 +187,10 @@ def _parse_declaration(t: Tree) -> Decl:
         return VarDecl(var0(), RealType())
     elif t.data == "const":
         return ConstDecl(var0(), _parse_expr(_child_tree(t, 1)))
+    elif t.data == "rparam":
+        return ParameterDecl(var0(), RealType())
+    elif t.data == "nparam":
+        return ParameterDecl(var0(), NatType())
     else:
         raise Exception(f'invalid AST: {t.data}')
 
@@ -265,10 +274,10 @@ def _parse_literal(t: Tree) -> Expr:
 def _parse_rvalue(t: Tree) -> Expr:
     if t.data == 'duniform':
         start = _parse_expr(_child_tree(t, 0))
-        if not isinstance(start, NatLitExpr):
+        if not isinstance(start, (NatLitExpr, VarExpr)):
             raise Exception(f"{start} is not a natural number")
         end = _parse_expr(_child_tree(t, 1))
-        if not isinstance(end, NatLitExpr):
+        if not isinstance(end, (NatLitExpr, VarExpr)):
             raise Exception(f"{end} is not a natural number")
         return DUniformExpr(start, end)
     elif t.data == 'cuniform':
@@ -286,12 +295,12 @@ def _parse_rvalue(t: Tree) -> Expr:
         return GeometricExpr(param)
     elif t.data == 'poisson':
         param = _parse_expr(_child_tree(t, 0))
-        if not (isinstance(param, RealLitExpr) or isinstance(param, NatLitExpr)):
-            raise Exception(f"{param} is not a real number")
+        if not isinstance(param, (NatLitExpr, VarExpr)):
+            raise Exception(f"{param} is not a natural number")
         return PoissonExpr(param)
     elif t.data == 'logdist':
         param = _parse_expr(_child_tree(t, 0))
-        if not isinstance(param, RealLitExpr):
+        if not isinstance(param, (RealLitExpr, VarExpr)):
             raise Exception(f"{param} is not a real number")
         return LogDistExpr(param)
     elif t.data == 'bernoulli':

@@ -5,11 +5,11 @@ from typing import Tuple, List, Set, Dict, Union, Generator
 import sympy
 import operator
 from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr, BoolLitExpr, UnopExpr, RealLitExpr
-from probably.pgcl.syntax import check_is_constant_constraint, check_is_modulus_condition, check_is_linear_expr
+from probably.pgcl.analyzer.syntax import check_is_constant_constraint, check_is_modulus_condition, check_is_linear_expr
 from probably.pgcl.parser import parse_expr
 from .distribution import Distribution, MarginalType
 from .exceptions import ComparisonException, NotComputableException, DistributionParameterError
-from ..util.logger import log_setup
+from probably.util.logger import log_setup
 
 logger = log_setup(__name__, logging.DEBUG, file="GF_operations.log")
 

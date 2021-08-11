@@ -1,12 +1,11 @@
 import logging
-from typing import Union, Optional
+from typing import Union
 
 import sympy
 import matplotlib.pyplot as plt
 from matplotlib.cm import ScalarMappable
 
-from probably.analysis.distribution import Distribution
-from probably.analysis.exceptions import ParameterError
+from .forward import *
 from probably.pgcl import VarExpr
 from probably.util.logger import log_setup
 
