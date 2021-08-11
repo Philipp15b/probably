@@ -103,12 +103,31 @@ class TestDistributionInterface:
         assert create_random_gf().normalize().coefficient_sum() == 1
 
     def test_get_variables(self):
-        """Returns the free variables of the distribution. """
-        pass
+        variable_count = random.randint(1, 10)
+        gf = create_random_gf(variable_count, 5)
+        assert len(gf.get_variables()) == variable_count,\
+            f"Amount of variables does not match. Should be {variable_count}, is {len(gf.get_variables())}."
+
+        assert all(map(lambda x: x in ["x"+str(i) for i in range(variable_count)], gf.get_variables())),\
+            f"The variables do not coincide with the actual names." \
+            f"Should be {['x'+str(i) for i in range(variable_count)]}, is {gf.get_variables()}."
+
+        gf = GeneratingFunction("a*x + (1-a)", "x")
+        print(gf.get_variables(), gf.get_parameters())
+        assert len(gf.get_variables()) == 1
+        assert gf.get_variables() == {"x"}
 
     def test_get_parameters(self):
-        """ Returns the parameters of the distribution. """
-        pass
+        variable_count = random.randint(1, 10)
+        gf = create_random_gf(variable_count, 5)
+
+        gf *= GeneratingFunction("p", "")
+        assert len(gf.get_parameters()) == 1,\
+            f"Amount of variables does not match. Should be {2}, is {len(gf.get_parameters())}."
+
+        assert all(map(lambda x: x in {"p"}, gf.get_parameters())),\
+            f"The variables do not coincide with the actual names." \
+            f"Should be {{'a', 'b'}}, is {gf.get_parameters()}."
 
     def test_filter(self):
         gf = PGFS.zero("x")

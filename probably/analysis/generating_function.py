@@ -29,68 +29,101 @@ class GeneratingFunction(Distribution):
     This class does not ensure to be in a healthy state (i.e., every coefficient is non-negative).
     """
 
+    """ Class Attributes defining a configuration. """
+    rational_preciseness = False
+    verbose_mode = False
+    use_simplification = False
+
     def __init__(self, function: Union[str, sympy.Expr] = "",
                  *variables: Union[str, sympy.Symbol],
                  preciseness=1.0,
                  closed: bool = None,
                  finite: bool = None):
 
+        # Set the basic information.
         self._function: sympy.Expr = sympy.S(function, rational=True)
-        self._variables: Set[sympy.Symbol] = self._function.free_symbols
         self._preciseness = sympy.S(str(preciseness), rational=True)
-        if variables:
-            for variable in variables:
-                self._variables = self._variables.union({sympy.S(variable)})
-        self._is_closed_form = closed if closed else not self._function.is_polynomial()
-        self._is_finite = finite if finite else self._function.ratsimp().is_polynomial()
+
+        # Set variables and parameters
+        self._variables: Set[sympy.Symbol] = self._function.free_symbols
+        self._parameters: Set[sympy.Symbol] = set()
+        if len(variables) == 1 and variables[0] == "":
+            self._variables = set()
+            self._parameters = self._function.free_symbols
+        elif variables:
+            self._variables = self._variables.union(map(sympy.S, variables))
+            self._parameters = self._variables.difference(map(sympy.S, variables))
+            self._variables -= self._parameters
+
+        # Do closed form and finiteness heuristics
+        self._is_closed_form = closed if closed else not self._function.is_polynomial(*self._variables)
+        self._is_finite = finite if finite else self._function.ratsimp().is_polynomial(*self._variables)
+
+    def _update_modulo_expression(self, expression: Expr) -> 'GeneratingFunction':
+
+        assert isinstance(expression, BinopExpr) and expression.operator == Binop.MODULO, \
+            f"This function can only be called on Modulo Expressions, got {expression}."
+
+        # Currently only unnested modulo expression are supported. Maybe update this at some time.
+        if isinstance(expression.lhs, VarExpr) and isinstance(expression.rhs, NatLitExpr):
+            result = GeneratingFunction("0", *self._variables, preciseness=1, closed=True, finite=True)
+            ap = self.arithmetic_progression(str(expression.lhs), str(expression.rhs))
+            for i in range(expression.rhs.value):
+                func = ap[i]
+                result += func.marginal(expression.lhs.var, method=MarginalType.Exclude) * GeneratingFunction(
+                    f"{expression.lhs}**{i}")
+            return result
+        else:
+            raise NotImplementedError(f"Nested modulo expressions are currently not supported.")
+
+    def _update_statewise(self, expression: Expr) -> 'GeneratingFunction':
+        """ Updates a finite distribution by evaluating the expression for each encoded state separately. """
+
+        assert self._is_finite, f"Cannot do a statewise update for infinite Generatingfunction {self}."
+        assert isinstance(expression, BinopExpr) and isinstance(expression.lhs, VarExpr), \
+            f"Expression must be an assignment, was {expression}."
+
+        result = sympy.S(0)
+        for prob, state in self:
+            updated_state = state.copy()
+            updated_state[expression.lhs.var] = int(self.evaluate(str(expression.rhs), state))
+            monomial = self.state_to_monomial(updated_state)
+            result += sympy.S(prob) * monomial
+        return GeneratingFunction(result, *self._variables, preciseness=self._preciseness)
 
     def update(self, expression: Expr) -> 'Distribution':
+        """ Updates the current distribution by applying the expression to itself. Currently we are able to handle the
+            following cases:
+                * Modulo operations like: <<VAR>> % <<CONSTANT>>
+                * Linear transformations: <<VAR>> := f(<<VARS>>) where f is a linear function.
+                * Arbitrary Expressions where the current distribution has finite support.
+                * Approximations to arbitrary expression where the current distribution has infinite support.
+            ATTENTION: The latter two might take a while to compute as it is implemented in a brute force manner.
+        """
+
+        assert isinstance(expression, BinopExpr) and isinstance(expression.lhs, VarExpr), \
+            f"Expression must be an assignment, was {expression}."
 
         variable: str = expression.lhs.var
 
+        # rhs is a modulo expression
         if isinstance(expression.rhs, BinopExpr) and expression.rhs.operator == Binop.MODULO:
-            # currently only unnested modulo operations are supported...
-            mod_expr = expression.rhs
-            if isinstance(mod_expr.lhs, VarExpr) and isinstance(mod_expr.rhs, NatLitExpr):
-                result = GeneratingFunction("0", *self._variables, preciseness=1, closed=True, finite=True)
-                ap = self.arithmetic_progression(str(mod_expr.lhs), str(mod_expr.rhs))
-                for i in range(mod_expr.rhs.value):
-                    func = ap[i]
-                    result += func.marginal(mod_expr.lhs.var, method=MarginalType.Exclude) * GeneratingFunction(
-                        f"{mod_expr.lhs}**{i}")
-                return result
-            else:
-                raise NotImplementedError(f"Nested modulo expressions are currently not supported.")
+            return self._update_modulo_expression(expression)
 
         # rhs is a linear expression
-        if check_is_linear_expr(expression.rhs) is None:
+        elif check_is_linear_expr(expression.rhs) is None:
             return self.linear_transformation(variable, expression.rhs)
 
         # rhs is a non-linear expression, self is finite
         elif self.is_finite():
-            result = sympy.S(0)
-            for prob, state in self:  # Take the addends of the Taylor expansion
-                monomial = self.state_to_monomial(state)
-                new_addend = sympy.S(prob) * monomial.subs(variable, 1)  # create the updated monomial.
-                new_value = sympy.S(str(expression.rhs))
-                for s_var in self._variables:  # for each variable check its current state
-                    if str(s_var) not in state:
-                        new_value = new_value.subs(s_var, 0)
-                    else:
-                        new_value = new_value.subs(s_var, state[str(s_var)])
-                new_addend *= sympy.S(str(expression.lhs)) ** new_value  # and update
-                result += new_addend
-            return GeneratingFunction(result, *self._variables, preciseness=self._preciseness)
+            return self._update_statewise(expression)
 
         # rhs is non-linear, self is infinite support
         else:
             print(f"The assignment {expression} is not computable on {self}")
             error = sympy.S(input("Continue with approximation. Enter an allowed relative error (0, 1.0):\t"))
             if 0 < error < 1:
-                result = self
-                for expanded in self.approximate(f"{(1 - error) * self.coefficient_sum()}"):
-                    result = expanded
-                return result.update(expression)
+                return list(self.approximate(f"{(1 - error) * self.coefficient_sum()}"))[-1].update(expression)
             else:
                 raise NotComputableException(f"The assignment {expression} is not computable on {self}")
 
@@ -113,9 +146,6 @@ class GeneratingFunction(Distribution):
         else:
             return parse_expr(str(expected_value._function))
 
-    rational_preciseness = False
-    verbose_mode = False
-    use_simplification = False
 
     @classmethod
     def split_addend(cls, addend):
@@ -154,13 +184,23 @@ class GeneratingFunction(Distribution):
                                       finite=self._is_finite)
 
     def _arithmetic(self, other, op: operator):
+        """
+        Computes the basic arithmetic of two generating functions.
+        """
         logger.debug(f"Computing the {str(op)} of {self} with {other}")
+
+        # other object is already a generating function.
         if isinstance(other, GeneratingFunction):
+            # collect the meta information.
             s, o = self.coefficient_sum(), other.coefficient_sum()
             is_closed_form = self._is_closed_form and other._is_closed_form
             is_finite = self._is_finite and other._is_finite
             preciseness = (s + o) / (s / self._preciseness + o / other._preciseness)
+
+            # do the actual operation
             function = op(self._function, other._function)
+
+            # simplify the result if demanded.
             if GeneratingFunction.use_simplification:
                 logger.debug(f"Try simplification but stay in closed form!")
                 n, d = sympy.fraction(function)
@@ -173,11 +213,17 @@ class GeneratingFunction(Distribution):
                     logger.debug("Try to cancel terms")
                     function = function.expand()
                     logger.debug(f"Canceling result: {function}")
+
+            # update the occuring variables and parameters
             variables = self._variables.union(other._variables)
             return GeneratingFunction(function, *variables, preciseness=preciseness, closed=is_closed_form,
                                       finite=is_finite)
+
+        # other object is either an expression, or literal
         elif isinstance(other, (str, float, int)):
+            # we try to convert this into a Generatingfunction and compute the arithmetic from there on.
             return self._arithmetic(GeneratingFunction(other), op)
+        # We don't know how to do arithmetic on other types.
         else:
             raise SyntaxError(f"You cannot {str(op)} {type(self)} with {type(other)}.")
 
@@ -195,14 +241,12 @@ class GeneratingFunction(Distribution):
 
     def __str__(self):
         if GeneratingFunction.rational_preciseness:
-            output = f"{str(self._function.simplify() if GeneratingFunction.use_simplification else self._function)}" \
-                     f" \t@{str(self._preciseness)}"
+            output = f"{str(self._function)}\t@{str(self._preciseness)}"
             if GeneratingFunction.verbose_mode:
                 output += f"\t({str(self._is_closed_form)},{str(self._is_finite)})"
             return output
         else:
-            output = str(self._function.simplify() if GeneratingFunction.use_simplification else self._function) + "\t@"
-            output += str(self._preciseness.evalf())
+            output = str(self._function) + "\t@" + str(self._preciseness.evalf())
             if GeneratingFunction.verbose_mode:
                 output += f"\t({str(self._is_closed_form)},{str(self._is_finite)})"
             return output
@@ -337,14 +381,12 @@ class GeneratingFunction(Distribution):
 
         if isinstance(threshold, int):
             assert threshold > 0, "Expanding to less than 0 terms is not valid."
-            n = 0
-            for prob, state in self:
+            for n, prob, state in enumerate(self):
                 if n >= threshold:
                     break
                 s_prob = sympy.S(prob)
                 approx += s_prob * self.state_to_monomial(state)
                 precision += s_prob
-                n += 1
                 yield GeneratingFunction(approx, *self._variables, preciseness=precision, closed=False,
                                          finite=True)
 
@@ -377,7 +419,7 @@ class GeneratingFunction(Distribution):
         return parse_expr(str(self.coefficient_sum()))
 
     def get_parameters(self) -> Set[str]:
-        return set()
+        return set(map(str, self._parameters))
 
     def get_variables(self) -> Set[str]:
         return set(map(str, self._variables))
@@ -655,10 +697,14 @@ class GeneratingFunction(Distribution):
                                   finite=func.ratsimp().is_polynomial())
 
     def linear_transformation(self, variable: str, expression: Union[Expr, str]) -> 'GeneratingFunction':
+        """
+        Computes a distribution where the `variable` is linearly transformed by `expression`.
+        """
+
         logger.debug(f"linear_transformation() call")
         # Transform expression into sympy readable format
         rhs = sympy.S(str(expression))
-        subst_var = sympy.S(str(variable))
+        subst_var = sympy.S(variable)
 
         # Check whether the expression contains the substitution variable or not
         terms = rhs.as_coefficients_dict()
@@ -674,16 +720,19 @@ class GeneratingFunction(Distribution):
             # if there is a constant term, just do a multiplication
             if var == 1:
                 const_correction_term = subst_var ** terms[1]
-            # if the variable is the substitution, a different update is necessary
+            # if the variable is the substitution variable, a different update is necessary
             elif var == subst_var:
                 replacements.append((var, subst_var ** terms[var]))
-            # otherwise always assume we do an addition
+            # otherwise we can collect the substitution in our replacement list
             else:
                 replacements.append((var, var * subst_var ** terms[var]))
         return GeneratingFunction(result.subs(replacements) * const_correction_term, *self._variables,
                                   preciseness=self._preciseness, closed=self._is_closed_form, finite=self._is_finite)
 
     def arithmetic_progression(self, variable: str, modulus: str) -> List['GeneratingFunction']:
+        """
+        Creates a list of subdistributions where at list index i, the `variable` is congruent i modulo `modulus`.
+        """
         a = sympy.S(modulus)
         var = sympy.S(variable)
         primitive_uroot = sympy.S(f"exp(2 * {sympy.pi} * {sympy.I}/{a})")

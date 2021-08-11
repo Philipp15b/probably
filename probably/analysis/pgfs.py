@@ -54,7 +54,7 @@ class PGFS(CommonDistributionsFactory):
     @staticmethod
     def zero(*variables: Union[str, sympy.Symbol]):
         if variables:
-            return GeneratingFunction("0", variables, preciseness=1, closed=True, finite=True)
+            return GeneratingFunction("0", *variables, preciseness=1, closed=True, finite=True)
         return GeneratingFunction("0", preciseness=1, closed=True, finite=True)
 
     @staticmethod
