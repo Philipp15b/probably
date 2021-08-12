@@ -31,8 +31,8 @@ class GeneratingFunction(Distribution):
 
     """ Class Attributes defining a configuration. """
     rational_preciseness = False
-    verbose_mode = False
     use_simplification = False
+    use_latex_output = False
 
     def __init__(self, function: Union[str, sympy.Expr] = "",
                  *variables: Union[str, sympy.Symbol],
@@ -54,6 +54,11 @@ class GeneratingFunction(Distribution):
             self._variables = self._variables.union(map(sympy.S, variables))
             self._parameters = self._variables.difference(map(sympy.S, variables))
             self._variables -= self._parameters
+
+        for var in self._variables:
+            sympy.assumptions.assume.global_assumptions.add(sympy.Q.nonnegative(var))
+        for param in self._parameters:
+            sympy.assumptions.assume.global_assumptions.add(sympy.Q.positive(param))
 
         # Do closed form and finiteness heuristics
         self._is_closed_form = closed if closed else not self._function.is_polynomial(*self._variables)
@@ -240,16 +245,13 @@ class GeneratingFunction(Distribution):
         return self._arithmetic(other, operator.truediv)
 
     def __str__(self):
+        if GeneratingFunction.use_latex_output:
+            return sympy.latex(self._function)
         if GeneratingFunction.rational_preciseness:
             output = f"{str(self._function)}\t@{str(self._preciseness)}"
-            if GeneratingFunction.verbose_mode:
-                output += f"\t({str(self._is_closed_form)},{str(self._is_finite)})"
-            return output
         else:
-            output = str(self._function) + "\t@" + str(self._preciseness.evalf())
-            if GeneratingFunction.verbose_mode:
-                output += f"\t({str(self._is_closed_form)},{str(self._is_finite)})"
-            return output
+            output = f"{str(self._function)}\t@{str(self._preciseness)}"
+        return output
 
     def __repr__(self):
         return repr(self._function)
@@ -623,8 +625,7 @@ class GeneratingFunction(Distribution):
 
         # Compute the probabilities of the states _var_ = i where i ranges depending on the operator (< , <=, =).
         for i in ranges[condition.operator]:
-            probability = self.probability_of_state({variable: i})
-            result += probability * sympy.S(variable) ** i
+            result += (self._function.diff(variable, i) / sympy.factorial(i)).limit(variable, 0, '-') * sympy.S(variable) ** i
 
         return GeneratingFunction(result, *self._variables, preciseness=self._preciseness,
                                   closed=self._is_closed_form, finite=self._is_finite)
