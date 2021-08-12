@@ -10,7 +10,7 @@ from probably.analysis.forward.pgfs import PGFS
 from probably.analysis.plotter import Plotter
 from probably.pgcl import Instr, WhileInstr, ChoiceInstr, IfInstr, LoopInstr, ObserveInstr, AsgnInstr, DistrExpr, \
     BinopExpr, Binop, VarExpr, NatLitExpr, DUniformExpr, GeometricExpr, BinomialExpr, PoissonExpr, BernoulliExpr, \
-    LogDistExpr, CategoricalExpr, Queries, PlotInstr, ProbabilityQueryInstr, ExpectationInstr, RealLitExpr, UnopExpr, \
+    LogDistExpr, CategoricalExpr, Queries, PlotInstr, PrintInstr,  ProbabilityQueryInstr, ExpectationInstr, RealLitExpr, UnopExpr, \
     Unop, Expr, SkipInstr, Var
 
 from probably.util.logger import log_setup
@@ -128,6 +128,10 @@ class QueryHandler(InstructionHandler):
         elif isinstance(instr, PlotInstr):
             return QueryHandler.__query_plot(instr, dist)
 
+        elif isinstance(instr, PrintInstr):
+            print(dist)
+            return dist
+
         else:
             raise SyntaxError("This should not happen.")
 
@@ -183,7 +187,7 @@ class SampleGFHandler(InstructionHandler):
         elif isinstance(identifier, Var):
             return config.parameters[identifier] is not None
         else:
-            raise ParameterError(f"{identifier} is neither of type Var, nor of type VarExpr, got {type(identifier)}.")
+            return False
 
     @staticmethod
     def _convert_parameter(identifier: Union[Var, VarExpr],
@@ -253,7 +257,7 @@ class AssignmentHandler(InstructionHandler):
         if isinstance(instr.rhs, get_args(DistrExpr)):
             return SampleGFHandler.compute(instr, dist, config)
 
-        if not isinstance(instr.rhs, Expr):
+        if not isinstance(instr.rhs, get_args(Expr)):
             raise SyntaxError(f"Assignment {instr} is ill-formed. right-hand-side must be an expression.")
 
         return dist.update(BinopExpr(operator=Binop.EQ, lhs=VarExpr(instr.lhs), rhs=instr.rhs))

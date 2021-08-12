@@ -341,6 +341,9 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
             return expr_type
         return None
 
+    if isinstance(instr, PrintInstr):
+        return None
+
     if isinstance(instr, PlotInstr):
         var_1_type = get_type(program, instr.var_1, check=True)
         if isinstance(var_1_type, CheckFail):

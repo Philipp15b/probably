@@ -16,7 +16,7 @@ class PGFS(CommonDistributionsFactory):
     def geometric(var: Union[str, VarExpr], p: Union[str, VarExpr]) -> Distribution:
         if isinstance(p, str) and not (0 < sp.S(p) < 1):
             raise DistributionParameterError(f"parameter of geom distr must be >0 and <=1, was {p}")
-        return GeneratingFunction(f"{p} / (1 - (1-{p}) * {var})", closed=True, finite=False)
+        return GeneratingFunction(f"{p} / (1 - (1-{p}) * {var})", var, closed=True, finite=False)
 
     @staticmethod
     def uniform(var: Union[str, VarExpr], a: Union[str, VarExpr], b: Union[str, VarExpr]) -> Distribution:

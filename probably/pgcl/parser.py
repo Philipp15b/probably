@@ -57,6 +57,7 @@ _PGCL_GRAMMAR = """
                | "observe" "(" expression ")"                -> observe 
                | "?Ex" "[" expression "]"                    -> expectation
                | "?Pr" "[" expression "]"                    -> prquery
+               | "!Print"                                    -> print
                | "!Plot" "[" var ("," var)? ("," literal)?"]"                 -> plot
                | "loop" "(" INT ")" block                    -> loop 
 
@@ -291,7 +292,7 @@ def _parse_rvalue(t: Tree) -> Expr:
         return CUniformExpr(start, end)
     elif t.data == 'geometric':
         param = _parse_expr(_child_tree(t, 0))
-        if not isinstance(param, RealLitExpr):
+        if not isinstance(param, (RealLitExpr, VarExpr)):
             raise Exception(f"{param} is not a real number")
         return GeometricExpr(param)
     elif t.data == 'poisson':
@@ -306,6 +307,8 @@ def _parse_rvalue(t: Tree) -> Expr:
         return LogDistExpr(param)
     elif t.data == 'bernoulli':
         param = _parse_expr(_child_tree(t, 0))
+        if not isinstance(param, (RealLitExpr, VarExpr)):
+            raise Exception(f"{param} is not a real number")
         return BernoulliExpr(param)
     elif t.data == 'binomial':
         param_0 = _parse_expr(_child_tree(t, 0))
@@ -373,6 +376,8 @@ def _parse_instr(t: Tree) -> Instr:
         return LoopInstr(NatLitExpr(value=int(t.children[0])), _parse_instrs(_child_tree(t, 1)))
     elif t.data == 'prquery':
         return ProbabilityQueryInstr(_parse_expr(_child_tree(t, 0)))
+    elif t.data == 'print':
+        return PrintInstr()
     elif t.data == "plot":
         if len(t.children) == 3:
             lit = _parse_literal(_child_tree(t, 2))

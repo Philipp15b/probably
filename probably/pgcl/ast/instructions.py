@@ -155,6 +155,12 @@ class ProbabilityQueryInstr(InstrClass):
 
 
 @attr.s
+class PrintInstr(InstrClass):
+    def __str__(self) -> str:
+        return f"!Print;"
+
+
+@attr.s
 class PlotInstr(InstrClass):
     var_1: VarExpr = attr.ib()
     var_2: VarExpr = attr.ib(default=None)
@@ -172,8 +178,7 @@ class PlotInstr(InstrClass):
         return f"!Plot[{output}]"
 
 
-
-Queries = Union[ProbabilityQueryInstr, ExpectationInstr, PlotInstr]
+Queries = Union[ProbabilityQueryInstr, ExpectationInstr, PlotInstr, PrintInstr]
 """Union type for all query objects. See :class:`QueryInstr` for use with isinstance."""
 
 Instr = Union[SkipInstr, WhileInstr, IfInstr, AsgnInstr, ChoiceInstr, LoopInstr,
