@@ -1,16 +1,21 @@
 nat x;
 nat y;
+nat z;
 rparam p;
 nparam n;
 
 
-x := binomial(n, p)
+x := geometric(p)
+!Print
 
-//x := binomial(10, 1/2)
 
-//x := x + 3
+y := binomial(n, p)
+!Print
 
-//y := logdist(p)
+z := x + y
+!Print
+
+y := logdist(p)
 
 
 
