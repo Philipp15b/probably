@@ -56,7 +56,8 @@ def main(program_file: IO, input_gf: str, intermediate_results: bool, no_simplif
     GeneratingFunction.rational_preciseness = True
     GeneratingFunction.verbose_mode = False
     GeneratingFunction.use_simplification = not no_simplification
-    config = ForwardAnalysisConfig(verbose_generating_functions=False, show_intermediate_steps=intermediate_results)
+    config = ForwardAnalysisConfig(verbose_generating_functions=False,
+                                   show_intermediate_steps=intermediate_results, parameters=program.parameters)
     gf = probably.analysis.compute_discrete_distribution(program.instructions, gf, config)
     print("\nGeneratingfunction\n", gf)
     # print("Generating plot")

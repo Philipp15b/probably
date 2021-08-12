@@ -319,8 +319,8 @@ class DUniformExpr(ExprClass):
     expressions are only allowed as the right-hand side of an assignment
     statement and not somewhere in a nested expression.
     """
-    start: NatLitExpr = attr.ib()
-    end: NatLitExpr = attr.ib()
+    start: Union[VarExpr, NatLitExpr] = attr.ib()
+    end: Union[VarExpr, NatLitExpr] = attr.ib()
 
     def distribution(self) -> List[Tuple[RealLitExpr, NatLitExpr]]:
         r"""
@@ -328,10 +328,13 @@ class DUniformExpr(ExprClass):
         probabilities. For the uniform distribution, all probabilites are equal
         to :math:`\frac{1}{\text{end} - \text{start} + 1}`.
         """
-        width = self.end.value - self.start.value + 1
-        prob = RealLitExpr(Fraction(1, width))
-        return [(prob, NatLitExpr(i))
-                for i in range(self.start.value, self.end.value + 1)]
+        if isinstance(self.start, NatLitExpr) and isinstance(self.end, NatLitExpr):
+            width = self.end.value - self.start.value + 1
+            prob = RealLitExpr(Fraction(1, width))
+            return [(prob, NatLitExpr(i))
+                    for i in range(self.start.value, self.end.value + 1)]
+        else:
+            NotImplementedError("Parameters not implemented yet.")
 
     def __str__(self) -> str:
         return f'unif({expr_str_parens(self.start)}, {expr_str_parens(self.end)})'
@@ -346,8 +349,8 @@ class CUniformExpr(ExprClass):
     expressions are only allowed as the right-hand side of an assignment
     statement and not somewhere in a nested expression.
     """
-    start: RealLitExpr = attr.ib()
-    end: RealLitExpr = attr.ib()
+    start: Union[VarExpr, RealLitExpr] = attr.ib()
+    end: Union[VarExpr, RealLitExpr] = attr.ib()
 
     def __str__(self) -> str:
         return f'unif({expr_str_parens(self.start)}, {expr_str_parens(self.end)})'
@@ -362,7 +365,7 @@ class BernoulliExpr(ExprClass):
     expressions are only allowed as the right-hand side of an assignment
     statement and not somewhere in a nested expression.
     """
-    param: RealLitExpr = attr.ib()
+    param: Union[VarExpr, RealLitExpr] = attr.ib()
 
     def __str__(self) -> str:
         return f'bernoulli({expr_str_parens(self.param)})'
@@ -377,7 +380,7 @@ class GeometricExpr(ExprClass):
     expressions are only allowed as the right-hand side of an assignment
     statement and not somewhere in a nested expression.
     """
-    param: RealLitExpr = attr.ib()
+    param: Union[VarExpr, RealLitExpr] = attr.ib()
 
     def __str__(self) -> str:
         return f'geometric({expr_str_parens(self.param)})'
@@ -392,7 +395,7 @@ class PoissonExpr(ExprClass):
     expressions are only allowed as the right-hand side of an assignment
     statement and not somewhere in a nested expression.
     """
-    param: NatLitExpr = attr.ib()
+    param: Union[VarExpr, NatLitExpr] = attr.ib()
 
     def __str__(self) -> str:
         return f'poisson({expr_str_parens(self.param)})'
@@ -403,7 +406,7 @@ class LogDistExpr(ExprClass):
     """
     Chooses a random logarithmically distributed integer.
     """
-    param: RealLitExpr = attr.ib()
+    param: Union[VarExpr, RealLitExpr] = attr.ib()
 
     def __str__(self) -> str:
         return f'logdist({expr_str_parens(self.param)})'
@@ -419,7 +422,7 @@ class BinomialExpr(ExprClass):
     statement and not somewhere in a nested expression.
     """
     n: Union[NatLitExpr, VarExpr] = attr.ib()
-    p: RealLitExpr = attr.ib()
+    p: Union[VarExpr, RealLitExpr] = attr.ib()
 
     def __str__(self) -> str:
         return f'binomial({expr_str_parens(self.n)}, {expr_str_parens(self.p)})'
@@ -495,6 +498,7 @@ class CategoricalExpr(ExprClass):
     def __str__(self) -> str:
         return " + ".join((f"{expr_str_parens(expr)} : {expr_str_parens(prob)}"
                            for expr, prob in self.exprs))
+
 
 DistrExpr = Union[DUniformExpr, CUniformExpr, BernoulliExpr, GeometricExpr, PoissonExpr, LogDistExpr, BinomialExpr]
 """ A type combining all sampling expressions"""

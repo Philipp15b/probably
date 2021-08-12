@@ -16,37 +16,37 @@ class CommonDistributionsFactory(ABC):
 
     @staticmethod
     @abstractmethod
-    def geometric(var: Union[str, VarExpr], p: str) -> 'Distribution':
+    def geometric(var: Union[str, VarExpr], p: Union[str, VarExpr]) -> 'Distribution':
         """ A geometric distribution with parameter `p`."""
         pass
 
     @staticmethod
     @abstractmethod
-    def uniform(var: Union[str, VarExpr], a: str, b: str) -> 'Distribution':
+    def uniform(var: Union[str, VarExpr], a: Union[str, VarExpr], b: Union[str, VarExpr]) -> 'Distribution':
         """ A uniform distribution with bounds [`a`,`b`]."""
         pass
 
     @staticmethod
     @abstractmethod
-    def bernoulli(var: Union[str, VarExpr], p: str) -> 'Distribution':
+    def bernoulli(var: Union[str, VarExpr], p: Union[str, VarExpr]) -> 'Distribution':
         """ A bernoulli distribution with parameter `p`."""
         pass
 
     @staticmethod
     @abstractmethod
-    def poisson(var: Union[str, VarExpr], lam: str) -> 'Distribution':
+    def poisson(var: Union[str, VarExpr], lam: Union[str, VarExpr]) -> 'Distribution':
         """ A poisson distribution with parameter `lamb`da."""
         pass
 
     @staticmethod
     @abstractmethod
-    def log(var: Union[str, VarExpr], p: str) -> 'Distribution':
+    def log(var: Union[str, VarExpr], p: Union[str, VarExpr]) -> 'Distribution':
         """ A logarithmic distribution with parameter `p`."""
         pass
 
     @staticmethod
     @abstractmethod
-    def binomial(var: Union[str, VarExpr], n: str, p: str) -> 'Distribution':
+    def binomial(var: Union[str, VarExpr], n: Union[str, VarExpr], p: Union[str, VarExpr]) -> 'Distribution':
         """ A binomial distribution with parameters `n` and `p`."""
         pass
 

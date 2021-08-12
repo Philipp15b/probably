@@ -1,4 +1,6 @@
 import attr
+from typing import Dict
+from probably.pgcl import Var, Type
 
 
 @attr.s
@@ -12,3 +14,6 @@ class ForwardAnalysisConfig:
 
     # IMPORTANT: show_ attributes just change the string representation, not the actual computation
     show_rational_probabilities: bool = attr.ib(default=False)
+
+    # IMPORTANT: this field is just a hack to circumvent passing the program to all instruction handlers.
+    parameters: Dict[Var, Type] = attr.ib(default=[])

@@ -16,8 +16,8 @@ x := binomial(n, p)
 
 observe(x < 4)
 
-?Pr[x=5]
+?Pr[x=2]
 #!Plot[y, 10]
 #!Plot[x, 10]
-!Plot[x,y, .998]
+#!Plot[x,y, .998]
 

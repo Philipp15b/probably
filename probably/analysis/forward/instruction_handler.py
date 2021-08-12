@@ -5,13 +5,13 @@ from typing import get_args, Union, Sequence
 
 from probably.analysis.forward.config import ForwardAnalysisConfig
 from probably.analysis.forward.distribution import Distribution, MarginalType
-from probably.analysis.forward.exceptions import ObserveZeroEventError
+from probably.analysis.forward.exceptions import ObserveZeroEventError, ParameterError
 from probably.analysis.forward.pgfs import PGFS
 from probably.analysis.plotter import Plotter
 from probably.pgcl import Instr, WhileInstr, ChoiceInstr, IfInstr, LoopInstr, ObserveInstr, AsgnInstr, DistrExpr, \
     BinopExpr, Binop, VarExpr, NatLitExpr, DUniformExpr, GeometricExpr, BinomialExpr, PoissonExpr, BernoulliExpr, \
     LogDistExpr, CategoricalExpr, Queries, PlotInstr, ProbabilityQueryInstr, ExpectationInstr, RealLitExpr, UnopExpr, \
-    Unop, Expr, SkipInstr
+    Unop, Expr, SkipInstr, Var
 
 from probably.util.logger import log_setup
 
@@ -173,7 +173,25 @@ class QueryHandler(InstructionHandler):
             print(f"Probability of {expression}: {prob}")
         return dist
 
+
 class SampleGFHandler(InstructionHandler):
+
+    @staticmethod
+    def _is_parameter(identifier: Union[Var, VarExpr], config: ForwardAnalysisConfig) -> bool:
+        if isinstance(identifier, VarExpr):
+            return identifier.var in config.parameters
+        elif isinstance(identifier, Var):
+            return config.parameters[identifier] is not None
+        else:
+            raise ParameterError(f"{identifier} is neither of type Var, nor of type VarExpr, got {type(identifier)}.")
+
+    @staticmethod
+    def _convert_parameter(identifier: Union[Var, VarExpr],
+                           config: ForwardAnalysisConfig) -> Union[Var, VarExpr]:
+        is_param = SampleGFHandler._is_parameter(identifier, config)
+        if isinstance(identifier, VarExpr) and not is_param:
+            raise SyntaxError(f"Variable {str(identifier)} cannot be part of distribution paramater expression.")
+        return identifier if is_param else str(identifier)
 
     @staticmethod
     def compute(instr: Instr,
@@ -182,9 +200,9 @@ class SampleGFHandler(InstructionHandler):
 
         _assume(instr, AsgnInstr, 'SampleGFHandler')
         assert isinstance(instr.rhs, get_args(DistrExpr)), f"The Instruction handled by a SampleHandler must be of type" \
-                                                 f" DistrExpr got {type(instr)}"
+                                                           f" DistrExpr got {type(instr)}"
 
-        variable = instr.lhs
+        variable: Var = instr.lhs
         marginal = dist.marginal(variable, method=MarginalType.Exclude)
 
         # rhs is a categorical expression (explicit finite distr)
@@ -193,32 +211,35 @@ class SampleGFHandler(InstructionHandler):
 
         # rhs is a uniform distribution
         if isinstance(instr.rhs, DUniformExpr):
-            start = str(instr.rhs.start.value)
-            end = str(instr.rhs.end.value)
+            start = SampleGFHandler._convert_parameter(instr.rhs.start, config)
+            end = SampleGFHandler._convert_parameter(instr.rhs.end, config)
             return marginal * PGFS.uniform(variable, start, end)
 
         # rhs is geometric distribution
         if isinstance(instr.rhs, GeometricExpr):
-            param = instr.rhs.param
-            return marginal * PGFS.geometric(variable, str(param))
+            param = SampleGFHandler._convert_parameter(instr.rhs.param, config)
+            return marginal * PGFS.geometric(variable, param)
 
         # rhs is binomial distribution
         if isinstance(instr.rhs, BinomialExpr):
-            p = instr.rhs.p if isinstance(instr.rhs.p, VarExpr) else str(instr.rhs.p)
-            n = instr.rhs.n if isinstance(instr.rhs.n, VarExpr) else str(instr.rhs.n)
+            n = SampleGFHandler._convert_parameter(instr.rhs.n, config)
+            p = SampleGFHandler._convert_parameter(instr.rhs.p, config)
             return marginal * PGFS.binomial(variable, n, p)
 
         # rhs is poisson distribution
         if isinstance(instr.rhs, PoissonExpr):
-            return marginal * PGFS.poisson(variable, str(instr.rhs.param))
+            lam = SampleGFHandler._convert_parameter(instr.rhs.param, config)
+            return marginal * PGFS.poisson(variable, lam)
 
         # rhs is bernoulli distribution
         if isinstance(instr.rhs, BernoulliExpr):
-            return marginal * PGFS.bernoulli(variable, instr.rhs.param)
+            prob = SampleGFHandler._convert_parameter(instr.rhs.param, config)
+            return marginal * PGFS.bernoulli(variable, prob)
 
         # rhs is logarithmic distribution
         if isinstance(instr.rhs, LogDistExpr):
-            return marginal * PGFS.log(variable, str(instr.rhs.param))
+            param = SampleGFHandler._convert_parameter(instr.rhs.param, config)
+            return marginal * PGFS.log(variable, param)
 
 
 class AssignmentHandler(InstructionHandler):
@@ -227,13 +248,16 @@ class AssignmentHandler(InstructionHandler):
     def compute(instr: Instr,
                 dist: Distribution,
                 config: ForwardAnalysisConfig) -> Distribution:
-
         _assume(instr, AsgnInstr, 'AssignmentHandler')
 
         if isinstance(instr.rhs, get_args(DistrExpr)):
             return SampleGFHandler.compute(instr, dist, config)
 
+        if not isinstance(instr.rhs, Expr):
+            raise SyntaxError(f"Assignment {instr} is ill-formed. right-hand-side must be an expression.")
+
         return dist.update(BinopExpr(operator=Binop.EQ, lhs=VarExpr(instr.lhs), rhs=instr.rhs))
+
 
 class ObserveHandler(InstructionHandler):
 

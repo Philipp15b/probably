@@ -13,35 +13,35 @@ class PGFS(CommonDistributionsFactory):
     """Implements PGFs of standard distributions."""
 
     @staticmethod
-    def geometric(var: Union[str, VarExpr], p: str) -> Distribution:
-        if not (0 < sp.S(p) < 1):
+    def geometric(var: Union[str, VarExpr], p: Union[str, VarExpr]) -> Distribution:
+        if isinstance(p, str) and not (0 < sp.S(p) < 1):
             raise DistributionParameterError(f"parameter of geom distr must be >0 and <=1, was {p}")
         return GeneratingFunction(f"{p} / (1 - (1-{p}) * {var})", closed=True, finite=False)
 
     @staticmethod
-    def uniform(var: Union[str, VarExpr], a: str, b: str) -> Distribution:
-        if not (0 <= sp.S(a) <= sp.S(b)):
+    def uniform(var: Union[str, VarExpr], a: Union[str, VarExpr], b: Union[str, VarExpr]) -> Distribution:
+        if isinstance(a, str) and isinstance(b, str) and not (0 <= sp.S(a) <= sp.S(b)):
             raise DistributionParameterError(f"Distribution parameters must satisfy 0 <= a < b < oo")
-        return GeneratingFunction(f"1/({b} - {a} + 1) * {var}**{a} * ({var}**({b} - {a} + 1) - 1) / ({var} - 1)",
+        return GeneratingFunction(f"1/({b} - {a} + 1) * {var}**{a} * ({var}**({b} - {a} + 1) - 1) / ({var} - 1)", var,
                                   closed=True, finite=True)
 
     @staticmethod
     def bernoulli(var: Union[str, VarExpr], p: Union[str, VarExpr]) -> Distribution:
         if not isinstance(p, VarExpr) and not (0 <= sp.S(p) <= 1):
             raise DistributionParameterError(f"Parameter of Bernoulli Distribution must be in [0,1], but was {p}")
-        return GeneratingFunction(f"1 - {p} + {p} * {var}", closed=True, finite=True)
+        return GeneratingFunction(f"1 - {p} + {p} * {var}", var, closed=True, finite=True)
 
     @staticmethod
-    def poisson(var: Union[str, VarExpr], lam: str) -> Distribution:
-        if sp.S(lam) < 0:
+    def poisson(var: Union[str, VarExpr], lam: Union[str, VarExpr]) -> Distribution:
+        if isinstance(lam, str) and sp.S(lam) < 0:
             raise DistributionParameterError(f"Parameter of Poisson Distribution must be in [0, oo), but was {l}")
-        return GeneratingFunction(f"exp({lam} * ({var} - 1))", closed=True, finite=False)
+        return GeneratingFunction(f"exp({lam} * ({var} - 1))", var, closed=True, finite=False)
 
     @staticmethod
-    def log(var: Union[str, VarExpr], p: str) -> Distribution:
-        if not (0 <= sp.S(p) <= 1):
+    def log(var: Union[str, VarExpr], p: Union[str, VarExpr]) -> Distribution:
+        if isinstance(p, str) and not (0 <= sp.S(p) <= 1):
             raise DistributionParameterError(f"Parameter of Logarithmic Distribution must be in [0,1], but was {p}")
-        return GeneratingFunction(f"log(1-{p}*{var})/log(1-{p})", closed=True, finite=False)
+        return GeneratingFunction(f"log(1-{p}*{var})/log(1-{p})", var, closed=True, finite=False)
 
     @staticmethod
     def binomial(var: Union[str, VarExpr], n: Union[str, VarExpr], p: Union[str, VarExpr]) -> Distribution:

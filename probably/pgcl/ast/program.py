@@ -2,9 +2,9 @@ import copy
 
 import attr
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from . import Decl, Var, Type, Expr, Instr, VarDecl, ConstDecl, ParameterDecl
-
+from .expressions import VarExpr
 
 
 @attr.s(frozen=True)
@@ -96,6 +96,7 @@ class Program:
                        variables=copy.copy(self.variables),
                        constants=copy.copy(self.constants),
                        instructions=[])
+
 
     def __str__(self) -> str:
         """
