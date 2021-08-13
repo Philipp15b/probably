@@ -151,6 +151,16 @@ def get_type(program: Program,
             return lhs_typ
 
     if isinstance(expr, DUniformExpr):
+        start_typ = get_type(program, expr.start, check)
+        if isinstance(start_typ, CheckFail):
+            return start_typ
+        elif not is_compatible(NatType(bounds=None), start_typ):
+            return CheckFail.expected_type_got(expr, NatType(bounds=None), start_typ)
+        end_type = get_type(program, expr.end, check)
+        if isinstance(end_type, CheckFail):
+            return end_type
+        elif not is_compatible(NatType(bounds=None), end_type):
+            return CheckFail.expected_type_got(expr, NatType(bounds=None), end_type)
         return NatType(bounds=None)
 
     if isinstance(expr, CUniformExpr):
