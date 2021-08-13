@@ -1,0 +1,60 @@
+start: declarations instructions
+
+    declarations: declaration* -> declarations
+
+    declaration: "bool" var                  -> bool
+               | "nat" var bounds?           -> nat
+               | "real" var bounds?          -> real
+               | "const" var ":=" expression -> const
+               | "rparam" var                -> rparam
+               | "nparam" var                -> nparam
+
+    bounds: "[" expression "," expression "]"
+
+    instructions: instruction* -> instructions
+
+    instruction: "skip"                                      -> skip
+               | "while" "(" expression ")" block            -> while
+               | "if" "(" expression ")" block "else"? block -> if
+               | var ":=" rvalue                             -> assign
+               | block "[" expression "]" block              -> choice
+               | "tick" "(" expression ")"                   -> tick
+               | "observe" "(" expression ")"                -> observe
+               | "?Ex" "[" expression "]"                    -> expectation
+               | "?Pr" "[" expression "]"                    -> prquery
+               | "!Print"                                    -> print
+               | "!Plot" "[" var ("," var)? ("," literal)?"]"                 -> plot
+               | "loop" "(" INT ")" block                    -> loop
+
+
+    block: "{" instruction* "}"
+
+    rvalue: "unif_d" "(" expression "," expression ")" -> duniform
+          | "unif" "(" expression "," expression ")" -> duniform
+          | "unif_c" "(" expression "," expression ")" -> cuniform
+          | "geometric" "(" expression ")" -> geometric
+          | "poisson" "(" expression ")" -> poisson
+          | "logdist" "(" expression ")" -> logdist
+          | "binomial" "(" expression "," expression ")" -> binomial
+          | "bernoulli" "(" expression ")" -> bernoulli
+          | expression
+
+    literal: "true"  -> true
+           | "false" -> false
+           | INT     -> nat
+           | FLOAT   -> real
+           | "∞"     -> infinity
+           | "\\infty" -> infinity
+
+    var: CNAME
+
+
+    %ignore /#.*$/m
+    %ignore /\/\/.*$/m
+    %ignore WS
+    %ignore ";"
+
+    %import common.CNAME
+    %import common.INT
+    %import common.FLOAT
+    %import common.WS

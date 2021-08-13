@@ -19,7 +19,7 @@ from probably.util.ref import Mut
 from .ast import Expr, Program
 from probably.pgcl.typechecker.check import (CheckFail, check_expectation, check_expression,
                                              check_program)
-from .parser import parse_expectation, parse_expr, parse_pgcl
+from probably.pgcl.parser import parse_expectation, parse_expr, parse_pgcl
 
 
 def compile_pgcl(code: str,

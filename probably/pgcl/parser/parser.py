@@ -22,107 +22,63 @@ from fractions import Fraction
 
 import attr
 from decimal import Decimal
-from typing import Optional, Union
+from typing import Optional, Union, Tuple, Dict
 
 from lark import Lark, Tree
 
 from probably.pgcl.ast import *
-from probably.pgcl.ast.walk import Walk, walk_expr
+from probably.pgcl.ast.expressions import expr_str_parens
 from probably.util.lark_expr_parser import (atom, build_expr_parser, infixl,
                                             prefix)
 from probably.util.ref import Mut
 
-_PGCL_GRAMMAR = """
-    start: declarations instructions
 
-    declarations: declaration* -> declarations
+def setup(filename: str) -> Lark:
+    with open(filename, 'r') as file:
+        _PGCL_GRAMMAR = file.read()
+    _OPERATOR_TABLE = [[infixl("or", "||")], [infixl("and", "&")],
+                       [infixl("leq", "<="),
+                        infixl("le", "<"),
+                        infixl("eq", "=")],
+                       [infixl("plus", "+"),
+                        infixl("minus", "-")], [infixl("times", "*")],
+                       [infixl("likely", ":")], [infixl("divide", "/")], [infixl("mod", "%")],
+                       [
+                           prefix("neg", "not "),
+                           atom("parens", '"(" expression ")"'),
+                           atom("iverson", '"[" expression "]"'),
+                           atom("literal", "literal"),
+                           atom("var", "var")
+                       ]]
+    _PGCL_GRAMMAR += "\n" + textwrap.indent(
+        build_expr_parser(_OPERATOR_TABLE, "expression"), '    ')
 
-    declaration: "bool" var                  -> bool
-               | "nat" var bounds?           -> nat
-               | "real" var bounds?          -> real
-               | "const" var ":=" expression -> const
-               | "rparam" var                -> rparam
-               | "nparam" var                -> nparam
+    def _doc_parser_grammar():
+        raise Exception(
+            "This function only exists for documentation purposes and should never be called"
+        )
 
-    bounds: "[" expression "," expression "]"
-
-    instructions: instruction* -> instructions
-
-    instruction: "skip"                                      -> skip
-               | "while" "(" expression ")" block            -> while
-               | "if" "(" expression ")" block "else"? block -> if
-               | var ":=" rvalue                             -> assign
-               | block "[" expression "]" block              -> choice
-               | "tick" "(" expression ")"                   -> tick
-               | "observe" "(" expression ")"                -> observe 
-               | "?Ex" "[" expression "]"                    -> expectation
-               | "?Pr" "[" expression "]"                    -> prquery
-               | "!Print"                                    -> print
-               | "!Plot" "[" var ("," var)? ("," literal)?"]"                 -> plot
-               | "loop" "(" INT ")" block                    -> loop 
-
-
-    block: "{" instruction* "}"
-
-    rvalue: "unif_d" "(" expression "," expression ")" -> duniform
-          | "unif" "(" expression "," expression ")" -> duniform
-          | "unif_c" "(" expression "," expression ")" -> cuniform
-          | "geometric" "(" expression ")" -> geometric
-          | "poisson" "(" expression ")" -> poisson
-          | "logdist" "(" expression ")" -> logdist
-          | "binomial" "(" expression "," expression ")" -> binomial
-          | "bernoulli" "(" expression ")" -> bernoulli
-          | expression
-
-    literal: "true"  -> true
-           | "false" -> false
-           | INT     -> nat
-           | FLOAT   -> real
-           | "∞"     -> infinity
-           | "\\infty" -> infinity
-
-    var: CNAME
-    
-
-    %ignore /#.*$/m
-    %ignore /\\/\\/.*$/m
-    %ignore WS
-    %ignore ";"
-
-    %import common.CNAME
-    %import common.INT
-    %import common.FLOAT
-    %import common.WS
-"""
-
-_OPERATOR_TABLE = [[infixl("or", "||")], [infixl("and", "&")],
-                   [infixl("leq", "<="),
-                    infixl("le", "<"),
-                    infixl("eq", "=")],
-                   [infixl("plus", "+"),
-                    infixl("minus", "-")], [infixl("times", "*")],
-                   [infixl("likely", ":")], [infixl("divide", "/")], [infixl("mod", "%")],
-                   [
-                       prefix("neg", "not "),
-                       atom("parens", '"(" expression ")"'),
-                       atom("iverson", '"[" expression "]"'),
-                       atom("literal", "literal"),
-                       atom("var", "var")
-                   ]]
-
-_PGCL_GRAMMAR += "\n" + textwrap.indent(
-    build_expr_parser(_OPERATOR_TABLE, "expression"), '    ')
-
-_PARSER = Lark(_PGCL_GRAMMAR)
+    _doc_parser_grammar.__doc__ = "The Lark grammar for pGCL::\n" + _PGCL_GRAMMAR + "\n\nThis function only exists for " \
+                                                                                    "documentation purposes and should " \
+                                                                                    "never be called in code. "
+    return Lark(_PGCL_GRAMMAR)
 
 
-def _doc_parser_grammar():
-    raise Exception(
-        "This function only exists for documentation purposes and should never be called"
-    )
+_PARSER = setup("probably/pgcl/parser/pgcl_grammar.txt")
 
+# Collect parameter information here.
+parameters: Dict[Var, Type] = dict()
 
-_doc_parser_grammar.__doc__ = "The Lark grammar for pGCL::\n" + _PGCL_GRAMMAR + "\n\nThis function only exists for documentation purposes and should never be called in code."
+# All known distribution types.
+distributions: Dict[str, Tuple[int, Callable]] = {
+    "duniform": (2, DUniformExpr),
+    "cuniform": (2, CUniformExpr),
+    "geometric": (1, GeometricExpr),
+    "poisson": (1, PoissonExpr),
+    "logdist": (1, LogDistExpr),
+    "bernoulli": (1, BernoulliExpr),
+    "binomial": (2, BinomialExpr)
+}
 
 
 @attr.s
@@ -190,8 +146,10 @@ def _parse_declaration(t: Tree) -> Decl:
     elif t.data == "const":
         return ConstDecl(var0(), _parse_expr(_child_tree(t, 1)))
     elif t.data == "rparam":
+        parameters[var0()] = RealType()
         return ParameterDecl(var0(), RealType())
     elif t.data == "nparam":
+        parameters[var0()] = NatType(bounds=None)
         return ParameterDecl(var0(), NatType(bounds=None))
     else:
         raise Exception(f'invalid AST: {t.data}')
@@ -212,7 +170,8 @@ def _parse_expr(t: Tree) -> Expr:
     if t.data == 'literal':
         return _parse_literal(_child_tree(t, 0))
     elif t.data == 'var':
-        return VarExpr(_parse_var(_child_tree(t, 0)))
+        name = _parse_var(_child_tree(t, 0))
+        return VarExpr(name, name in parameters)
     elif t.data == 'or':
         return BinopExpr(Binop.OR, expr0(), expr1())
     elif t.data == 'and':
@@ -273,51 +232,22 @@ def _parse_literal(t: Tree) -> Expr:
         raise Exception(f'invalid AST: {t.data}')
 
 
+def _parse_distribution(t: Tree) -> Expr:
+    assert t.data in distributions
+    param_count, constructor = distributions[t.data]
+    parameters: List[Expr] = []
+    for i in range(param_count):
+        param = _parse_expr(_child_tree(t, i))
+        if _variable_free_expression(param):
+            parameters.append(param)
+        else:
+            raise SyntaxError("In distribution parameter expressions, no variables are allowed.")
+    return constructor(*parameters)
+
+
 def _parse_rvalue(t: Tree) -> Expr:
-    if t.data == 'duniform':
-        start = _parse_expr(_child_tree(t, 0))
-        if not isinstance(start, (NatLitExpr, VarExpr)):
-            raise Exception(f"{start} is not a natural number")
-        end = _parse_expr(_child_tree(t, 1))
-        if not isinstance(end, (NatLitExpr, VarExpr)):
-            raise Exception(f"{end} is not a natural number")
-        return DUniformExpr(start, end)
-    elif t.data == 'cuniform':
-        start = _parse_expr(_child_tree(t, 0))
-        if not isinstance(start, RealLitExpr):
-            raise Exception(f"{start} is not a real number")
-        end = _parse_expr(_child_tree(t, 1))
-        if not isinstance(end, RealLitExpr):
-            raise Exception(f"{end} is not a real number")
-        return CUniformExpr(start, end)
-    elif t.data == 'geometric':
-        param = _parse_expr(_child_tree(t, 0))
-        if not isinstance(param, (RealLitExpr, VarExpr)):
-            raise Exception(f"{param} is not a real number")
-        return GeometricExpr(param)
-    elif t.data == 'poisson':
-        param = _parse_expr(_child_tree(t, 0))
-        if not isinstance(param, (NatLitExpr, VarExpr)):
-            raise Exception(f"{param} is not a natural number")
-        return PoissonExpr(param)
-    elif t.data == 'logdist':
-        param = _parse_expr(_child_tree(t, 0))
-        if not isinstance(param, (RealLitExpr, VarExpr)):
-            raise Exception(f"{param} is not a real number")
-        return LogDistExpr(param)
-    elif t.data == 'bernoulli':
-        param = _parse_expr(_child_tree(t, 0))
-        if not isinstance(param, (RealLitExpr, VarExpr)):
-            raise Exception(f"{param} is not a real number")
-        return BernoulliExpr(param)
-    elif t.data == 'binomial':
-        param_0 = _parse_expr(_child_tree(t, 0))
-        if not isinstance(param_0, (NatLitExpr, VarExpr)):
-            raise Exception(f"{param_0} is not a natural number")
-        param_1 = _parse_expr(_child_tree(t, 1))
-        if not isinstance(param_1, (RealLitExpr, VarExpr)):
-            raise Exception(f"{param_1} is not a real number")
-        return BinomialExpr(param_0, param_1)
+    if t.data in distributions:
+        return _parse_distribution(t)
 
     # otherwise we have an expression, but it may contain _LikelyExprs, which we
     # need to parse.
@@ -360,6 +290,9 @@ def _parse_instr(t: Tree) -> Instr:
                        _parse_instrs(_child_tree(t, 1)),
                        _parse_instrs(_child_tree(t, 2)))
     elif t.data == 'assign':
+        variable = _parse_var(_child_tree(t, 0))
+        if variable in parameters:
+            raise SyntaxError("Parameters are treated as constants and cannot be assigned a new value.")
         return AsgnInstr(_parse_var(_child_tree(t, 0)),
                          _parse_rvalue(_child_tree(t, 1)))
     elif t.data == 'choice':
@@ -425,7 +358,14 @@ def _parse_program(config: ProgramConfig, t: Tree) -> Program:
     assert t.data == 'start'
     declarations = _parse_declarations(_child_tree(t, 0))
     instructions = _parse_instrs(_child_tree(t, 1))
-    return Program.from_parse(config, declarations, instructions)
+    return Program.from_parse(config, declarations, parameters, instructions)
+
+
+def _variable_free_expression(expression: Expr) -> bool:
+    for subexpr in walk_expr(Walk.DOWN, Mut.alloc(expression)):
+        if isinstance(subexpr, VarExpr) and not subexpr.is_parameter:
+            return False
+    return True
 
 
 def parse_pgcl(code: str, config: ProgramConfig = ProgramConfig()) -> Program:
