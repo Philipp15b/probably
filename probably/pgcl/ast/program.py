@@ -54,20 +54,17 @@ class Program:
     instructions: List[Instr] = attr.ib()
 
     @staticmethod
-    def from_parse(config: ProgramConfig, declarations: List[Decl],
+    def from_parse(config: ProgramConfig, declarations: List[Decl], parameters: Dict[Var, Type],
                    instructions: List[Instr]) -> "Program":
         """Create a program from the parser's output."""
         variables: Dict[Var, Type] = dict()
         constants: Dict[Var, Expr] = dict()
-        parameters: Dict[Var, Type] = dict()
 
         for decl in declarations:
             if isinstance(decl, VarDecl):
                 variables[decl.var] = decl.typ
             elif isinstance(decl, ConstDecl):
                 constants[decl.var] = decl.value
-            elif isinstance(decl, ParameterDecl):
-                parameters[decl.var] = decl.typ
 
         return Program(config, declarations, variables, constants, parameters, instructions)
 

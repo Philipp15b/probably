@@ -127,24 +127,16 @@ class ExprClass(Node):
 class VarExpr(ExprClass):
     """A variable is an expression."""
     var: Var = attr.ib()
+    is_parameter: bool = attr.ib(default=False)
 
     def __str__(self) -> str:
         return self.var
 
     def __repr__(self) -> str:
-        return f'VarExpr({repr(self.var)})'
-
-
-@attr.s(repr=False)
-class ParamExpr(ExprClass):
-    """ A parameter is an expression."""
-    var: Var = attr.ib()
-
-    def __str__(self) -> str:
-        return self.var
-
-    def __repr__(self) -> str:
-        return f'ParamExpr({repr(self.var)})'
+        if self.is_parameter:
+            return f"ParamExpr({repr(self.var)})"
+        else:
+            return f'VarExpr({repr(self.var)})'
 
 
 @attr.s(repr=False)
@@ -319,8 +311,8 @@ class DUniformExpr(ExprClass):
     expressions are only allowed as the right-hand side of an assignment
     statement and not somewhere in a nested expression.
     """
-    start: Union[VarExpr, NatLitExpr] = attr.ib()
-    end: Union[VarExpr, NatLitExpr] = attr.ib()
+    start: 'Expr' = attr.ib()
+    end: 'Expr' = attr.ib()
 
     def distribution(self) -> List[Tuple[RealLitExpr, NatLitExpr]]:
         r"""
@@ -340,6 +332,7 @@ class DUniformExpr(ExprClass):
         return f'unif({expr_str_parens(self.start)}, {expr_str_parens(self.end)})'
 
 
+
 @attr.s
 class CUniformExpr(ExprClass):
     """
@@ -349,8 +342,8 @@ class CUniformExpr(ExprClass):
     expressions are only allowed as the right-hand side of an assignment
     statement and not somewhere in a nested expression.
     """
-    start: Union[VarExpr, RealLitExpr] = attr.ib()
-    end: Union[VarExpr, RealLitExpr] = attr.ib()
+    start: 'Expr' = attr.ib()
+    end: 'Expr' = attr.ib()
 
     def __str__(self) -> str:
         return f'unif({expr_str_parens(self.start)}, {expr_str_parens(self.end)})'
@@ -365,7 +358,7 @@ class BernoulliExpr(ExprClass):
     expressions are only allowed as the right-hand side of an assignment
     statement and not somewhere in a nested expression.
     """
-    param: Union[VarExpr, RealLitExpr] = attr.ib()
+    param: 'Expr' = attr.ib()
 
     def __str__(self) -> str:
         return f'bernoulli({expr_str_parens(self.param)})'
@@ -380,7 +373,7 @@ class GeometricExpr(ExprClass):
     expressions are only allowed as the right-hand side of an assignment
     statement and not somewhere in a nested expression.
     """
-    param: Union[VarExpr, RealLitExpr] = attr.ib()
+    param: 'Expr' = attr.ib()
 
     def __str__(self) -> str:
         return f'geometric({expr_str_parens(self.param)})'
@@ -395,7 +388,7 @@ class PoissonExpr(ExprClass):
     expressions are only allowed as the right-hand side of an assignment
     statement and not somewhere in a nested expression.
     """
-    param: Union[VarExpr, NatLitExpr] = attr.ib()
+    param: 'Expr' = attr.ib()
 
     def __str__(self) -> str:
         return f'poisson({expr_str_parens(self.param)})'
@@ -406,7 +399,7 @@ class LogDistExpr(ExprClass):
     """
     Chooses a random logarithmically distributed integer.
     """
-    param: Union[VarExpr, RealLitExpr] = attr.ib()
+    param: 'Expr' = attr.ib()
 
     def __str__(self) -> str:
         return f'logdist({expr_str_parens(self.param)})'
@@ -421,8 +414,8 @@ class BinomialExpr(ExprClass):
     expressions are only allowed as the right-hand side of an assignment
     statement and not somewhere in a nested expression.
     """
-    n: Union[NatLitExpr, VarExpr] = attr.ib()
-    p: Union[VarExpr, RealLitExpr] = attr.ib()
+    n: 'Expr' = attr.ib()
+    p: 'Expr' = attr.ib()
 
     def __str__(self) -> str:
         return f'binomial({expr_str_parens(self.n)}, {expr_str_parens(self.p)})'
@@ -503,7 +496,7 @@ class CategoricalExpr(ExprClass):
 DistrExpr = Union[DUniformExpr, CUniformExpr, BernoulliExpr, GeometricExpr, PoissonExpr, LogDistExpr, BinomialExpr]
 """ A type combining all sampling expressions"""
 
-Expr = Union[VarExpr, ParamExpr, BoolLitExpr, NatLitExpr, RealLitExpr,
+Expr = Union[VarExpr, BoolLitExpr, NatLitExpr, RealLitExpr,
              UnopExpr, BinopExpr, CategoricalExpr,
              SubstExpr, TickExpr, DistrExpr]
 """Union type for all expression objects. See :class:`ExprClass` for use with isinstance."""
