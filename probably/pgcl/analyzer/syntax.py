@@ -125,6 +125,17 @@ def check_is_linear_program(program: Program) -> Optional[CheckFail]:
     return None
 
 
+def has_variable(expr: Expr) -> bool:
+    if isinstance(expr, UnopExpr) and expr.operator == Unop.IVERSON:
+        return False
+    if isinstance(expr, VarExpr) and not expr.is_parameter:
+        return True
+    for child_ref in mut_expr_children(Mut.alloc(expr)):
+        if has_variable(child_ref.val):
+            return True
+    return False
+
+
 def check_is_linear_expr(expr: Expr) -> Optional[CheckFail]:
     """
     Linear expressions do not multiply variables with each other.
@@ -146,16 +157,6 @@ def check_is_linear_expr(expr: Expr) -> Optional[CheckFail]:
         >>> check_is_linear_expr(parse_expectation("x/x"))
         CheckFail(location=..., message='General division is not linear (division of constants is)')
     """
-
-    def has_variable(expr: Expr) -> bool:
-        if isinstance(expr, UnopExpr) and expr.operator == Unop.IVERSON:
-            return False
-        if isinstance(expr, VarExpr):
-            return True
-        for child_ref in mut_expr_children(Mut.alloc(expr)):
-            if has_variable(child_ref.val):
-                return True
-        return False
 
     for node_ref in walk_expr(Walk.DOWN, Mut.alloc(expr)):
         node = node_ref.val
@@ -190,11 +191,15 @@ def check_is_constant_constraint(expression: Expr) -> bool:
     if expression.operator not in (Binop.EQ, Binop.LEQ, Binop.LE):
         return False
     if isinstance(expression.lhs, VarExpr):
-        if isinstance(expression.rhs, NatLitExpr):
-            return True
-    elif isinstance(expression.lhs, NatLitExpr):
-        if isinstance(expression.rhs, VarExpr):
-            return True
+        for sub_expr in walk_expr(Walk.DOWN, Mut.alloc(expression.rhs)):
+            if has_variable(sub_expr.val):
+                return False
+        return True
+    elif isinstance(expression.rhs, VarExpr):
+        for sub_expr in walk_expr(Walk.DOWN, Mut.alloc(expression.lhs)):
+            if has_variable(sub_expr.val):
+                return False
+        return True
     else:
         return False
 
