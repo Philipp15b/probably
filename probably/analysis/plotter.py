@@ -86,9 +86,9 @@ class Plotter:
                     break
                 if isinstance(threshold, str) and prob_sum > sympy.S(threshold):
                     break
-                data.append(float(prob))
+                data.append(float(sympy.S(prob)))
                 ind.append(float(state[var]))
-                prob_sum += prob
+                prob_sum += sympy.S(prob)
                 terms += 1
             ax = plt.subplot()
             my_cmap = plt.cm.get_cmap("Blues")
