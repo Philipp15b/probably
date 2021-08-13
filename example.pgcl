@@ -6,20 +6,23 @@ nparam n;
 
 
 x := geometric(p)
-!Print
-
-
 y := binomial(n, p)
 !Print
+x := x + y
+!Print
 
-z := x + y
+
+
+
+z := x + n
 !Print
 
 y := logdist(p)
 
-
+?Pr[x=2]
 
 observe(x < 4)
+!Print
 
 ?Pr[x=2]
 #!Plot[y, 10]

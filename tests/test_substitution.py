@@ -5,7 +5,7 @@ import hypothesis.strategies as st
 from hypothesis import given
 
 from probably.pgcl.ast import Expr, SubstExpr, Unop, UnopExpr, VarExpr
-from probably.pgcl.parser import parse_pgcl
+from probably.pgcl.parser.parser import parse_pgcl
 from probably.pgcl.substitute import substitute_expr
 from probably.pgcl.ast.walk import Walk, walk_expr
 from probably.analysis.backward.wp import loopfree_wp

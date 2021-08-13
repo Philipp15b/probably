@@ -11,42 +11,45 @@ class MarginalType(Enum):
     Exclude = auto()
 
 
+Param = Union[str, Expr]
+
+
 class CommonDistributionsFactory(ABC):
     """ Abstract Factory Class implementing a Factory for common distributions."""
 
     @staticmethod
     @abstractmethod
-    def geometric(var: Union[str, VarExpr], p: Union[str, VarExpr]) -> 'Distribution':
+    def geometric(var: Union[str, VarExpr], p: Param) -> 'Distribution':
         """ A geometric distribution with parameter `p`."""
         pass
 
     @staticmethod
     @abstractmethod
-    def uniform(var: Union[str, VarExpr], a: Union[str, VarExpr], b: Union[str, VarExpr]) -> 'Distribution':
+    def uniform(var: Union[str, VarExpr], a: Param, b: Param) -> 'Distribution':
         """ A uniform distribution with bounds [`a`,`b`]."""
         pass
 
     @staticmethod
     @abstractmethod
-    def bernoulli(var: Union[str, VarExpr], p: Union[str, VarExpr]) -> 'Distribution':
+    def bernoulli(var: Union[str, VarExpr], p: Param) -> 'Distribution':
         """ A bernoulli distribution with parameter `p`."""
         pass
 
     @staticmethod
     @abstractmethod
-    def poisson(var: Union[str, VarExpr], lam: Union[str, VarExpr]) -> 'Distribution':
+    def poisson(var: Union[str, VarExpr], lam: Param) -> 'Distribution':
         """ A poisson distribution with parameter `lamb`da."""
         pass
 
     @staticmethod
     @abstractmethod
-    def log(var: Union[str, VarExpr], p: Union[str, VarExpr]) -> 'Distribution':
+    def log(var: Union[str, VarExpr], p: Param) -> 'Distribution':
         """ A logarithmic distribution with parameter `p`."""
         pass
 
     @staticmethod
     @abstractmethod
-    def binomial(var: Union[str, VarExpr], n: Union[str, VarExpr], p: Union[str, VarExpr]) -> 'Distribution':
+    def binomial(var: Union[str, VarExpr], n: Param, p: Param) -> 'Distribution':
         """ A binomial distribution with parameters `n` and `p`."""
         pass
 
