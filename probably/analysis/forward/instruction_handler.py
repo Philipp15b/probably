@@ -181,23 +181,6 @@ class QueryHandler(InstructionHandler):
 class SampleGFHandler(InstructionHandler):
 
     @staticmethod
-    def _is_parameter(identifier: Union[Var, VarExpr], config: ForwardAnalysisConfig) -> bool:
-        if isinstance(identifier, VarExpr):
-            return identifier.var in config.parameters
-        elif isinstance(identifier, Var):
-            return config.parameters[identifier] is not None
-        else:
-            return False
-
-    @staticmethod
-    def _convert_parameter(identifier: Union[Var, VarExpr],
-                           config: ForwardAnalysisConfig) -> Union[Var, VarExpr]:
-        is_param = SampleGFHandler._is_parameter(identifier, config)
-        if isinstance(identifier, VarExpr) and not is_param:
-            raise SyntaxError(f"Variable {str(identifier)} cannot be part of distribution paramater expression.")
-        return identifier if is_param else str(identifier)
-
-    @staticmethod
     def compute(instr: Instr,
                 dist: Distribution,
                 config: ForwardAnalysisConfig) -> Distribution:
@@ -215,35 +198,27 @@ class SampleGFHandler(InstructionHandler):
 
         # rhs is a uniform distribution
         if isinstance(instr.rhs, DUniformExpr):
-            start = SampleGFHandler._convert_parameter(instr.rhs.start, config)
-            end = SampleGFHandler._convert_parameter(instr.rhs.end, config)
-            return marginal * PGFS.uniform(variable, start, end)
+            return marginal * PGFS.uniform(variable, instr.rhs.start, instr.rhs.end)
 
         # rhs is geometric distribution
         if isinstance(instr.rhs, GeometricExpr):
-            param = SampleGFHandler._convert_parameter(instr.rhs.param, config)
-            return marginal * PGFS.geometric(variable, param)
+            return marginal * PGFS.geometric(variable, instr.rhs.param)
 
         # rhs is binomial distribution
         if isinstance(instr.rhs, BinomialExpr):
-            n = SampleGFHandler._convert_parameter(instr.rhs.n, config)
-            p = SampleGFHandler._convert_parameter(instr.rhs.p, config)
-            return marginal * PGFS.binomial(variable, n, p)
+            return marginal * PGFS.binomial(variable, instr.rhs.n, instr.rhs.p)
 
         # rhs is poisson distribution
         if isinstance(instr.rhs, PoissonExpr):
-            lam = SampleGFHandler._convert_parameter(instr.rhs.param, config)
-            return marginal * PGFS.poisson(variable, lam)
+            return marginal * PGFS.poisson(variable, instr.rhs.param)
 
         # rhs is bernoulli distribution
         if isinstance(instr.rhs, BernoulliExpr):
-            prob = SampleGFHandler._convert_parameter(instr.rhs.param, config)
-            return marginal * PGFS.bernoulli(variable, prob)
+            return marginal * PGFS.bernoulli(variable, instr.rhs.param)
 
         # rhs is logarithmic distribution
         if isinstance(instr.rhs, LogDistExpr):
-            param = SampleGFHandler._convert_parameter(instr.rhs.param, config)
-            return marginal * PGFS.log(variable, param)
+            return marginal * PGFS.log(variable, instr.rhs.param)
 
 
 class AssignmentHandler(InstructionHandler):

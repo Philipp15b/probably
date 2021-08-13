@@ -4,12 +4,14 @@ from typing import Tuple, List, Set, Dict, Union, Generator
 
 import sympy
 import operator
-from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr, BoolLitExpr, UnopExpr, RealLitExpr
+from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr, BoolLitExpr, UnopExpr, RealLitExpr, \
+    walk_expr, Walk
 from probably.pgcl.analyzer.syntax import check_is_constant_constraint, check_is_modulus_condition, check_is_linear_expr
-from probably.pgcl.parser import parse_expr
+from probably.pgcl.parser.parser import parse_expr
 from .distribution import Distribution, MarginalType
 from .exceptions import ComparisonException, NotComputableException, DistributionParameterError
 from probably.util.logger import log_setup
+from probably.util.ref import Mut
 
 logger = log_setup(__name__, logging.DEBUG, file="GF_operations.log")
 
@@ -703,9 +705,19 @@ class GeneratingFunction(Distribution):
         """
 
         logger.debug(f"linear_transformation() call")
+        expr = expression
+        if isinstance(expression, str):
+            expr = parse_expr(expression)
+
+
         # Transform expression into sympy readable format
         rhs = sympy.S(str(expression))
         subst_var = sympy.S(variable)
+
+        paramaters: List[sympy.Symbol] = []
+        for subexpr in walk_expr(Walk.DOWN, Mut.alloc(expr)):
+            if isinstance(subexpr.val, VarExpr) and subexpr.val.is_parameter:
+                paramaters.append(sympy.S(subexpr.val.var))
 
         # Check whether the expression contains the substitution variable or not
         terms = rhs.as_coefficients_dict()
@@ -721,6 +733,8 @@ class GeneratingFunction(Distribution):
             # if there is a constant term, just do a multiplication
             if var == 1:
                 const_correction_term = subst_var ** terms[1]
+            elif var in paramaters:
+                const_correction_term = subst_var ** var
             # if the variable is the substitution variable, a different update is necessary
             elif var == subst_var:
                 replacements.append((var, subst_var ** terms[var]))
