@@ -26,6 +26,7 @@ from typing import Optional, Union, Tuple, Dict
 
 from lark import Lark, Tree
 
+from probably.pgcl.analyzer.syntax import has_variable
 from probably.pgcl.ast import *
 from probably.pgcl.ast.expressions import expr_str_parens
 from probably.util.lark_expr_parser import (atom, build_expr_parser, infixl,
@@ -238,7 +239,7 @@ def _parse_distribution(t: Tree) -> Expr:
     parameters: List[Expr] = []
     for i in range(param_count):
         param = _parse_expr(_child_tree(t, i))
-        if _variable_free_expression(param):
+        if not has_variable(param):
             parameters.append(param)
         else:
             raise SyntaxError("In distribution parameter expressions, no variables are allowed.")
@@ -292,7 +293,7 @@ def _parse_instr(t: Tree) -> Instr:
     elif t.data == 'assign':
         variable = _parse_var(_child_tree(t, 0))
         if variable in parameters:
-            raise SyntaxError("Parameters are treated as constants and cannot be assigned a new value.")
+            raise SyntaxError("Parameters must not be assigned a new value.")
         return AsgnInstr(_parse_var(_child_tree(t, 0)),
                          _parse_rvalue(_child_tree(t, 1)))
     elif t.data == 'choice':
@@ -359,13 +360,6 @@ def _parse_program(config: ProgramConfig, t: Tree) -> Program:
     declarations = _parse_declarations(_child_tree(t, 0))
     instructions = _parse_instrs(_child_tree(t, 1))
     return Program.from_parse(config, declarations, parameters, instructions)
-
-
-def _variable_free_expression(expression: Expr) -> bool:
-    for subexpr in walk_expr(Walk.DOWN, Mut.alloc(expression)):
-        if isinstance(subexpr, VarExpr) and not subexpr.is_parameter:
-            return False
-    return True
 
 
 def parse_pgcl(code: str, config: ProgramConfig = ProgramConfig()) -> Program:
