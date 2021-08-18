@@ -11,7 +11,6 @@ if (x=0){
 
 #observe(d=4) // we have observed 4 phone calls.
 !Print
-?Opt[x=1, n, MAX]
-?Pr[d=4]
+?Opt[d=1, n, MAX]
 #!Plot[x, \infty]
 

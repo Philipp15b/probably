@@ -315,7 +315,13 @@ def _parse_instr(t: Tree) -> Instr:
     elif t.data == 'print':
         return PrintInstr()
     elif t.data == 'optimize':
-        opt_type = OptimizationType.MAXIMIZE if _parse_var(_child_tree(t, 2)) == "MAX" else OptimizationType.MINIMIZE
+        mode = _parse_var(_child_tree(t, 2))
+        if mode == "MAX":
+            opt_type = OptimizationType.MAXIMIZE
+        elif mode == "MIN":
+            opt_type = OptimizationType.MINIMIZE
+        else:
+            raise SyntaxError(f"The Optimization can either be 'MAX' or 'MIN', but not {mode}")
         parameter = _parse_var(_child_tree(t, 1))
         if parameter not in parameters:
             raise SyntaxError(f"In Optimization queries, the variable can only be a program parameter, was {parameter}.")

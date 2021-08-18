@@ -133,7 +133,12 @@ class QueryHandler(InstructionHandler):
                      f"in order to {'maximize' if instr.type == OptimizationType.MAXIMIZE else 'minimize'}"
                      f"the distribution {dist} with respect to {instr.expr}")
         result = config.optimizer.optimize(instr.expr, dist, instr.parameter, method=instr.type)
-        print(result)
+        if not result:
+            print(f"No solutions could be found.")
+        elif len(result) == 1:
+            print(f"The optimal value is at {instr.parameter}={result[0]}.")
+        else:
+            print(f"The maximal values can be achieved choosing the parameter {instr.parameter} in {result}.")
         return dist
 
 
