@@ -35,8 +35,10 @@ from probably.util.ref import Mut
 
 
 def setup(filename: str) -> Lark:
+    # Read the specification grammar
     with open(filename, 'r') as file:
         _PGCL_GRAMMAR = file.read()
+
     _OPERATOR_TABLE = [[infixl("or", "||")], [infixl("and", "&")],
                        [infixl("leq", "<="),
                         infixl("le", "<"),
@@ -51,8 +53,7 @@ def setup(filename: str) -> Lark:
                            atom("literal", "literal"),
                            atom("var", "var")
                        ]]
-    _PGCL_GRAMMAR += "\n" + textwrap.indent(
-        build_expr_parser(_OPERATOR_TABLE, "expression"), '    ')
+    _PGCL_GRAMMAR += "\n" + textwrap.indent(build_expr_parser(_OPERATOR_TABLE, "expression"), '    ')
 
     def _doc_parser_grammar():
         raise Exception(
@@ -70,7 +71,8 @@ _PARSER = setup("probably/pgcl/parser/pgcl_grammar.txt")
 # Collect parameter information here.
 parameters: Dict[Var, Type] = dict()
 
-# All known distribution types.
+# All known distribution types. Dictionary entry contains the token name as key.
+# Also the value of a given gey is a tuple consisting of the number of parameters and the Class name (constructor call)
 distributions: Dict[str, Tuple[int, Callable]] = {
     "duniform": (2, DUniformExpr),
     "cuniform": (2, CUniformExpr),
@@ -236,14 +238,13 @@ def _parse_literal(t: Tree) -> Expr:
 def _parse_distribution(t: Tree) -> Expr:
     assert t.data in distributions
     param_count, constructor = distributions[t.data]
-    parameters: List[Expr] = []
+    params = []
     for i in range(param_count):
         param = _parse_expr(_child_tree(t, i))
-        if not has_variable(param):
-            parameters.append(param)
-        else:
-            raise SyntaxError("In distribution parameter expressions, no variables are allowed.")
-    return constructor(*parameters)
+        if has_variable(param):
+            raise SyntaxError("In distribution parameter expressions, no variables are allowed. - Forgot parameter declaration?")
+        params.append(param)
+    return constructor(*params)
 
 
 def _parse_rvalue(t: Tree) -> Expr:

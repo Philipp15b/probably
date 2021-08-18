@@ -1,5 +1,5 @@
 import itertools
-from collections import Sequence
+from collections.abc import Sequence
 from decimal import Decimal
 from enum import Enum, auto
 from fractions import Fraction

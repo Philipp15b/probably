@@ -4,7 +4,7 @@ Type Checking
 -------------
 """
 
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, get_args, Tuple
 import attr
 from probably.pgcl.ast import *
 
@@ -32,8 +32,8 @@ class CheckFail:
 
     @staticmethod
     def fmap(
-        source: Iterable[Union[_T,
-                               'CheckFail']]) -> Union['CheckFail', List[_T]]:
+            source: Iterable[Union[_T,
+                                   'CheckFail']]) -> Union['CheckFail', List[_T]]:
         """
         Extract an error from an iterable.
 
@@ -52,148 +52,162 @@ class CheckFail:
         return output
 
 
+def _get_variable_type(prog: Program, expr: Expr, check: bool = True) -> Union[Type, CheckFail]:
+    assert isinstance(expr, VarExpr), f"Cannot type check variable for expression {expr}."
+
+    # is it a variable?
+    variable_type = prog.variables.get(expr.var)
+    if variable_type is not None:
+        return variable_type
+
+    # maybe a parameter?
+    parameter_type = prog.parameters.get(expr.var)
+    if parameter_type is not None:
+        return parameter_type
+
+    # it must be a constant
+    constant_type = prog.constants.get(expr.var)
+    if constant_type is None:
+        return CheckFail(expr, "variable is not declared")
+    return get_type(prog, constant_type)
+
+
+def _get_unary_operation_type(prog: Program, expr: Expr, check: bool = True) -> Union[Type, CheckFail]:
+    assert isinstance(expr, UnopExpr), f"Expression must be of type UnaryExpr, was {type(expr)}."
+    if check:
+        # Currently, all unary operators take boolean operands
+        assert expr.operator in [Unop.NEG, Unop.IVERSON]
+
+        operand_typ = get_type(prog, expr.expr, check=check)
+        if isinstance(operand_typ, CheckFail):
+            return operand_typ
+
+        if not is_compatible(BoolType(), operand_typ):
+            return CheckFail.expected_type_got(expr.expr, BoolType(),
+                                               operand_typ)
+
+    if expr.operator == Unop.NEG:
+        return BoolType()
+
+    if expr.operator == Unop.IVERSON:
+        return RealType()
+
+
+def _get_binary_operation_type(prog: Program, expr: Expr, check: bool = True) -> Union[Type, CheckFail]:
+    assert isinstance(expr, BinopExpr), f"Expression must be of type BinopExpr, was {type(expr)}."
+
+    # binops that take boolean operands and return a boolean
+    if expr.operator in [Binop.OR, Binop.AND]:
+        if check:
+            for operand in [expr.lhs, expr.rhs]:
+                operand_typ = get_type(prog, operand, check=check)
+                if isinstance(operand_typ, CheckFail):
+                    return operand_typ
+                if not is_compatible(BoolType(), operand_typ):
+                    return CheckFail.expected_type_got(
+                        operand, BoolType(), operand_typ)
+        return BoolType()
+
+    # the rest of binops take numeric operands, so check those
+    lhs_typ = get_type(prog, expr.lhs, check=check)
+    if isinstance(lhs_typ, CheckFail):
+        return lhs_typ
+    if not isinstance(lhs_typ, (NatType, RealType)):
+        return CheckFail.expected_numeric_got(expr.lhs, lhs_typ)
+
+    if check and expr.operator in [
+        Binop.LEQ, Binop.LE, Binop.EQ, Binop.PLUS, Binop.MINUS,
+        Binop.TIMES, Binop.MODULO
+    ]:
+        rhs_typ = get_type(prog, expr.rhs, check=check)
+        if isinstance(rhs_typ, CheckFail):
+            return rhs_typ
+        if not isinstance(rhs_typ, (NatType, RealType)):
+            return CheckFail.expected_numeric_got(expr.rhs, rhs_typ)
+
+        if not is_compatible(lhs_typ, rhs_typ):
+            return CheckFail.expected_type_got(expr, lhs_typ, rhs_typ)
+
+    # binops that take numeric operands and return a boolean
+    if expr.operator in [Binop.LEQ, Binop.LE, Binop.EQ]:
+        return BoolType()
+
+    # binops that take numeric operands and return a numeric value
+    if expr.operator in [Binop.PLUS, Binop.MINUS, Binop.TIMES, Binop.MODULO]:
+        # intentionally lose the bounds on NatType (see NatType documentation)
+        if isinstance(lhs_typ, NatType) and lhs_typ.bounds is not None:
+            return NatType(bounds=None)
+        return lhs_typ
+
+
+def _check_distribution_arguments(prog: Program, expected_type: Type, *parameters: Tuple[Type, Expr]):
+    for expected_param_type, param_expr in parameters:
+        param_type = get_type(prog, param_expr)
+        if isinstance(param_type, CheckFail):
+            return CheckFail
+        elif not is_compatible(expected_param_type, param_type):
+            return CheckFail.expected_type_got(param_expr, expected_param_type, param_type)
+    return expected_type
+
+
+def get_distribution_type(prog: Program, expr: Expr, check: bool = True) -> Union[Type, CheckFail]:
+    assert isinstance(expr, get_args(DistrExpr)), f"Expression must be a distribution expression, was {type(expr)}."
+
+    if isinstance(expr, DUniformExpr):
+        return _check_distribution_arguments(prog, NatType(bounds=None), (NatType(bounds=None), expr.start),
+                                             (NatType(bounds=None), expr.end)
+                                             )
+    if isinstance(expr, CUniformExpr):
+        raise NotImplementedError("Currently continuous distributions are not supported.")
+
+    if isinstance(expr, GeometricExpr):
+        return _check_distribution_arguments(prog, NatType(bounds=None), (RealType(), expr.param))
+
+    if isinstance(expr, BernoulliExpr):
+        return _check_distribution_arguments(prog, NatType(bounds=None), (RealType(), expr.param))
+
+    if isinstance(expr, PoissonExpr):
+        return _check_distribution_arguments(prog, NatType(bounds=None), (NatType(bounds=None), expr.param))
+
+    if isinstance(expr, LogDistExpr):
+        return _check_distribution_arguments(prog, NatType(bounds=None), (RealType(), expr.param))
+
+    if isinstance(expr, BinomialExpr):
+        return _check_distribution_arguments(prog, NatType(bounds=None), (NatType(bounds=None), expr.n),
+                                             (RealType(), expr.p)
+                                             )
+
+
 def get_type(program: Program,
              expr: Expr,
              check=True) -> Union[Type, CheckFail]:
     """
     Get the type of the expression or expectation.
 
-    Set `check` to `True` to force checking correctness of all subexpressions, even if that is not necessary to determine the given expression's type.
+    Set `check` to `True` to force checking correctness of all subexpressions, even if that is not necessary
+    to determine the given expression's type.
     """
 
+    # Atomic Expressions
     if isinstance(expr, VarExpr):
-        # is it a variable?
-        variable_type = program.variables.get(expr.var)
-        if variable_type is not None:
-            return variable_type
-
-        # maybe a parameter
-        parameter_type = program.parameters.get(expr.var)
-        if parameter_type is not None:
-            return parameter_type
-
-        # it must be a constant
-        constant_type = program.constants.get(expr.var)
-        if constant_type is None:
-            return CheckFail(expr, "variable is not declared")
-        return get_type(program, constant_type)
-
-    if isinstance(expr, BoolLitExpr):
+        return _get_variable_type(program, expr, check)
+    elif isinstance(expr, BoolLitExpr):
         return BoolType()
-
-    if isinstance(expr, NatLitExpr):
+    elif isinstance(expr, NatLitExpr):
         return NatType(bounds=None)
-
-    if isinstance(expr, RealLitExpr):
+    elif isinstance(expr, RealLitExpr):
         return RealType()
 
-    if isinstance(expr, UnopExpr):
-        if check:
-            # Currently, all unary operators take boolean operands
-            assert expr.operator in [Unop.NEG, Unop.IVERSON]
+    # Composite Expressions.
+    elif isinstance(expr, get_args(DistrExpr)):
+        return get_distribution_type(program, expr, check)
+    elif isinstance(expr, UnopExpr):
+        return _get_unary_operation_type(program, expr, check)
+    elif isinstance(expr, BinopExpr):
+        return _get_binary_operation_type(program, expr, check)
 
-            operand_typ = get_type(program, expr.expr, check=check)
-            if isinstance(operand_typ, CheckFail):
-                return operand_typ
-
-            if not is_compatible(BoolType(), operand_typ):
-                return CheckFail.expected_type_got(expr.expr, BoolType(),
-                                                   operand_typ)
-
-        if expr.operator == Unop.NEG:
-            return BoolType()
-
-        if expr.operator == Unop.IVERSON:
-            return RealType()
-
-    if isinstance(expr, BinopExpr):
-        # binops that take boolean operands and return a boolean
-        if expr.operator in [Binop.OR, Binop.AND]:
-            if check:
-                for operand in [expr.lhs, expr.rhs]:
-                    operand_typ = get_type(program, operand, check=check)
-                    if isinstance(operand_typ, CheckFail):
-                        return operand_typ
-                    if not is_compatible(BoolType(), operand_typ):
-                        return CheckFail.expected_type_got(
-                            operand, BoolType(), operand_typ)
-            return BoolType()
-
-        # the rest of binops take numeric operands, so check those
-        lhs_typ = get_type(program, expr.lhs, check=check)
-        if isinstance(lhs_typ, CheckFail):
-            return lhs_typ
-        if not isinstance(lhs_typ, (NatType, RealType)):
-            return CheckFail.expected_numeric_got(expr.lhs, lhs_typ)
-
-        if check and expr.operator in [
-                Binop.LEQ, Binop.LE, Binop.EQ, Binop.PLUS, Binop.MINUS,
-                Binop.TIMES, Binop.MODULO
-        ]:
-            rhs_typ = get_type(program, expr.rhs, check=check)
-            if isinstance(rhs_typ, CheckFail):
-                return rhs_typ
-            if not isinstance(rhs_typ, (NatType, RealType)):
-                return CheckFail.expected_numeric_got(expr.rhs, rhs_typ)
-
-            if not is_compatible(lhs_typ, rhs_typ):
-                return CheckFail.expected_type_got(expr, lhs_typ, rhs_typ)
-
-        # binops that take numeric operands and return a boolean
-        if expr.operator in [Binop.LEQ, Binop.LE, Binop.EQ]:
-            return BoolType()
-
-        # binops that take numeric operands and return a numeric value
-        if expr.operator in [Binop.PLUS, Binop.MINUS, Binop.TIMES, Binop.MODULO]:
-            # intentionally lose the bounds on NatType (see NatType documentation)
-            if isinstance(lhs_typ, NatType) and lhs_typ.bounds is not None:
-                return NatType(bounds=None)
-            return lhs_typ
-
-    if isinstance(expr, DUniformExpr):
-        start_typ = get_type(program, expr.start, check)
-        if isinstance(start_typ, CheckFail):
-            return start_typ
-        elif not is_compatible(NatType(bounds=None), start_typ):
-            return CheckFail.expected_type_got(expr, NatType(bounds=None), start_typ)
-        end_type = get_type(program, expr.end, check)
-        if isinstance(end_type, CheckFail):
-            return end_type
-        elif not is_compatible(NatType(bounds=None), end_type):
-            return CheckFail.expected_type_got(expr, NatType(bounds=None), end_type)
-        return NatType(bounds=None)
-
-    if isinstance(expr, CUniformExpr):
-        return RealType()
-
-    if isinstance(expr, GeometricExpr):
-        return NatType(bounds=None)
-
-    if isinstance(expr, BernoulliExpr):
-        return NatType(bounds=None)
-
-    if isinstance(expr, PoissonExpr):
-        return NatType(bounds=None)
-
-    if isinstance(expr, LogDistExpr):
-        return NatType(bounds=None)
-
-    if isinstance(expr, BinomialExpr):
-        n = expr.n
-        p = expr.p
-        typ_n = get_type(program, expr.n, check=check)
-        typ_p = get_type(program, expr.p, check=check)
-        if isinstance(typ_p, CheckFail):
-            return typ_p
-        if isinstance(typ_n, CheckFail):
-            return typ_n
-        if not is_compatible(typ_n, NatType(bounds=None)):
-            return CheckFail.expected_type_got(expr, NatType(bounds=None), typ_n)
-        if not is_compatible(typ_p, RealType()):
-            return CheckFail.expected_type_got(expr, RealType(), typ_p)
-        return NatType(bounds=None)
-
-    if isinstance(expr, CategoricalExpr):
+    # Categorical Expressions are handled differently (mainly important for wp-analysis).
+    elif isinstance(expr, CategoricalExpr):
         first_expr = expr.exprs[0][0]
         typ = get_type(program, first_expr, check=check)
         if isinstance(typ, CheckFail):
@@ -207,7 +221,8 @@ def get_type(program: Program,
                     return CheckFail.expected_type_got(expr, typ, other_typ)
         return typ
 
-    raise Exception("unreachable")
+    # Unknown Expression type.
+    raise SyntaxError("Unknown type of expression.")
 
 
 def is_compatible(lhs: Type, rhs: Type) -> bool:
