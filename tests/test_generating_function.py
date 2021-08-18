@@ -81,23 +81,23 @@ class TestDistributionInterface:
 
     def test_get_probability_mass(self):
         gf = GeneratingFunction("(1-sqrt(1-x**2))/x")
-        assert gf.get_probability_mass() == str(probably.pgcl.parse_expr("1"))
+        assert gf.get_probability_mass() == "1"
 
         gf = PGFS.zero("x")
-        assert gf.get_probability_mass() == str(probably.pgcl.parse_expr("0"))
+        assert gf.get_probability_mass() == "0"
 
         gf = PGFS.uniform("x", "3", "10")
-        assert gf.get_probability_mass() == str(probably.pgcl.parse_expr("1"))
+        assert gf.get_probability_mass() == "1"
 
     def test_expected_value_of(self):
         gf = GeneratingFunction("(1-sqrt(1-x**2))/x")
         assert gf.get_expected_value_of("x") == "Infinity"
 
         gf = PGFS.zero("x")
-        assert gf.get_expected_value_of("x") == probably.pgcl.parse_expr("0")
+        assert gf.get_expected_value_of("x") == "0"
 
         gf = PGFS.uniform("x", "3", "10")
-        assert gf.get_expected_value_of("x**2+y") == probably.pgcl.parse_expr("13/2")
+        assert gf.get_expected_value_of("x**2+y") == "95/2"
 
     def test_normalize(self):
         assert create_random_gf().normalize().coefficient_sum() == 1

@@ -139,7 +139,7 @@ class GeneratingFunction(Distribution):
         expr = sympy.S(str(expression)).ratsimp().expand()
         if not expr.is_polynomial():
             raise NotImplementedError("Expected Value only computable for polynomial expressions.")
-        gf = GeneratingFunction(expr, *self._variables)
+        gf = GeneratingFunction(expr)
         expected_value = GeneratingFunction('0')
         for prob, state in gf:
             tmp = self.copy()
