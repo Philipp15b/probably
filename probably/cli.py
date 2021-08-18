@@ -15,7 +15,7 @@ import logging
 import click
 
 import probably.pgcl.compiler as pgcl
-from probably.analysis import ForwardAnalysisConfig
+from probably.analysis.forward import ForwardAnalysisConfig
 from probably.pgcl.typechecker.check import CheckFail
 import probably.analysis
 from probably.analysis import GeneratingFunction
@@ -56,8 +56,8 @@ def main(program_file: IO, input_gf: str, intermediate_results: bool, no_simplif
     else:
         gf = GeneratingFunction(input_gf, *program.variables.keys(), preciseness=1.0)
     config = ForwardAnalysisConfig(show_intermediate_steps=intermediate_results,
-                                   parameters=program.parameters,
-                                   use_latex=use_latex, use_simplification=not no_simplification)
+                                   use_latex=use_latex, use_simplification=not no_simplification,
+                                   engine=ForwardAnalysisConfig.Engine.GF)
     gf = probably.analysis.compute_discrete_distribution(program.instructions, gf, config)
 
 

@@ -29,6 +29,7 @@ from lark import Lark, Tree
 from probably.pgcl.analyzer.syntax import has_variable
 from probably.pgcl.ast import *
 from probably.pgcl.ast.expressions import expr_str_parens
+from probably.pgcl.ast.instructions import OptimizationQuery
 from probably.util.lark_expr_parser import (atom, build_expr_parser, infixl,
                                             prefix)
 from probably.util.ref import Mut
@@ -313,6 +314,12 @@ def _parse_instr(t: Tree) -> Instr:
         return ProbabilityQueryInstr(_parse_expr(_child_tree(t, 0)))
     elif t.data == 'print':
         return PrintInstr()
+    elif t.data == 'optimize':
+        opt_type = OptimizationType.MAXIMIZE if _parse_var(_child_tree(t, 2)) == "MAX" else OptimizationType.MINIMIZE
+        parameter = _parse_var(_child_tree(t, 1))
+        if parameter not in parameters:
+            raise SyntaxError(f"In Optimization queries, the variable can only be a program parameter, was {parameter}.")
+        return OptimizationQuery(_parse_expr(_child_tree(t, 0)), parameter, opt_type)
     elif t.data == "plot":
         if len(t.children) == 3:
             lit = _parse_literal(_child_tree(t, 2))

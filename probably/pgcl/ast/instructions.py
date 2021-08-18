@@ -1,3 +1,5 @@
+from enum import Enum, auto
+
 import attr
 from abc import abstractmethod
 from typing import List, Union
@@ -146,6 +148,21 @@ class ExpectationInstr(InstrClass):
         return f"?Ex[{self.expr}];"
 
 
+class OptimizationType(Enum):
+    MAXIMIZE = auto()
+    MINIMIZE = auto()
+
+
+@attr.s
+class OptimizationQuery(InstrClass):
+    expr: 'Expr' = attr.ib()
+    parameter: Var = attr.ib()
+    type: OptimizationType = attr.ib()
+
+    def __str__(self) -> str:
+        return f"?Opt[{self.expr}, {self.parameter}, {'MAX' if self.type == OptimizationType.MAXIMIZE else 'MIN'}];"
+
+
 @attr.s
 class ProbabilityQueryInstr(InstrClass):
     expr: 'Expr' = attr.ib()
@@ -178,7 +195,7 @@ class PlotInstr(InstrClass):
         return f"!Plot[{output}]"
 
 
-Queries = Union[ProbabilityQueryInstr, ExpectationInstr, PlotInstr, PrintInstr]
+Queries = Union[ProbabilityQueryInstr, ExpectationInstr, PlotInstr, PrintInstr, OptimizationQuery]
 """Union type for all query objects. See :class:`QueryInstr` for use with isinstance."""
 
 Instr = Union[SkipInstr, WhileInstr, IfInstr, AsgnInstr, ChoiceInstr, LoopInstr,

@@ -3,15 +3,12 @@ import logging
 from abc import ABC, abstractmethod
 from typing import get_args, Union, Sequence
 
-from probably.analysis.forward.config import ForwardAnalysisConfig
-from probably.analysis.forward.distribution import Distribution, MarginalType
-from probably.analysis.forward.exceptions import ObserveZeroEventError, ParameterError
+from probably.analysis.forward import ForwardAnalysisConfig, Distribution, MarginalType, CommonDistributionsFactory, ObserveZeroEventError
+from probably.analysis.forward.optimization import Optimizer
 from probably.analysis.forward.pgfs import PGFS
 from probably.analysis.plotter import Plotter
-from probably.pgcl import Instr, WhileInstr, ChoiceInstr, IfInstr, LoopInstr, ObserveInstr, AsgnInstr, DistrExpr, \
-    BinopExpr, Binop, VarExpr, NatLitExpr, DUniformExpr, GeometricExpr, BinomialExpr, PoissonExpr, BernoulliExpr, \
-    LogDistExpr, CategoricalExpr, Queries, PlotInstr, PrintInstr,  ProbabilityQueryInstr, ExpectationInstr, RealLitExpr, UnopExpr, \
-    Unop, Expr, SkipInstr, Var
+from probably.pgcl import *
+from probably.pgcl.ast.instructions import OptimizationQuery
 
 from probably.util.logger import log_setup
 
@@ -90,17 +87,6 @@ class SequenceHandler(InstructionHandler):
 class QueryHandler(InstructionHandler):
 
     @staticmethod
-    def _expectation_handler(expression: Expr, dist: Distribution, config: ForwardAnalysisConfig):
-        # Expectations of Variables can just be computed by derivatives and limits.
-        if isinstance(expression, BinopExpr):
-            if expression.operator in (Binop.AND, Binop.OR, Binop.EQ, Binop.LE, Binop.LEQ):
-                raise SyntaxError("The expression cannot be a boolean condition")
-            return dist.get_expected_value_of(expression)
-        elif isinstance(expression, (VarExpr, NatLitExpr, RealLitExpr)):
-            return dist.get_expected_value_of(expression)
-        raise SyntaxError("The expression is not of valid type.")
-
-    @staticmethod
     def compute(instr: Instr, dist: Distribution, config: ForwardAnalysisConfig) -> Distribution:
         _assume(instr, get_args(Queries), 'QueryHandler')
 
@@ -112,6 +98,8 @@ class QueryHandler(InstructionHandler):
             elif isinstance(expression, BinopExpr):
                 if expression.operator in (Binop.PLUS, Binop.MINUS, Binop.TIMES):
                     result = dist.get_expected_value_of(expression)
+                else:
+                    raise SyntaxError("Expression cannot be a condition.")
             elif isinstance(expression, UnopExpr) and expression.operator == Unop.NEG:
                 result = dist.get_expected_value_of(expression)
             else:
@@ -128,12 +116,26 @@ class QueryHandler(InstructionHandler):
         elif isinstance(instr, PlotInstr):
             return QueryHandler.__query_plot(instr, dist)
 
+        # User wants to print the current distribution.
         elif isinstance(instr, PrintInstr):
             print(dist)
             return dist
 
+        elif isinstance(instr, OptimizationQuery):
+            return QueryHandler.__query_optimization(instr, dist, config)
+
         else:
             raise SyntaxError("This should not happen.")
+
+    @staticmethod
+    def __query_optimization(instr: OptimizationQuery, dist: Distribution, config: ForwardAnalysisConfig):
+        logger.debug(f"Computing the optimal value for parameter {instr.parameter}"
+                     f"in order to {'maximize' if instr.type == OptimizationType.MAXIMIZE else 'minimize'}"
+                     f"the distribution {dist} with respect to {instr.expr}")
+        result = config.optimizer.optimize(instr.expr, dist, instr.parameter, method=instr.type)
+        print(result)
+        return dist
+
 
     @staticmethod
     def __query_plot(instr: PlotInstr, dist: Distribution) -> Distribution:
@@ -178,19 +180,18 @@ class QueryHandler(InstructionHandler):
         return dist
 
 
-class SampleGFHandler(InstructionHandler):
+class SampleHandler(InstructionHandler):
 
     @staticmethod
-    def compute(instr: Instr,
-                dist: Distribution,
-                config: ForwardAnalysisConfig) -> Distribution:
-
-        _assume(instr, AsgnInstr, 'SampleGFHandler')
-        assert isinstance(instr.rhs, get_args(DistrExpr)), f"The Instruction handled by a SampleHandler must be of type" \
-                                                           f" DistrExpr got {type(instr)}"
+    @abstractmethod
+    def compute(instr: Instr, dist: Distribution, config: ForwardAnalysisConfig) -> Distribution:
+        _assume(instr, AsgnInstr, 'SampleHandler')
+        assert isinstance(instr.rhs, get_args(DistrExpr)), f"The Instruction handled by a SampleHandler" \
+                                                           f" must be of type DistrExpr, got {type(instr)}"
 
         variable: Var = instr.lhs
         marginal = dist.marginal(variable, method=MarginalType.Exclude)
+        factory = PGFS if config.engine == config.Engine.GF else CommonDistributionsFactory
 
         # rhs is a categorical expression (explicit finite distr)
         if isinstance(instr.rhs, CategoricalExpr):
@@ -198,27 +199,27 @@ class SampleGFHandler(InstructionHandler):
 
         # rhs is a uniform distribution
         if isinstance(instr.rhs, DUniformExpr):
-            return marginal * PGFS.uniform(variable, instr.rhs.start, instr.rhs.end)
+            return marginal * factory.uniform(variable, instr.rhs.start, instr.rhs.end)
 
         # rhs is geometric distribution
         if isinstance(instr.rhs, GeometricExpr):
-            return marginal * PGFS.geometric(variable, instr.rhs.param)
+            return marginal * factory.geometric(variable, instr.rhs.param)
 
         # rhs is binomial distribution
         if isinstance(instr.rhs, BinomialExpr):
-            return marginal * PGFS.binomial(variable, instr.rhs.n, instr.rhs.p)
+            return marginal * factory.binomial(variable, instr.rhs.n, instr.rhs.p)
 
         # rhs is poisson distribution
         if isinstance(instr.rhs, PoissonExpr):
-            return marginal * PGFS.poisson(variable, instr.rhs.param)
+            return marginal * factory.poisson(variable, instr.rhs.param)
 
         # rhs is bernoulli distribution
         if isinstance(instr.rhs, BernoulliExpr):
-            return marginal * PGFS.bernoulli(variable, instr.rhs.param)
+            return marginal * factory.bernoulli(variable, instr.rhs.param)
 
         # rhs is logarithmic distribution
         if isinstance(instr.rhs, LogDistExpr):
-            return marginal * PGFS.log(variable, instr.rhs.param)
+            return marginal * factory.log(variable, instr.rhs.param)
 
 
 class AssignmentHandler(InstructionHandler):
@@ -230,7 +231,7 @@ class AssignmentHandler(InstructionHandler):
         _assume(instr, AsgnInstr, 'AssignmentHandler')
 
         if isinstance(instr.rhs, get_args(DistrExpr)):
-            return SampleGFHandler.compute(instr, dist, config)
+            return SampleHandler.compute(instr, dist, config)
 
         if not isinstance(instr.rhs, get_args(Expr)):
             raise SyntaxError(f"Assignment {instr} is ill-formed. right-hand-side must be an expression.")

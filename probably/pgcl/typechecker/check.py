@@ -7,6 +7,7 @@ Type Checking
 from typing import Dict, Optional, Union, get_args, Tuple
 import attr
 from probably.pgcl.ast import *
+from probably.pgcl.ast.instructions import OptimizationQuery
 
 _T = TypeVar('_T')
 
@@ -367,6 +368,12 @@ def check_instr(program: Program, instr: Instr) -> Optional[CheckFail]:
         return None
 
     if isinstance(instr, PrintInstr):
+        return None
+
+    if isinstance(instr, OptimizationQuery):
+        expr_type = get_type(program, instr.expr, check=True)
+        if isinstance(expr_type, CheckFail):
+            return expr_type
         return None
 
     if isinstance(instr, PlotInstr):

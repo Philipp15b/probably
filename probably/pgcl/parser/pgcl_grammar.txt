@@ -24,6 +24,7 @@ start: declarations instructions
                | "?Pr" "[" expression "]"                    -> prquery
                | "!Print"                                    -> print
                | "!Plot" "[" var ("," var)? ("," literal)?"]"                 -> plot
+               | "?Opt" "[" expression "," var "," var "]"        -> optimize
                | "loop" "(" INT ")" block                    -> loop
 
 

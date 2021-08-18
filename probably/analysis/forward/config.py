@@ -1,25 +1,39 @@
+from enum import Enum, auto
+from typing import Type
+
 import attr
-from typing import Dict
-from probably.pgcl import Var, Type
+from .exceptions import ConfigurationError
 from .generating_function import GeneratingFunction
+from .optimization.gf_optimizer import GFOptimizer
+from .optimization import Optimizer
 
 
 @attr.s
 class ForwardAnalysisConfig:
     """Global configurable options for forward analysis."""
 
+    class Engine(Enum):
+        GF = auto()
+
     show_intermediate_steps: bool = attr.ib(default=False)
 
     # IMPORTANT: show_ attributes just change the string representation, not the actual computation
     show_rational_probabilities: bool = attr.ib(default=False)
 
-    # IMPORTANT: this field is just a hack to circumvent passing the program to all instruction handlers.
-    parameters: Dict[Var, Type] = attr.ib(default=[])
-
     use_simplification: bool = attr.ib(default=False)
 
     # Print output in Latex
     use_latex: bool = attr.ib(default=False)
+
+    # The distribution engine (defaults to generating functions)
+    engine: Engine = attr.ib(default=Engine.GF)
+
+    @property
+    def optimizer(self) -> Type[Optimizer]:
+        if self.engine == ForwardAnalysisConfig.Engine.GF:
+            return GFOptimizer
+        else:
+            raise ConfigurationError("The configured engine does not implement an optimizer.")
 
     def __attrs_post_init__(self):
         GeneratingFunction.use_latex_output = self.use_latex
