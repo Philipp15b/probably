@@ -113,12 +113,12 @@ class Distribution(ABC):
         pass
 
     @abstractmethod
-    def get_probability_mass(self):
+    def get_probability_mass(self) -> Union[Expr, str]:
         """ Returns the probability mass of the distribution. """
         pass
 
     @abstractmethod
-    def get_expected_value_of(self, expression: Union[Expr, str]):
+    def get_expected_value_of(self, expression: Union[Expr, str]) -> Union[Expr, str]:
         """ Returns the expected value of the expression `expression` evaluated in the distribution. """
         pass
 

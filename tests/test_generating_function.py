@@ -91,7 +91,7 @@ class TestDistributionInterface:
 
     def test_expected_value_of(self):
         gf = GeneratingFunction("(1-sqrt(1-x**2))/x")
-        assert gf.get_expected_value_of("x") == probably.pgcl.parse_expr("\\infty")
+        assert gf.get_expected_value_of("x") == "Infinity"
 
         gf = PGFS.zero("x")
         assert gf.get_expected_value_of("x") == probably.pgcl.parse_expr("0")

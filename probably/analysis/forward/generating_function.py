@@ -134,24 +134,24 @@ class GeneratingFunction(Distribution):
             else:
                 raise NotComputableException(f"The assignment {expression} is not computable on {self}")
 
-    def get_expected_value_of(self, expression: Union[Expr, str]) -> Expr:
+    def get_expected_value_of(self, expression: Union[Expr, str]) -> str:
 
         expr = sympy.S(str(expression)).ratsimp().expand()
         if not expr.is_polynomial():
             raise NotImplementedError("Expected Value only computable for polynomial expressions.")
-        gf = GeneratingFunction(expr)
+        gf = GeneratingFunction(expr, *self._variables)
         expected_value = GeneratingFunction('0')
         for prob, state in gf:
             tmp = self.copy()
             for var, val in state.items():
                 for i in range(val):
-                    tmp = self.diff(var, 1) * GeneratingFunction(var)
-                    tmp = tmp.limit(var, 1)
+                    tmp = tmp.diff(var, 1) * GeneratingFunction(var)
+                tmp = tmp.limit(var, "1")
             expected_value += GeneratingFunction(prob) * tmp
         if expected_value._function == sympy.S('oo'):
-            return RealLitExpr.infinity()
+            return str(RealLitExpr.infinity())
         else:
-            return parse_expr(str(expected_value._function))
+            return str(expected_value._function)
 
 
     @classmethod
