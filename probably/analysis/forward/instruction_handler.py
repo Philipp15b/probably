@@ -283,8 +283,10 @@ class ITEHandler(InstructionHandler):
         _assume(instr, IfInstr, 'ITEHandler')
 
         sat_part = dist.filter(instr.cond)
+        sat_prob = sat_part.get_probability_mass()
         non_sat_part = dist - sat_part
-        return SequenceHandler.compute(instr.true, sat_part) + SequenceHandler.compute(instr.false, non_sat_part)
+        non_sat_prob = non_sat_part.get_probability_mass()
+        return SequenceHandler.compute(instr.true, sat_part).normalize() * sat_prob + SequenceHandler.compute(instr.false, non_sat_part).normalize() * non_sat_prob
 
 
 class LoopHandler(InstructionHandler):

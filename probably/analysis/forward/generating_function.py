@@ -605,7 +605,7 @@ class GeneratingFunction(Distribution):
         """
 
         # Normalize the condition into the format _var_ (< | <= | =) const. I.e., having the variable on the lhs.
-        if isinstance(condition.rhs, VarExpr):
+        if isinstance(condition.rhs, VarExpr) and not condition.rhs.is_parameter:
             if condition.operator == Binop.LEQ:
                 return self.filter(
                     UnopExpr(operator=Unop.NEG,
@@ -619,7 +619,7 @@ class GeneratingFunction(Distribution):
                              )
                 )
 
-        # Now we have an expression of the form _var_ (< | <=, =) const).
+        # Now we have an expression of the form _var_ (< | <=, =) _const_.
         variable = str(condition.lhs)
         constant = condition.rhs.value
         result = sympy.S(0)
