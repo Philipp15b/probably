@@ -195,9 +195,9 @@ class PlotInstr(InstrClass):
         return f"!Plot[{output}]"
 
 
-Queries = Union[ProbabilityQueryInstr, ExpectationInstr, PlotInstr, PrintInstr, OptimizationQuery]
+Query = Union[ProbabilityQueryInstr, ExpectationInstr, PlotInstr, PrintInstr, OptimizationQuery]
 """Union type for all query objects. See :class:`QueryInstr` for use with isinstance."""
 
 Instr = Union[SkipInstr, WhileInstr, IfInstr, AsgnInstr, ChoiceInstr, LoopInstr,
-              TickInstr, ObserveInstr, Queries]
+              TickInstr, ObserveInstr, Query]
 """Union type for all instruction objects. See :class:`InstrClass` for use with isinstance."""

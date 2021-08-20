@@ -1,4 +1,4 @@
-start: declarations instructions
+start: declarations instructions queries
 
     declarations: declaration* -> declarations
 
@@ -13,6 +13,8 @@ start: declarations instructions
 
     instructions: instruction* -> instructions
 
+    queries: query* -> queries
+
     instruction: "skip"                                      -> skip
                | "while" "(" expression ")" block            -> while
                | "if" "(" expression ")" block "else"? block -> if
@@ -20,12 +22,13 @@ start: declarations instructions
                | block "[" expression "]" block              -> choice
                | "tick" "(" expression ")"                   -> tick
                | "observe" "(" expression ")"                -> observe
-               | "?Ex" "[" expression "]"                    -> expectation
+               | "loop" "(" INT ")" block                    -> loop
+
+    query: "?Ex" "[" expression "]"                          -> expectation
                | "?Pr" "[" expression "]"                    -> prquery
                | "!Print"                                    -> print
-               | "!Plot" "[" var ("," var)? ("," literal)?"]"                 -> plot
-               | "?Opt" "[" expression "," var "," var "]"        -> optimize
-               | "loop" "(" INT ")" block                    -> loop
+               | "!Plot" "[" var ("," var)? ("," literal)?"]"-> plot
+               | "?Opt" "[" expression "," var "," var "]"   -> optimize
 
 
     block: "{" instruction* "}"

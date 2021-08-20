@@ -306,10 +306,25 @@ def _parse_instr(t: Tree) -> Instr:
         return TickInstr(_parse_expr(_child_tree(t, 0)))
     elif t.data == 'observe':
         return ObserveInstr(_parse_expr(_child_tree(t, 0)))
-    elif t.data == 'expectation':
-        return ExpectationInstr(_parse_expr(_child_tree(t, 0)))
     elif t.data == 'loop':
         return LoopInstr(NatLitExpr(value=int(t.children[0])), _parse_instrs(_child_tree(t, 1)))
+    else:
+        raise Exception(f'invalid AST: {t.data}')
+
+
+def _parse_instrs(t: Tree) -> List[Instr]:
+    assert t.data in ["instructions", "block"]
+    return [_parse_instr(_as_tree(t)) for t in t.children]
+
+
+def _parse_queries(t: Tree) -> List[Instr]:
+    assert t.data == "queries"
+    return [_parse_query(_as_tree(t)) for t in t.children]
+
+
+def _parse_query(t: Tree):
+    if t.data == 'expectation':
+        return ExpectationInstr(_parse_expr(_child_tree(t, 0)))
     elif t.data == 'prquery':
         return ProbabilityQueryInstr(_parse_expr(_child_tree(t, 0)))
     elif t.data == 'print':
@@ -363,16 +378,11 @@ def _parse_instr(t: Tree) -> Instr:
     else:
         raise Exception(f'invalid AST: {t.data}')
 
-
-def _parse_instrs(t: Tree) -> List[Instr]:
-    assert t.data in ["instructions", "block"]
-    return [_parse_instr(_as_tree(t)) for t in t.children]
-
-
 def _parse_program(config: ProgramConfig, t: Tree) -> Program:
     assert t.data == 'start'
     declarations = _parse_declarations(_child_tree(t, 0))
     instructions = _parse_instrs(_child_tree(t, 1))
+    instructions.extend(_parse_queries(_child_tree(t, 2)))
     return Program.from_parse(config, declarations, parameters, instructions)
 
 

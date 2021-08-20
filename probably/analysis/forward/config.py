@@ -7,7 +7,6 @@ from .generating_function import GeneratingFunction
 from .optimization.gf_optimizer import GFOptimizer
 from .optimization import Optimizer
 
-
 @attr.s
 class ForwardAnalysisConfig:
     """Global configurable options for forward analysis."""

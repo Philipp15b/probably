@@ -34,8 +34,10 @@ class InstructionHandler(ABC):
 
 class SequenceHandler(InstructionHandler):
 
-    @staticmethod
-    def compute(instr: Union[Instr, Sequence[Instr]],
+    normalization: bool = False
+
+    @classmethod
+    def compute(cls, instr: Union[Instr, Sequence[Instr]],
                 dist: Distribution,
                 config=ForwardAnalysisConfig()) -> Distribution:
 
@@ -71,10 +73,14 @@ class SequenceHandler(InstructionHandler):
 
         elif isinstance(instr, ObserveInstr):
             logger.info(f"{instr} gets handled")
+            cls.normalization = True
             return ObserveHandler.compute(instr, dist, config)
 
-        elif isinstance(instr, get_args(Queries)):
+        elif isinstance(instr, get_args(Query)):
             logger.info(f"{instr} gets handled")
+            if cls.normalization:
+                dist = dist.normalize()
+                cls.normalization = False
             return QueryHandler.compute(instr, dist, config)
 
         elif isinstance(instr, LoopInstr):
@@ -88,7 +94,7 @@ class QueryHandler(InstructionHandler):
 
     @staticmethod
     def compute(instr: Instr, dist: Distribution, config: ForwardAnalysisConfig) -> Distribution:
-        _assume(instr, get_args(Queries), 'QueryHandler')
+        _assume(instr, get_args(Query), 'QueryHandler')
 
         # User wants to compute an expected value of an expression
         if isinstance(instr, ExpectationInstr):
@@ -253,12 +259,10 @@ class ObserveHandler(InstructionHandler):
 
         _assume(instruction, ObserveInstr, 'ObserverHandler')
 
-        try:
-            sat_part = distribution.filter(instruction.cond)
-            normalized = sat_part.normalize()
-        except ZeroDivisionError:
+        sat_part = distribution.filter(instruction.cond)
+        if sat_part.get_probability_mass() == 0:
             raise ObserveZeroEventError(f"observed event {instruction.cond} has probability 0")
-        return normalized
+        return sat_part
 
 
 class PChoiceHandler(InstructionHandler):
@@ -283,10 +287,8 @@ class ITEHandler(InstructionHandler):
         _assume(instr, IfInstr, 'ITEHandler')
 
         sat_part = dist.filter(instr.cond)
-        sat_prob = sat_part.get_probability_mass()
         non_sat_part = dist - sat_part
-        non_sat_prob = non_sat_part.get_probability_mass()
-        return SequenceHandler.compute(instr.true, sat_part).normalize() * sat_prob + SequenceHandler.compute(instr.false, non_sat_part).normalize() * non_sat_prob
+        return SequenceHandler.compute(instr.true, sat_part) + SequenceHandler.compute(instr.false, non_sat_part)
 
 
 class LoopHandler(InstructionHandler):
