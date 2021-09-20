@@ -1,31 +1,8 @@
 nat x;
-nat y;
-nat z;
-rparam p;
-nparam n;
 
 
-x := geometric(p)
-y := binomial(n, p)
+x :=  poisson(2)
+x := 3*x + 1
 !Print
-x := x + y
-!Print
-
-
-
-
-z := x + n
-!Print
-
-y := logdist(p)
-
-?Pr[x=2]
-
-observe(x < 4)
-!Print
-
-?Pr[x=2]
-#!Plot[y, 10]
-#!Plot[x, 10]
-#!Plot[x,y, .998]
+!Plot[x, 0.99]
 
