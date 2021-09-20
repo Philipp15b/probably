@@ -1,10 +1,11 @@
 import functools
 import logging
+from fractions import Fraction
+
 from abc import ABC, abstractmethod
 from typing import get_args, Union, Sequence
 
 from probably.analysis.forward import ForwardAnalysisConfig, Distribution, MarginalType, CommonDistributionsFactory, ObserveZeroEventError
-from probably.analysis.forward.optimization import Optimizer
 from probably.analysis.forward.pgfs import PGFS
 from probably.analysis.plotter import Plotter
 from probably.pgcl import *
@@ -339,10 +340,10 @@ class WhileHandler(InstructionHandler):
             captured_probability_threshold = float(input("Enter the probability threshold: "))
             sat_part = dist.filter(instr.cond)
             non_sat_part = dist - sat_part
-            while non_sat_part.get_probability_mass() < captured_probability_threshold:
+            while Fraction(non_sat_part.get_probability_mass()) < captured_probability_threshold:
                 logger.info(
                     f"Collected {non_sat_part.get_probability_mass()} / {captured_probability_threshold} "
-                    f"({(float((non_sat_part.get_probability_mass() / captured_probability_threshold)) * 100):.2f} %)"
+                    f"({(float((Fraction(non_sat_part.get_probability_mass()) / captured_probability_threshold)) * 100):.2f} %)"
                     f"of the desired mass.")
                 iterated_part = SequenceHandler.compute(instr.body, sat_part)
                 iterated_sat = iterated_part.filter(instr.cond)
