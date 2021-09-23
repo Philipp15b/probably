@@ -139,7 +139,7 @@ class GeneratingFunction(Distribution):
         expr = sympy.S(str(expression)).ratsimp().expand()
         if not expr.is_polynomial():
             raise NotImplementedError("Expected Value only computable for polynomial expressions.")
-        marginal = self.marginal(*expr.free_symbols, MarginalType.Include)
+        marginal = self.marginal(*expr.free_symbols, method=MarginalType.Include)
         gf = GeneratingFunction(expr)
         expected_value = GeneratingFunction('0')
         for prob, state in gf:
@@ -547,7 +547,7 @@ class GeneratingFunction(Distribution):
                     else marginal._function.subs(s_var, 1)
                 marginal._is_closed_form = not marginal._function.is_polynomial()
                 marginal._is_finite = marginal._function.ratsimp().is_polynomial()
-        marginal._variables = marginal._variables.difference(variables)
+        marginal._variables = marginal._variables.difference(map(lambda var: sympy.S(str(var)), variables))
         return marginal
 
     def filter(self, expression: Expr) -> 'GeneratingFunction':

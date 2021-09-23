@@ -22,4 +22,5 @@ if(c = 3) {
      skip
 }
 observe(res = 4)
-!Plot[c]
+?Pr[c]
+#!Plot[c]

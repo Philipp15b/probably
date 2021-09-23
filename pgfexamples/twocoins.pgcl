@@ -11,5 +11,6 @@ if (firstCoin=1 & secondCoin =1){
 observe(bothHeads = 0);
 ?Pr[firstCoin]
 ?Pr[secondCoin]
-!Plot[firstCoin, secondCoin, \infty]
+!Print
+#!Plot[firstCoin, secondCoin, \infty]
 // expected: firstCoin/3 + secondCoin/3 + 1/3

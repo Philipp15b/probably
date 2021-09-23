@@ -9,7 +9,6 @@ opendoor := unif(0,2)
 while((opendoor = prize) || (opendoor = player)){
     opendoor := unif(0,2)
 }
-?Pr[player = prize]
 if (opendoor = 0){
     if (player = 1){
         player := 2
@@ -34,4 +33,4 @@ if (opendoor = 0){
     }
 }
 ?Pr[player = prize ]
-!Plot[player, prize, 10]
+#!Plot[player, prize, 10]

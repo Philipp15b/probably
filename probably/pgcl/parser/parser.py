@@ -131,7 +131,6 @@ def _parse_bounds(t: Optional[Tree]) -> Optional[Bounds]:
     return Bounds(_parse_expr(_child_tree(t, 0)),
                   _parse_expr(_child_tree(t, 1)))
 
-
 def _parse_declaration(t: Tree) -> Decl:
     def var0():
         return _parse_var(_child_tree(t, 0))

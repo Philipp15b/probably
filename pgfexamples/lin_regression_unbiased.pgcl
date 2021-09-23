@@ -18,6 +18,7 @@ y2 := 3*x2 + 7
 observe(y1=a*x1+b)
 observe(y2=a*x2+b)
 
-!Plot[a,b,\infty]
+!Print
+#!Plot[a,b,\infty]
 
 
