@@ -8,6 +8,6 @@ do
     echo "Skipped!"
   else
     printf "\e[32mResult:\t\e[m"
-    time poetry run probably $file --no-simplification 
+    time poetry run probably $file $@ 
   fi
 done
