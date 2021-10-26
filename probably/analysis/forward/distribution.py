@@ -118,7 +118,7 @@ class Distribution(ABC):
         pass
 
     @abstractmethod
-    def get_expected_value_of(self, expression: Union[Expr, str]) -> Union[Expr, str]:
+    def get_expected_value_of(self, expression: Union[Expr, str]) -> str:
         """ Returns the expected value of the expression `expression` evaluated in the distribution. """
         pass
 

@@ -313,7 +313,11 @@ class GeneratingFunction(Distribution):
             if self._is_closed_form:
                 func = self._function.expand().ratsimp().as_poly(*self._variables)
             else:
-                func = self._function.as_poly(*self._variables)
+                if not self._variables:
+                    logger.warn("Empty Polynomial, introducing auxilliary variable to create polynomial.")
+                    func = self._function.as_poly(sympy.S("empty_generator"))
+                else:
+                    func = self._function.as_poly(*self._variables)
             return map(lambda term: (str(term[0]), self.monomial_to_state(term[1])), _term_generator(func))
         else:
             logger.debug("Multivariate Taylor expansion might take a while...")
@@ -539,15 +543,20 @@ class GeneratingFunction(Distribution):
         """
         logger.debug(f"Creating marginal for variables {variables} and joint probability distribution {self}")
         marginal = self.copy()
-        for s_var in marginal._variables:
-            check = {MarginalType.Include: str(s_var) not in map(str, variables),
-                     MarginalType.Exclude: str(s_var) in map(str, variables)}
-            if check[method]:
+        if method == MarginalType.Include:
+            for s_var in marginal._variables.difference(map(sympy.S, map(str, variables))):
                 marginal._function = marginal._function.limit(s_var, 1, "-") if marginal._is_closed_form \
                     else marginal._function.subs(s_var, 1)
-                marginal._is_closed_form = not marginal._function.is_polynomial()
-                marginal._is_finite = marginal._function.ratsimp().is_polynomial()
-        marginal._variables = marginal._variables.difference(map(lambda var: sympy.S(str(var)), variables))
+            marginal._variables = set(map(sympy.S, map(str, variables)))
+        else:
+            for s_var in variables:
+                marginal._function = marginal._function.limit(s_var, 1, "-") if marginal._is_closed_form \
+                    else marginal._function.subs(s_var, 1)
+            marginal._variables = marginal._variables.difference(map(sympy.S, variables))
+
+        marginal._is_closed_form = not marginal._function.is_polynomial()
+        marginal._is_finite = marginal._function.ratsimp().is_polynomial()
+
         return marginal
 
     def filter(self, expression: Expr) -> 'GeneratingFunction':
