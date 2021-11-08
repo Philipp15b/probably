@@ -2,10 +2,15 @@ from enum import Enum, auto
 from typing import Type
 
 import attr
+
+from .distribution import CommonDistributionsFactory
 from .exceptions import ConfigurationError
+from .fast_generating_function import FPSFactory
 from .generating_function import GeneratingFunction
 from .optimization.gf_optimizer import GFOptimizer
 from .optimization import Optimizer
+from .pgfs import PGFS
+
 
 @attr.s
 class ForwardAnalysisConfig:
@@ -13,6 +18,7 @@ class ForwardAnalysisConfig:
 
     class Engine(Enum):
         GF = auto()
+        GINAC = auto()
 
     show_intermediate_steps: bool = attr.ib(default=False)
 
@@ -33,6 +39,15 @@ class ForwardAnalysisConfig:
             return GFOptimizer
         else:
             raise ConfigurationError("The configured engine does not implement an optimizer.")
+
+    @property
+    def factory(self) -> Type[CommonDistributionsFactory]:
+        if self.engine == self.Engine.GF:
+            return PGFS
+        elif self.engine == self.Engine.GINAC:
+            return FPSFactory
+        else:
+            return CommonDistributionsFactory
 
     def __attrs_post_init__(self):
         GeneratingFunction.use_latex_output = self.use_latex

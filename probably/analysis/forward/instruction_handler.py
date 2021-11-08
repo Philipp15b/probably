@@ -5,7 +5,7 @@ from fractions import Fraction
 from abc import ABC, abstractmethod
 from typing import get_args, Union, Sequence
 
-from probably.analysis.forward import ForwardAnalysisConfig, Distribution, MarginalType, CommonDistributionsFactory, ObserveZeroEventError
+from probably.analysis.forward import ForwardAnalysisConfig, Distribution, MarginalType, ObserveZeroEventError
 from probably.analysis.forward.pgfs import PGFS
 from probably.analysis.plotter import Plotter
 from probably.pgcl import *
@@ -203,7 +203,7 @@ class SampleHandler(InstructionHandler):
 
         variable: Var = instr.lhs
         marginal = dist.marginal(variable, method=MarginalType.Exclude)
-        factory = PGFS if config.engine == config.Engine.GF else CommonDistributionsFactory
+        factory = config.factory
 
         # rhs is a categorical expression (explicit finite distr)
         if isinstance(instr.rhs, CategoricalExpr):
@@ -289,7 +289,7 @@ class ITEHandler(InstructionHandler):
 
         sat_part = dist.filter(instr.cond)
         non_sat_part = dist - sat_part
-        return SequenceHandler.compute(instr.true, sat_part) + SequenceHandler.compute(instr.false, non_sat_part)
+        return SequenceHandler.compute(instr.true, sat_part, config) + SequenceHandler.compute(instr.false, non_sat_part, config)
 
 
 class LoopHandler(InstructionHandler):

@@ -1,4 +1,3 @@
-# pylint: disable=W
 """
 Probably also offers a simple command-line interface for quick program inspection.
 
@@ -16,19 +15,24 @@ import click
 
 import probably.pgcl.compiler as pgcl
 from probably.analysis.forward import ForwardAnalysisConfig
+from probably.analysis.forward.equivalence.equivalence_check import check_equivalence
 from probably.pgcl.typechecker.check import CheckFail
 import probably.analysis
 from probably.analysis import GeneratingFunction
 
 
-@click.command()
+@click.group()
+def cli():
+    pass
+
+
+@cli.command('main')
 @click.argument('program_file', type=click.File('r'))
 @click.argument('input_gf', type=str, required=False)
 @click.option('--intermediate-results', is_flag=True, required=False, default=False)
 @click.option('--no-simplification', is_flag=True, required=False, default=False)
 @click.option('--use-latex', is_flag=True, required=False, default=False)
 @click.option('--show-input-program', is_flag=True, required=False, default=False)
-# pylint: disable=redefined-builtin
 def main(program_file: IO, input_gf: str, intermediate_results: bool, no_simplification: bool, use_latex: bool,
          show_input_program: bool) -> None:
     """
@@ -36,7 +40,7 @@ def main(program_file: IO, input_gf: str, intermediate_results: bool, no_simplif
     """
 
     # Setup the logging.
-    #logging.basicConfig(level=logging.INFO)
+    # logging.basicConfig(level=logging.INFO)
     logging.getLogger("probably.cli").info("Program started.")
 
     # Parse and the input and do typechecking.
@@ -61,6 +65,34 @@ def main(program_file: IO, input_gf: str, intermediate_results: bool, no_simplif
     gf = probably.analysis.compute_discrete_distribution(program.instructions, gf, config)
 
 
+@cli.command('check_equality')
+@click.argument('program_file', type=click.File('r'))
+@click.argument('invariant_file', type=click.File('r'))
+def check_equality(program_file: IO, invariant_file: IO):
+    """
+    Checks whether a certain loop-free program is an invariant of a specified while loop.
+    :param program_file: the file containing the while-loop
+    :param invariant_file: the provided invariant
+    :return:
+    """
+    prog_src = program_file.read()
+    inv_src = invariant_file.read()
+
+    prog = pgcl.compile_pgcl(prog_src)
+    if isinstance(prog, CheckFail):
+        print("Error:", prog)
+        return
+
+    inv = pgcl.compile_pgcl(inv_src)
+    if isinstance(inv, CheckFail):
+        print("Error:", inv)
+        return
+
+    equiv = check_equivalence(prog, inv, ForwardAnalysisConfig(engine=ForwardAnalysisConfig.Engine.GINAC))
+    print(f"Program is {'not ' if not equiv else ''}equivalent to invaraint")
+    return equiv
+
+
 if __name__ == "__main__":
     # execute only if run as a script
-    main()  # pylint: disable=no-value-for-parameter
+    cli()  # pylint: disable=no-value-for-parameter
