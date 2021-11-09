@@ -1,0 +1,7 @@
+nat s;
+nat die;
+
+if(s < 7){
+s:=7;
+die:=unif(1,6)
+} else {skip}
