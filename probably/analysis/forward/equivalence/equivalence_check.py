@@ -48,10 +48,12 @@ def check_equivalence(program: Program, invariant: Program, config: ForwardAnaly
     # Now we have to generate a infinite state parametrized distribution for every program variable.
     test_dist = generate_equivalence_test_distribution(program, config)
 
+    print(f"Test distribution: {test_dist}")
+
     # Compute the resulting distributions for both programs
     modified_inv_result = compute_discrete_distribution(modified_inv.instructions, test_dist, config)
     inv_result = compute_discrete_distribution(invariant.instructions, test_dist, config)
-
+    print(f"Phi: {modified_inv_result}", f"\n{inv_result}")
     # Compare them and check whether they are equal.
 
     if modified_inv_result == inv_result:

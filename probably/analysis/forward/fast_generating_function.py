@@ -125,17 +125,31 @@ class FPS(Distribution):
                 filtered_left = self.filter(condition.lhs)
                 return filtered_left + self.filter(condition.rhs) - filtered_left.filter(condition.lhs)
 
-            # binary relation
-            elif condition.operator == Binop.EQ:
-                return FPS.from_dist(self.dist.filterEq(str(condition.lhs), str(condition.rhs)))
-            elif condition.operator == Binop.LE:
-                return FPS.from_dist(self.dist.filterLess(str(condition.lhs), str(condition.rhs)))
-            elif condition.operator == Binop.LEQ:
-                return FPS.from_dist(self.dist.filterLeq(str(condition.lhs), str(condition.rhs)))
-            elif condition.operator == Binop.GE:
-                return FPS.from_dist(self.dist.filterGreater(str(condition.lhs), str(condition.rhs)))
-            elif condition.operator == Binop.GEQ:
-                return FPS.from_dist(self.dist.filterGeq(str(condition.lhs), str(condition.rhs)))
+            # Normalize the conditional to variables on the lhs from the relation symbol.
+            if isinstance(condition.rhs, VarExpr):
+                if condition.operator == Binop.EQ:
+                    return self.filter(BinopExpr(operator=Binop.EQ, lhs=condition.rhs, rhs=condition.lhs))
+                elif condition.operator == Binop.LEQ:
+                    return self.filter(BinopExpr(operator=Binop.GEQ, lhs=condition.rhs, rhs=condition.lhs))
+                elif condition.operator == Binop.LE:
+                    return self.filter(BinopExpr(operator=Binop.GE, lhs=condition.rhs, rhs=condition.lhs))
+                elif condition.operator == Binop.GEQ:
+                    return self.filter(BinopExpr(operator=Binop.LEQ, lhs=condition.rhs, rhs=condition.lhs))
+                elif condition.operator == Binop.GE:
+                    return self.filter(BinopExpr(operator=Binop.LE, lhs=condition.rhs, rhs=condition.lhs))
+
+            # is normalized conditional
+            if isinstance(condition.lhs, VarExpr):
+                if condition.operator == Binop.EQ:
+                    return FPS.from_dist(self.dist.filterEq(str(condition.lhs), str(condition.rhs)))
+                elif condition.operator == Binop.LE:
+                    return FPS.from_dist(self.dist.filterLess(str(condition.lhs), str(condition.rhs)))
+                elif condition.operator == Binop.LEQ:
+                    return FPS.from_dist(self.dist.filterLeq(str(condition.lhs), str(condition.rhs)))
+                elif condition.operator == Binop.GE:
+                    return FPS.from_dist(self.dist.filterGreater(str(condition.lhs), str(condition.rhs)))
+                elif condition.operator == Binop.GEQ:
+                    return FPS.from_dist(self.dist.filterGeq(str(condition.lhs), str(condition.rhs)))
         elif isinstance(condition, UnopExpr):
             # unary relation
             if condition.operator == Unop.NEG:
