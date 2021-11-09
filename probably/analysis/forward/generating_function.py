@@ -546,6 +546,10 @@ class GeneratingFunction(Distribution):
             return GeneratingFunction.evaluate(lhs, state) <= GeneratingFunction.evaluate(rhs, state)
         elif op == Binop.LE:
             return GeneratingFunction.evaluate(lhs, state) < GeneratingFunction.evaluate(rhs, state)
+        elif op == Binop.GE:
+            return GeneratingFunction.evaluate(lhs, state) > GeneratingFunction.evaluate(rhs, state)
+        elif op == Binop.GEQ:
+            return GeneratingFunction.evaluate(lhs, state) >= GeneratingFunction.evaluate(rhs, state)
         raise AssertionError(f"Unexpected condition type. {condition}")
 
     def marginal(self, *variables: Union[str, VarExpr],
@@ -643,6 +647,20 @@ class GeneratingFunction(Distribution):
                              expr=BinopExpr(operator=Binop.LEQ, lhs=condition.rhs, rhs=condition.lhs)
                              )
                 )
+            elif condition.operator == Binop.GE:
+                return self.filter(
+                    BinopExpr(operator=Binop.LE, lhs=condition.rhs, rhs=condition.lhs)
+                )
+            elif condition.operator == Binop.GEQ:
+                return self.filter(
+                    BinopExpr(operator=Binop.LEQ, lhs=condition.rhs, rhs=condition.lhs)
+                )
+
+        if isinstance(condition.lhs, VarExpr) and not condition.lhs.is_parameter:
+            if condition.operator == Binop.GE:
+                return self.filter(BinopExpr(operator=Binop.LE, lhs=condition.rhs, rhs=condition.lhs))
+            elif condition.operator == Binop.GEQ:
+                return self.filter(BinopExpr(operator=Binop.LEQ, lhs=condition.rhs, rhs=condition.lhs))
 
         # Now we have an expression of the form _var_ (< | <=, =) _const_.
         variable = str(condition.lhs)

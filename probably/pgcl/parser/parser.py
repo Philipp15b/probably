@@ -43,6 +43,8 @@ def setup(filename: str) -> Lark:
     _OPERATOR_TABLE = [[infixl("or", "||")], [infixl("and", "&")],
                        [infixl("leq", "<="),
                         infixl("le", "<"),
+                        infixl("ge", ">"),
+                        infixl("geq", ">="),
                         infixl("eq", "=")],
                        [infixl("plus", "+"),
                         infixl("minus", "-")], [infixl("times", "*")],
@@ -183,6 +185,10 @@ def _parse_expr(t: Tree) -> Expr:
         return BinopExpr(Binop.LEQ, expr0(), expr1())
     elif t.data == 'le':
         return BinopExpr(Binop.LE, expr0(), expr1())
+    elif t.data == 'geq':
+        return BinopExpr(Binop.GEQ, expr0(), expr1())
+    elif t.data == 'ge':
+        return BinopExpr(Binop.GE, expr0(), expr1())
     elif t.data == 'eq':
         return BinopExpr(Binop.EQ, expr0(), expr1())
     elif t.data == 'plus':

@@ -132,6 +132,10 @@ class FPS(Distribution):
                 return FPS.from_dist(self.dist.filterLess(str(condition.lhs), str(condition.rhs)))
             elif condition.operator == Binop.LEQ:
                 return FPS.from_dist(self.dist.filterLeq(str(condition.lhs), str(condition.rhs)))
+            elif condition.operator == Binop.GE:
+                return FPS.from_dist(self.dist.filterGreater(str(condition.lhs), str(condition.rhs)))
+            elif condition.operator == Binop.GEQ:
+                return FPS.from_dist(self.dist.filterGeq(str(condition.lhs), str(condition.rhs)))
         elif isinstance(condition, UnopExpr):
             # unary relation
             if condition.operator == Unop.NEG:
@@ -155,8 +159,8 @@ class FPS(Distribution):
             NotImplementedError("Currently only geometric Distributions are supported.")
 
         result = self.dist.updateIid(str(variable),
-                                     prodigy.geometric("t", str(sample_dist.param)),
-                                     sampling_exp.variable)
+                                     prodigy.geometric("test", str(sample_dist.param)),
+                                     str(sampling_exp.variable))
         return FPS.from_dist(result)
 
     def marginal(self, *variables: Union[str, VarExpr], method: MarginalType = MarginalType.Include) -> Distribution:

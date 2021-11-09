@@ -1,6 +1,6 @@
 nat x;
 nat c;
 
-while(0 < x) {
+while(x > 0) {
  { x := x-1 } [1/2] { c := c+1 }
 }
