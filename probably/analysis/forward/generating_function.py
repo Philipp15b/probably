@@ -1,6 +1,6 @@
 import functools
 import logging
-from typing import Tuple, List, Set, Dict, Union, Generator
+from typing import Tuple, List, Set, Dict, Union, Generator, get_args
 
 import sympy
 import operator
@@ -12,6 +12,7 @@ from .distribution import Distribution, MarginalType
 from .exceptions import ComparisonException, NotComputableException, DistributionParameterError
 from probably.util.logger import log_setup
 from probably.util.ref import Mut
+from ...pgcl.ast.expressions import IidSampleExpr, DistrExpr, GeometricExpr
 
 logger = log_setup(__name__, logging.DEBUG, file="GF_operations.log")
 
@@ -133,6 +134,20 @@ class GeneratingFunction(Distribution):
                 return list(self.approximate(f"{(1 - error) * self.coefficient_sum()}"))[-1].update(expression)
             else:
                 raise NotComputableException(f"The assignment {expression} is not computable on {self}")
+
+    def update_iid(self, sampling_exp: IidSampleExpr, variable: Union[str, VarExpr]) -> 'Distribution':
+        assert isinstance(sampling_exp, IidSampleExpr), f"Not an IidSamplingExpression."
+
+        subst_var = sampling_exp.variable
+        sampling_dist = sampling_exp.sampling_dist
+
+        if not isinstance(sampling_dist, GeometricExpr):
+            raise NotImplementedError("Currently only geometric expressions are supported.")
+
+        dist_gf = sympy.S(f"({sampling_dist.param}) / (1 - (1-({sampling_dist.param})) * {variable})")
+        result = self.marginal(variable, method=MarginalType.Exclude)
+        result._function = result._function.subs(str(subst_var), f"{subst_var} * {dist_gf}")
+        return result
 
     def get_expected_value_of(self, expression: Union[Expr, str]) -> str:
 

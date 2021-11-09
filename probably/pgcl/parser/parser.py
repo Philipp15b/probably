@@ -28,7 +28,7 @@ from lark import Lark, Tree
 
 from probably.pgcl.analyzer.syntax import has_variable
 from probably.pgcl.ast import *
-from probably.pgcl.ast.expressions import expr_str_parens
+from probably.pgcl.ast.expressions import expr_str_parens, IidSampleExpr
 from probably.pgcl.ast.instructions import OptimizationQuery
 from probably.util.lark_expr_parser import (atom, build_expr_parser, infixl,
                                             prefix)
@@ -250,6 +250,9 @@ def _parse_distribution(t: Tree) -> Expr:
 def _parse_rvalue(t: Tree) -> Expr:
     if t.data in distributions:
         return _parse_distribution(t)
+
+    elif t.data == "iid":
+        return IidSampleExpr(_parse_rvalue(_child_tree(t, 0)), VarExpr(_parse_var(_child_tree(t, 1))))
 
     # otherwise we have an expression, but it may contain _LikelyExprs, which we
     # need to parse.

@@ -5,6 +5,7 @@ from .distribution import Distribution, CommonDistributionsFactory, Param
 import prodigy
 
 from ...pgcl import VarExpr, Expr, BinopExpr, UnopExpr, Binop, Unop
+from ...pgcl.ast.expressions import IidSampleExpr, GeometricExpr
 
 
 class FPSFactory(CommonDistributionsFactory):
@@ -146,6 +147,17 @@ class FPS(Distribution):
 
     def update(self, expression: Expr) -> Distribution:
         return FPS.from_dist(self.dist.update(str(expression.lhs), str(expression.rhs)))
+
+    def update_iid(self, sampling_exp: IidSampleExpr, variable: Union[str, VarExpr]) -> 'Distribution':
+
+        sample_dist = sampling_exp.sampling_dist
+        if not isinstance(sample_dist, GeometricExpr):
+            NotImplementedError("Currently only geometric Distributions are supported.")
+
+        result = self.dist.updateIid(str(variable),
+                                     prodigy.geometric("t", str(sample_dist.param)),
+                                     sampling_exp.variable)
+        return FPS.from_dist(result)
 
     def marginal(self, *variables: Union[str, VarExpr], method: MarginalType = MarginalType.Include) -> Distribution:
         # TODO: Make this work with an arbitrary number of variables to marginalize.

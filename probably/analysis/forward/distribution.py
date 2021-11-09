@@ -3,6 +3,7 @@ from enum import Enum, auto
 from typing import Union, Set, Dict, Iterator, Tuple, Generator
 
 from probably.pgcl import Expr, VarExpr
+from probably.pgcl.ast.expressions import IidSampleExpr
 
 
 class MarginalType(Enum):
@@ -155,6 +156,11 @@ class Distribution(ABC):
     @abstractmethod
     def update(self, expression: Expr) -> 'Distribution':
         """ Updates the distribution by the result of the expression. """
+        pass
+
+    @abstractmethod
+    def update_iid(self, sampling_exp: IidSampleExpr, variable: Union[str, VarExpr]) -> 'Distribution':
+        """ Updates the distribution by the the iid-sampling rules. """
         pass
 
     @abstractmethod

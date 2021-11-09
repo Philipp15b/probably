@@ -7,6 +7,7 @@ Type Checking
 from typing import Dict, Optional, Union, get_args, Tuple
 import attr
 from probably.pgcl.ast import *
+from probably.pgcl.ast.expressions import IidSampleExpr
 from probably.pgcl.ast.instructions import OptimizationQuery
 
 _T = TypeVar('_T')
@@ -158,25 +159,27 @@ def get_distribution_type(prog: Program, expr: Expr, check: bool = True) -> Unio
         return _check_distribution_arguments(prog, NatType(bounds=None), (NatType(bounds=None), expr.start),
                                              (NatType(bounds=None), expr.end)
                                              )
-    if isinstance(expr, CUniformExpr):
+    elif isinstance(expr, CUniformExpr):
         raise NotImplementedError("Currently continuous distributions are not supported.")
 
-    if isinstance(expr, GeometricExpr):
+    elif isinstance(expr, GeometricExpr):
         return _check_distribution_arguments(prog, NatType(bounds=None), (RealType(), expr.param))
 
-    if isinstance(expr, BernoulliExpr):
+    elif isinstance(expr, BernoulliExpr):
         return _check_distribution_arguments(prog, NatType(bounds=None), (RealType(), expr.param))
 
-    if isinstance(expr, PoissonExpr):
+    elif isinstance(expr, PoissonExpr):
         return _check_distribution_arguments(prog, NatType(bounds=None), (NatType(bounds=None), expr.param))
 
-    if isinstance(expr, LogDistExpr):
+    elif isinstance(expr, LogDistExpr):
         return _check_distribution_arguments(prog, NatType(bounds=None), (RealType(), expr.param))
 
-    if isinstance(expr, BinomialExpr):
+    elif isinstance(expr, BinomialExpr):
         return _check_distribution_arguments(prog, NatType(bounds=None), (NatType(bounds=None), expr.n),
                                              (RealType(), expr.p)
                                              )
+    if isinstance(expr, IidSampleExpr):
+        return get_distribution_type(prog, expr.sampling_dist, check)
 
 
 def get_type(program: Program,

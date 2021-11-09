@@ -9,6 +9,7 @@ from probably.analysis.forward import ForwardAnalysisConfig, Distribution, Margi
 from probably.analysis.forward.pgfs import PGFS
 from probably.analysis.plotter import Plotter
 from probably.pgcl import *
+from probably.pgcl.ast.expressions import IidSampleExpr
 from probably.pgcl.ast.instructions import OptimizationQuery
 
 from probably.util.logger import log_setup
@@ -54,7 +55,7 @@ class SequenceHandler(InstructionHandler):
             func = _show_steps if config.show_intermediate_steps else _dont_show_steps
             return functools.reduce(func, instr, dist)
 
-        if isinstance(instr, SkipInstr):
+        elif isinstance(instr, SkipInstr):
             return dist
 
         elif isinstance(instr, WhileInstr):
@@ -210,28 +211,32 @@ class SampleHandler(InstructionHandler):
             raise NotImplementedError("Categorical expression are currently not supported.")
 
         # rhs is a uniform distribution
-        if isinstance(instr.rhs, DUniformExpr):
+        elif isinstance(instr.rhs, DUniformExpr):
             return marginal * factory.uniform(variable, instr.rhs.start, instr.rhs.end)
 
         # rhs is geometric distribution
-        if isinstance(instr.rhs, GeometricExpr):
+        elif isinstance(instr.rhs, GeometricExpr):
             return marginal * factory.geometric(variable, instr.rhs.param)
 
         # rhs is binomial distribution
-        if isinstance(instr.rhs, BinomialExpr):
+        elif isinstance(instr.rhs, BinomialExpr):
             return marginal * factory.binomial(variable, instr.rhs.n, instr.rhs.p)
 
         # rhs is poisson distribution
-        if isinstance(instr.rhs, PoissonExpr):
+        elif isinstance(instr.rhs, PoissonExpr):
             return marginal * factory.poisson(variable, instr.rhs.param)
 
         # rhs is bernoulli distribution
-        if isinstance(instr.rhs, BernoulliExpr):
+        elif isinstance(instr.rhs, BernoulliExpr):
             return marginal * factory.bernoulli(variable, instr.rhs.param)
 
         # rhs is logarithmic distribution
-        if isinstance(instr.rhs, LogDistExpr):
+        elif isinstance(instr.rhs, LogDistExpr):
             return marginal * factory.log(variable, instr.rhs.param)
+
+        # rhs is an iid sampling expression
+        elif isinstance(instr.rhs, IidSampleExpr):
+            return dist.update_iid(instr.rhs, instr.lhs)
 
 
 class AssignmentHandler(InstructionHandler):

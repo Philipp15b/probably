@@ -421,6 +421,16 @@ class BinomialExpr(ExprClass):
         return f'binomial({expr_str_parens(self.n)}, {expr_str_parens(self.p)})'
 
 
+@attr.s
+class IidSampleExpr(ExprClass):
+    """ Independently sampling from identical distributions"""
+    sampling_dist: 'Expr' = attr.ib()
+    variable: VarExpr = attr.ib()
+
+    def __str__(self) -> str:
+        return f"iid({self.sampling_dist}, {self.variable})"
+
+
 """ Other Expressions. """
 
 
@@ -493,7 +503,8 @@ class CategoricalExpr(ExprClass):
                            for expr, prob in self.exprs))
 
 
-DistrExpr = Union[DUniformExpr, CUniformExpr, BernoulliExpr, GeometricExpr, PoissonExpr, LogDistExpr, BinomialExpr]
+DistrExpr = Union[DUniformExpr, CUniformExpr, BernoulliExpr, GeometricExpr, PoissonExpr, LogDistExpr, BinomialExpr,
+                  IidSampleExpr]
 """ A type combining all sampling expressions"""
 
 Expr = Union[VarExpr, BoolLitExpr, NatLitExpr, RealLitExpr,
