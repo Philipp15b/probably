@@ -26,5 +26,10 @@ class ParameterError(Exception):
 class ExpressionError(Exception):
     pass
 
+
+class VerificationError(Exception):
+    pass
+
+
 class ConfigurationError(Exception):
     pass

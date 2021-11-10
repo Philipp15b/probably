@@ -1,7 +1,9 @@
-from probably.analysis import ForwardAnalysisConfig, Distribution, GeneratingFunction
+from typing import Tuple, Optional
+
+from probably.analysis.forward.config import ForwardAnalysisConfig
 from probably.pgcl import Program, IfInstr, SkipInstr, VarExpr
 from probably.pgcl.analyzer.syntax import check_is_one_big_loop
-from probably.analysis import compute_discrete_distribution
+from probably.analysis import compute_discrete_distribution, Distribution
 
 
 def phi(program: Program, invariant: Program):
@@ -32,7 +34,8 @@ def generate_equivalence_test_distribution(program: Program, config: ForwardAnal
     return dist
 
 
-def check_equivalence(program: Program, invariant: Program, config: ForwardAnalysisConfig):
+def check_equivalence(program: Program, invariant: Program, config: ForwardAnalysisConfig)\
+        -> Tuple[bool, Optional[Distribution]]:
     """
     This method uses the fact that we can sometimes determine program equivalence,
     by checking the equality of two parametrized infinite-state Distributions.
@@ -61,6 +64,6 @@ def check_equivalence(program: Program, invariant: Program, config: ForwardAnaly
     # Compare them and check whether they are equal.
 
     if modified_inv_result == inv_result:
-        return True
+        return True, inv_result
     else:
-        return False
+        return False, None
