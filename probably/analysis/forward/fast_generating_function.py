@@ -16,12 +16,7 @@ class FPSFactory(CommonDistributionsFactory):
 
     @staticmethod
     def uniform(var: Union[str, VarExpr], a: Param, b: Param) -> Distribution:
-        f = f"(1/{int(b.value) - int(a.value) + 1}) * ("
-        for i in range(int(a.value), int(b.value)+1):
-            f += f"{var}^{i}"
-            if not i == int(b.value):
-                f += "+"
-        f += ")"
+        f = f"1/({b} - {a} + 1) * ({var}^{a}) * (({var}^({b} - {a} + 1) - 1)/({var} - 1))"
         return FPS(f)
 
     @staticmethod
