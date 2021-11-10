@@ -16,7 +16,13 @@ class FPSFactory(CommonDistributionsFactory):
 
     @staticmethod
     def uniform(var: Union[str, VarExpr], a: Param, b: Param) -> Distribution:
-        raise NotImplementedError(__name__)
+        f = f"(1/{int(b.value) - int(a.value) + 1}) * ("
+        for i in range(int(a.value), int(b.value)+1):
+            f += f"{var}^{i}"
+            if not i == int(b.value):
+                f += "+"
+        f += ")"
+        return FPS(f)
 
     @staticmethod
     def bernoulli(var: Union[str, VarExpr], p: Param) -> Distribution:

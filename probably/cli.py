@@ -88,7 +88,7 @@ def check_equality(program_file: IO, invariant_file: IO):
         print("Error:", inv)
         return
 
-    equiv = check_equivalence(prog, inv, ForwardAnalysisConfig(engine=ForwardAnalysisConfig.Engine.GF))
+    equiv = check_equivalence(prog, inv, ForwardAnalysisConfig(engine=ForwardAnalysisConfig.Engine.GINAC))
     print(f"Program is {'not ' if not equiv else ''}equivalent to invaraint")
     return equiv
 

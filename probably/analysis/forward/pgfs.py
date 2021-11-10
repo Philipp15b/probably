@@ -25,7 +25,7 @@ class PGFS(CommonDistributionsFactory):
         if isinstance(a, str) and isinstance(b, str) and not (0 <= sp.S(a) <= sp.S(b)):
             raise DistributionParameterError(f"Distribution parameters must satisfy 0 <= a < b < oo")
         elif (isinstance(a, VarExpr) and has_variable(a)) or (isinstance(b, VarExpr) and has_variable(b)):
-            raise DistributionParameterError(f"Parameter for geometric distribution cannot depend on a program variable.")
+            raise DistributionParameterError(f"Parameter for uniform distribution cannot depend on a program variable.")
         return GeneratingFunction(f"1/(({b}) - ({a}) + 1) * {var}**({a}) * ({var}**(({b}) - ({a}) + 1) - 1) / ({var} - 1)", var,
                                   closed=True, finite=True)
 

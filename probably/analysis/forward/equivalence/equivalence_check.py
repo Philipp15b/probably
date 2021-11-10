@@ -1,4 +1,4 @@
-from probably.analysis import ForwardAnalysisConfig, Distribution
+from probably.analysis import ForwardAnalysisConfig, Distribution, GeneratingFunction
 from probably.pgcl import Program, IfInstr, SkipInstr, VarExpr
 from probably.pgcl.analyzer.syntax import check_is_one_big_loop
 from probably.analysis import compute_discrete_distribution
@@ -51,9 +51,13 @@ def check_equivalence(program: Program, invariant: Program, config: ForwardAnaly
     print(f"Test distribution: {test_dist}")
 
     # Compute the resulting distributions for both programs
+    print("Compute the modified invariant...")
     modified_inv_result = compute_discrete_distribution(modified_inv.instructions, test_dist, config)
+    print(f"Result (mod-inv): {modified_inv_result}")
+    print("")
+    print("Compute the invariant...")
     inv_result = compute_discrete_distribution(invariant.instructions, test_dist, config)
-    print(f"Phi: {modified_inv_result}", f"\n{inv_result}")
+    print(f"result (inv): {inv_result}")
     # Compare them and check whether they are equal.
 
     if modified_inv_result == inv_result:
