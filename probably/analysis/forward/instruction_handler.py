@@ -73,14 +73,12 @@ class SequenceHandler(InstructionHandler):
             return WhileHandler.compute(instr, dist, config)
 
         elif isinstance(instr, IfInstr):
-            logger.info(f"{instr} gets handled")
             return ITEHandler.compute(instr, dist, config)
 
         elif isinstance(instr, AsgnInstr):
             return AssignmentHandler.compute(instr, dist, config)
 
         elif isinstance(instr, ChoiceInstr):
-            logger.info(f"{instr} gets handled")
             return PChoiceHandler.compute(instr, dist, config)
 
         elif isinstance(instr, ObserveInstr):
@@ -211,6 +209,7 @@ class SampleHandler(InstructionHandler):
         assert isinstance(instr.rhs, get_args(DistrExpr)), f"The Instruction handled by a SampleHandler" \
                                                            f" must be of type DistrExpr, got {type(instr)}"
 
+        logger.info(f"Computing distribution sampling update.\n{instr}")
         variable: Var = instr.lhs
         marginal = dist.marginal(variable, method=MarginalType.Exclude)
         factory = config.factory
@@ -261,7 +260,7 @@ class AssignmentHandler(InstructionHandler):
 
         if not isinstance(instr.rhs, get_args(Expr)):
             raise SyntaxError(f"Assignment {instr} is ill-formed. right-hand-side must be an expression.")
-
+        logger.info(f"Computing distribution update.\n{instr}")
         return dist.update(BinopExpr(operator=Binop.EQ, lhs=VarExpr(instr.lhs), rhs=instr.rhs))
 
 
@@ -289,6 +288,7 @@ class PChoiceHandler(InstructionHandler):
 
         lhs_block = SequenceHandler.compute(instr.lhs, dist)
         rhs_block = SequenceHandler.compute(instr.rhs, dist)
+        logger.info(f"Combining PChoice branches.\n{instr}")
         return lhs_block * str(instr.prob) + rhs_block * f"1-{instr.prob}"
 
 
@@ -300,10 +300,13 @@ class ITEHandler(InstructionHandler):
                 config: ForwardAnalysisConfig) -> Distribution:
         _assume(instr, IfInstr, 'ITEHandler')
 
+        logger.info(f"Filtering the guard {instr.cond}")
         sat_part = dist.filter(instr.cond)
         non_sat_part = dist - sat_part
-        return SequenceHandler.compute(instr.true, sat_part, config) + SequenceHandler.compute(instr.false,
-                                                                                               non_sat_part, config)
+        result = SequenceHandler.compute(instr.true, sat_part, config) + SequenceHandler.compute(instr.false,
+                                                                                                 non_sat_part, config)
+        logger.info(f"Combining if-branches.\n{instr}")
+        return result
 
 
 class LoopHandler(InstructionHandler):
@@ -347,7 +350,7 @@ class WhileHandler(InstructionHandler):
                 answer, result = check_equivalence(prog, inv_prog, config)
                 if answer:
                     print("Invariant successfully validated!")
-                    return result
+                    return compute_discrete_distribution(inv_prog.instructions, dist, config)
                 else:
                     raise VerificationError("Invariant could not be determined as such.")
 

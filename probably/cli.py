@@ -18,7 +18,6 @@ from probably.analysis.forward.config import ForwardAnalysisConfig
 from probably.analysis.forward.equivalence.equivalence_check import check_equivalence
 from probably.pgcl.typechecker.check import CheckFail
 import probably.analysis
-from probably.analysis import GeneratingFunction
 
 
 @click.group()

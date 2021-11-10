@@ -32,11 +32,9 @@ def phi(program: Program, invariant: Program):
 def generate_equivalence_test_distribution(program: Program, config: ForwardAnalysisConfig) -> Distribution:
     # TODO: give dist an initial value as this looks scary!
     logger.debug("Generating test distribution.")
+    dist = config.factory.one()
     for i, variable in enumerate(program.variables):
-        if i == 0:
-            dist = config.factory.geometric(variable, VarExpr(var=f"p{i}", is_parameter=True))
-        else:
-            dist *= config.factory.geometric(variable, VarExpr(var=f"p{i}", is_parameter=True))
+        dist *= config.factory.geometric(variable, VarExpr(var=f"p{i}", is_parameter=True))
     return dist
 
 

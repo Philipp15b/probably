@@ -1,6 +1,6 @@
-nat x;
-nat c;
+nat s;
+nat f;
 
-while (x = 1){
- {x := 0 } [1/2] {c := c+1}
+while (s < 10 & f < 5){
+ {s := s + 1; f:=0 } [1/2] {f := f+1}
 }

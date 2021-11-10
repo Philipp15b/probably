@@ -3,9 +3,9 @@ from typing import Type
 
 import attr
 
-from .distribution import CommonDistributionsFactory, Distribution
+from .distribution import CommonDistributionsFactory
 from .exceptions import ConfigurationError
-from .fast_generating_function import FPSFactory, FPS
+from .fast_generating_function import FPSFactory
 from .generating_function import GeneratingFunction
 from .optimization.gf_optimizer import GFOptimizer
 from .optimization import Optimizer

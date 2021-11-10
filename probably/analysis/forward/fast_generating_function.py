@@ -21,7 +21,8 @@ class FPSFactory(CommonDistributionsFactory):
 
     @staticmethod
     def bernoulli(var: Union[str, VarExpr], p: Param) -> Distribution:
-        raise NotImplementedError(__name__)
+        f = f"({p}) * {var} + 1-({p})"
+        return FPS(f)
 
     @staticmethod
     def poisson(var: Union[str, VarExpr], lam: Param) -> Distribution:
@@ -56,8 +57,11 @@ class FPS(Distribution):
     something similar to a computer algebra system implemented in C++.
     """
 
-    def __init__(self, expression: str):
-        self.dist = prodigy.Dist(expression)
+    def __init__(self, expression: str, variable: str = None):
+        if variable is not None:
+            self.dist = prodigy.Dist(expression, variable)
+        else:
+            self.dist = prodigy.Dist(expression)
 
     @classmethod
     def from_dist(cls, dist: prodigy.Dist):
