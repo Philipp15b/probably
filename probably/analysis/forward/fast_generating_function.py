@@ -39,6 +39,14 @@ class FPSFactory(CommonDistributionsFactory):
     def undefined(*variables: Union[str, VarExpr]) -> Distribution:
         raise NotImplementedError(__name__)
 
+    @staticmethod
+    def one(*variables: Union[str, VarExpr]) -> 'Distribution':
+        return FPS("1")
+
+    @staticmethod
+    def from_expr(expression: Union[str, Expr], *variables, **kwargs) -> 'Distribution':
+        return FPS(expression)
+
 
 class FPS(Distribution):
 

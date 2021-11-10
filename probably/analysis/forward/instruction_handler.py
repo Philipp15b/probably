@@ -5,7 +5,9 @@ from fractions import Fraction
 from abc import ABC, abstractmethod
 from typing import get_args, Union, Sequence
 
-from probably.analysis.forward import ForwardAnalysisConfig, Distribution, MarginalType, ObserveZeroEventError
+from probably.analysis.forward.config import ForwardAnalysisConfig
+from probably.analysis.forward.distribution import Distribution, MarginalType
+from probably.analysis.forward.exceptions import ObserveZeroEventError, VerificationError
 from probably.analysis.forward.pgfs import PGFS
 from probably.analysis.plotter import Plotter
 from probably.pgcl import *
@@ -23,6 +25,15 @@ def _assume(instruction: Instr, instr_type, clsname: str):
                                                 f" {instr_type} got {type(instruction)}"
 
 
+def compute_discrete_distribution(instr: Union[Instr, Sequence[Instr]],
+                                  dist: Distribution,
+                                  config: ForwardAnalysisConfig) -> Distribution:
+    result = SequenceHandler.compute(instr, dist, config)
+    if SequenceHandler.normalization:
+        result = result.normalize()
+    return result
+
+
 class InstructionHandler(ABC):
     """ Abstract class that defines a strategy for handling a specific program instruction. """
 
@@ -35,7 +46,6 @@ class InstructionHandler(ABC):
 
 
 class SequenceHandler(InstructionHandler):
-
     normalization: bool = False
 
     @classmethod
@@ -149,7 +159,6 @@ class QueryHandler(InstructionHandler):
             print(f"The maximal values can be achieved choosing the parameter {instr.parameter} in {result}.")
         return dist
 
-
     @staticmethod
     def __query_plot(instr: PlotInstr, dist: Distribution) -> Distribution:
         # Gather the variables to plot.
@@ -262,7 +271,6 @@ class ObserveHandler(InstructionHandler):
     def compute(instruction: Instr,
                 distribution: Distribution,
                 config: ForwardAnalysisConfig) -> Distribution:
-
         _assume(instruction, ObserveInstr, 'ObserverHandler')
 
         sat_part = distribution.filter(instruction.cond)
@@ -294,7 +302,8 @@ class ITEHandler(InstructionHandler):
 
         sat_part = dist.filter(instr.cond)
         non_sat_part = dist - sat_part
-        return SequenceHandler.compute(instr.true, sat_part, config) + SequenceHandler.compute(instr.false, non_sat_part, config)
+        return SequenceHandler.compute(instr.true, sat_part, config) + SequenceHandler.compute(instr.false,
+                                                                                               non_sat_part, config)
 
 
 class LoopHandler(InstructionHandler):
@@ -322,9 +331,25 @@ class WhileHandler(InstructionHandler):
                                 "[2]: Fix a maximum number of iterations (This results in an under-approximation)\n"
                                 "[3]: Analyse until a certain probability mass is captured (might not terminate!)\n"))
         logger.info(f"User chose {user_choice}")
-
         if user_choice == 1:
-            raise NotImplementedError("Invariants not yet supported")
+            from probably.analysis.forward.equivalence.equivalence_check import check_equivalence
+            inv_filepath = input("Invariant file:\t")
+            with open(inv_filepath, 'r') as inv_file:
+                inv_src = inv_file.read()
+                inv_prog = parse_pgcl(inv_src)
+
+                prog = Program(config=None,
+                               declarations=None,
+                               variables=inv_prog.variables,
+                               constants=None,
+                               parameters=None,
+                               instructions=[instr])
+                answer, result = check_equivalence(prog, inv_prog, config)
+                if answer:
+                    print("Invariant successfully validated!")
+                    return result
+                else:
+                    raise VerificationError("Invariant could not be determined as such.")
 
         elif user_choice == 2:
             max_iter = int(input("Specify a maximum iteration limit: "))

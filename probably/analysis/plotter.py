@@ -5,7 +5,8 @@ import logging
 import matplotlib.pyplot as plt
 from matplotlib.cm import ScalarMappable
 
-from .forward import Distribution, ParameterError
+from .forward.distribution import Distribution
+from .forward.exceptions import ParameterError
 from probably.pgcl import VarExpr
 from probably.util.logger import log_setup
 

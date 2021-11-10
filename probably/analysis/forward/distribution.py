@@ -60,6 +60,18 @@ class CommonDistributionsFactory(ABC):
         """ A distribution where actually no information about the states is given."""
         pass
 
+    @staticmethod
+    @abstractmethod
+    def one(*variables: Union[str, VarExpr]) -> 'Distribution':
+        """ A distribution where all variables are initialized with 0."""
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def from_expr(expression: Union[str, Expr], *variables, **kwargs) -> 'Distribution':
+        """ A distribution represented by the expression."""
+        pass
+
 
 class Distribution(ABC):
     """ Abstract class that models different representations of probability distributions. """

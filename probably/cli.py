@@ -14,7 +14,7 @@ import logging
 import click
 
 import probably.pgcl.compiler as pgcl
-from probably.analysis.forward import ForwardAnalysisConfig
+from probably.analysis.forward.config import ForwardAnalysisConfig
 from probably.analysis.forward.equivalence.equivalence_check import check_equivalence
 from probably.pgcl.typechecker.check import CheckFail
 import probably.analysis
@@ -28,13 +28,14 @@ def cli():
 
 @cli.command('main')
 @click.argument('program_file', type=click.File('r'))
-@click.argument('input_gf', type=str, required=False)
+@click.argument('input_dist', type=str, required=False)
+@click.option('--engine', type=str, required=False, default='GF')
 @click.option('--intermediate-results', is_flag=True, required=False, default=False)
 @click.option('--no-simplification', is_flag=True, required=False, default=False)
 @click.option('--use-latex', is_flag=True, required=False, default=False)
 @click.option('--show-input-program', is_flag=True, required=False, default=False)
-def main(program_file: IO, input_gf: str, intermediate_results: bool, no_simplification: bool, use_latex: bool,
-         show_input_program: bool) -> None:
+def main(program_file: IO, input_dist: str, engine: str, intermediate_results: bool, no_simplification: bool,
+         use_latex: bool, show_input_program: bool) -> None:
     """
     Compile the given program and print some information about it.
     """
@@ -55,14 +56,18 @@ def main(program_file: IO, input_gf: str, intermediate_results: bool, no_simplif
         print(program_source)
         print()
 
-    if input_gf is None:
-        gf = GeneratingFunction("1", *program.variables.keys(), preciseness=1.0, closed=True, finite=True)
-    else:
-        gf = GeneratingFunction(input_gf, *program.variables.keys(), preciseness=1.0)
     config = ForwardAnalysisConfig(show_intermediate_steps=intermediate_results,
                                    use_latex=use_latex, use_simplification=not no_simplification,
                                    engine=ForwardAnalysisConfig.Engine.GF)
-    gf = probably.analysis.compute_discrete_distribution(program.instructions, gf, config)
+    if engine == "prodigy":
+        config.engine = config.Engine.GINAC
+
+    if input_dist is None:
+        dist = config.factory.one(*program.variables.keys())
+    else:
+        dist = config.factory.from_expr(input_dist, *program.variables.keys(), preciseness=1.0)
+
+    dist = probably.analysis.compute_discrete_distribution(program.instructions, dist, config)
 
 
 @cli.command('check_equality')
