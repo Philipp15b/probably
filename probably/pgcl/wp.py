@@ -407,35 +407,3 @@ def one_loop_wp_transformer(
     done = UnopExpr(Unop.IVERSON, simplifying_neg(loop.cond))
 
     return LoopExpectationTransformer(init, body, done)
-
-
-def general_wp_transformer(program: Program, substitute: bool=True) -> LoopExpectationTransformer:
-    """
-    Calculate the weakest pre-expectation transformer for any pGCL program. For
-    programs that consist of one big loop (see :ref:`one_big_loop`),
-    :func:`one_loop_wp_transformer` is invoked directly. All other programs are
-    run through :func:`probably.pgcl.cfg.program_one_big_loop` first and then
-    :func:`one_loop_wp_transformer` is used. This will introduce a new,
-    additional variable for the program counter.
-
-    .. doctest::
-
-        >>> from .parser import parse_pgcl
-
-        >>> program = parse_pgcl("bool x; while(x) { while (y) {} }")
-        >>> print(general_wp_transformer(program))
-        pc := 1;
-        λ𝐹. lfp 𝑋. [not (pc = 0)] * (([pc = 1] * (([x] * ((𝑋)[pc/2])) + ([not x] * ((𝑋)[pc/0])))) + ([not (pc = 1)] * (([y] * ((𝑋)[pc/2])) + ([not y] * ((𝑋)[pc/1]))))) + [pc = 0] * 𝐹
-
-    Args:
-        substitute: Whether to call :meth:`ExpectationTransformer.substitute` on the ``body``.
-    """
-    # avoid a cyclic import
-    from .cfg import \
-        program_one_big_loop  # pylint: disable=import-outside-toplevel,cyclic-import
-
-    one_big_loop_err = check_is_one_big_loop(program.instructions)
-    if one_big_loop_err is None:
-        return one_loop_wp_transformer(program, program.instructions)
-    program = program_one_big_loop(program, pc_var='pc')
-    return one_loop_wp_transformer(program, program.instructions, substitute=substitute)

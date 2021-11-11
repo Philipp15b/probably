@@ -13,7 +13,6 @@ pysmt = "^0.9.0"
 click = "^7.1.2"
 sphinxcontrib-katex = "^0.7.1"
 graphviz = "^0.15"
-networkx = "^2.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
@@ -26,7 +25,6 @@ sphinx-click = "^2.3.2"
 sphinx-git = "^11.0.0"
 rope = "^0.17.0"
 pytest-cov = "^2.9.0"
-hypothesis = "^5.18.0"
 
 [tool.poetry.scripts]
 probably = "probably.cmd:main"

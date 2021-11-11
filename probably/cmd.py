@@ -18,7 +18,7 @@ import click
 import probably.pgcl.compiler as pgcl
 from probably.pgcl.check import CheckFail
 from probably.pgcl.syntax import check_is_linear_program
-from probably.pgcl.wp import general_wp_transformer
+from probably.pgcl.wp import one_loop_wp_transformer
 
 
 @click.command()
@@ -48,4 +48,4 @@ def main(input: IO):
         print(f"\t{res}")
     else:
         print("Program is linear.")
-        print("\Weakest pre-expectation transformer:", str(general_wp_transformer(program)))
+        print("\Weakest pre-expectation transformer:", str(one_loop_wp_transformer(program)))
