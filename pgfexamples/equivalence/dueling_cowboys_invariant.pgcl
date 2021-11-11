@@ -10,7 +10,7 @@ if(c = 1 & t <= 1){
         c := 0
     } else {
         // resulting dist: (a * (b-1) * t - b) / (a * (b-1) - b)
-        t := bernoulli(b/ (1-(1-a)*(1-b)))
+        t := bernoulli( b / (1-(1-a)*(1-b)))
         c := 0
     }
 } else {
