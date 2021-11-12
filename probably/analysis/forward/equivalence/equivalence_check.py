@@ -59,8 +59,10 @@ def check_equivalence(program: Program, invariant: Program, config: ForwardAnaly
     # Compute the resulting distributions for both programs
     logger.debug("Compute the modified invariant...")
     modified_inv_result = compute_discrete_distribution(modified_inv.instructions, test_dist, config)
+    logger.debug(f"modified invariant result:\t{modified_inv_result}")
     logger.debug("Compute the invariant...")
     inv_result = compute_discrete_distribution(invariant.instructions, test_dist, config)
+    logger.debug(f"invariant result:\t{inv_result}")
     # Compare them and check whether they are equal.
     logger.debug("Compare results")
     if modified_inv_result == inv_result:
