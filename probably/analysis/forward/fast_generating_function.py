@@ -1,11 +1,11 @@
-from typing import Union, Generator, Set, Iterator, Tuple, Dict
+from typing import Union, Generator, Set, Iterator, Tuple, Dict, get_args
 
 from .distribution import MarginalType
 from .distribution import Distribution, CommonDistributionsFactory, Param
 import prodigy
 
 from ...pgcl import VarExpr, Expr, BinopExpr, UnopExpr, Binop, Unop
-from ...pgcl.ast.expressions import IidSampleExpr, GeometricExpr
+from ...pgcl.ast.expressions import IidSampleExpr, GeometricExpr, DistrExpr
 
 
 class FPSFactory(CommonDistributionsFactory):
@@ -50,16 +50,15 @@ class FPSFactory(CommonDistributionsFactory):
 
 
 class FPS(Distribution):
-
     """
     This class models a probability distribution in terms of a formal power series.
     These formal powerseries are itself provided by `prodigy` a python binding to GiNaC,
     something similar to a computer algebra system implemented in C++.
     """
 
-    def __init__(self, expression: str, variable: str = None):
-        if variable is not None:
-            self.dist = prodigy.Dist(expression, variable)
+    def __init__(self, expression: str, parameter: str = None):
+        if parameter is not None:
+            self.dist = prodigy.Dist(expression, parameter)
         else:
             self.dist = prodigy.Dist(expression)
 
@@ -182,13 +181,19 @@ class FPS(Distribution):
     def update_iid(self, sampling_exp: IidSampleExpr, variable: Union[str, VarExpr]) -> 'Distribution':
 
         sample_dist = sampling_exp.sampling_dist
-        if not isinstance(sample_dist, GeometricExpr):
-            NotImplementedError("Currently only geometric Distributions are supported.")
-
-        result = self.dist.updateIid(str(variable),
-                                     prodigy.geometric("test", str(sample_dist.param)),
-                                     str(sampling_exp.variable))
-        return FPS.from_dist(result)
+        if isinstance(sample_dist, GeometricExpr):
+            result = self.dist.updateIid(str(variable),
+                                         prodigy.geometric("test", str(sample_dist.param)),
+                                         str(sampling_exp.variable))
+            return FPS.from_dist(result)
+        elif isinstance(sample_dist, get_args(Expr)) and not isinstance(sample_dist, get_args(DistrExpr)):
+            result = FPS.from_dist(self.dist.updateIid(str(variable),
+                                                       prodigy.Dist(str(sample_dist)),
+                                                       str(sampling_exp.variable))
+                                   )
+            return result
+        else:
+            raise NotImplementedError("Iid Distribution type currently not supported.")
 
     def marginal(self, *variables: Union[str, VarExpr], method: MarginalType = MarginalType.Include) -> Distribution:
         # TODO: Make this work with an arbitrary number of variables to marginalize.

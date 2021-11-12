@@ -141,13 +141,19 @@ class GeneratingFunction(Distribution):
         subst_var = sampling_exp.variable
         sampling_dist = sampling_exp.sampling_dist
 
-        if not isinstance(sampling_dist, GeometricExpr):
-            raise NotImplementedError("Currently only geometric expressions are supported.")
+        if isinstance(sampling_dist, GeometricExpr):
+            dist_gf = sympy.S(f"({sampling_dist.param}) / (1 - (1-({sampling_dist.param})) * {variable})")
+            result = self.marginal(variable, method=MarginalType.Exclude)
+            result._function = result._function.subs(str(subst_var), f"{subst_var} * {dist_gf}")
+            return result
 
-        dist_gf = sympy.S(f"({sampling_dist.param}) / (1 - (1-({sampling_dist.param})) * {variable})")
-        result = self.marginal(variable, method=MarginalType.Exclude)
-        result._function = result._function.subs(str(subst_var), f"{subst_var} * {dist_gf}")
-        return result
+        if not isinstance(sampling_dist, get_args(DistrExpr)) and isinstance(sampling_dist, get_args(Expr)):
+            dist_gf = sympy.S(str(sampling_dist))
+            result = self.marginal(variable, method=MarginalType.Exclude)
+            result._function = result._function.subs(str(subst_var), f"{subst_var} * {dist_gf}")
+            return result
+
+        raise NotImplementedError("Currently only geometric expressions are supported.")
 
     def get_expected_value_of(self, expression: Union[Expr, str]) -> str:
 
