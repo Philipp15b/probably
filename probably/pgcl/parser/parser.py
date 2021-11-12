@@ -47,7 +47,7 @@ def setup(filename: str) -> Lark:
                         infixl("geq", ">="),
                         infixl("eq", "=")],
                        [infixl("plus", "+"),
-                        infixl("minus", "-")], [infixl("times", "*")],
+                        infixl("minus", "-")], [infixl("times", "*")], [infixl("power", "^")],
                        [infixl("likely", ":")], [infixl("divide", "/")], [infixl("mod", "%")],
                        [
                            prefix("neg", "not "),
@@ -197,6 +197,8 @@ def _parse_expr(t: Tree) -> Expr:
         return BinopExpr(Binop.MINUS, expr0(), expr1())
     elif t.data == 'times':
         return BinopExpr(Binop.TIMES, expr0(), expr1())
+    elif t.data == 'power':
+        return BinopExpr(Binop.POWER, expr0(), expr1())
     elif t.data == 'mod':
         return BinopExpr(Binop.MODULO, expr0(), expr1())
     elif t.data == 'divide':

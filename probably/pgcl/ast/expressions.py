@@ -64,6 +64,7 @@ class Binop(Enum):
     PLUS = auto()
     MINUS = auto()
     TIMES = auto()
+    POWER = auto()
     DIVIDE = auto()
     MODULO = auto()
 
@@ -87,6 +88,7 @@ class Binop(Enum):
             Binop.PLUS: "+",
             Binop.MINUS: "-",
             Binop.TIMES: "*",
+            Binop.POWER: "^",
             Binop.DIVIDE: "/",
             Binop.MODULO: "%"
         })[self]
