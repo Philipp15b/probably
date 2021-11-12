@@ -64,7 +64,9 @@ class FPS(Distribution):
 
     @classmethod
     def from_dist(cls, dist: prodigy.Dist):
-        return cls(str(dist))
+        result = FPS("0")
+        result.dist = dist
+        return result
 
     def __add__(self, other):
         if isinstance(other, str):

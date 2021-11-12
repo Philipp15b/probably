@@ -302,6 +302,8 @@ class BinopExpr(ExprClass):
         return flatten_expr(self)
 
     def __str__(self) -> str:
+        if self.operator == Binop.POWER:
+            return f'({self.lhs}) {self.operator} ({self.rhs})'
         return f'{expr_str_parens(self.lhs)} {self.operator} {expr_str_parens(self.rhs)}'
 
 
