@@ -13,6 +13,7 @@ from probably.analysis.plotter import Plotter
 from probably.pgcl import *
 from probably.pgcl.ast.expressions import IidSampleExpr
 from probably.pgcl.ast.instructions import OptimizationQuery
+from probably.util.color import Style
 
 from probably.util.logger import log_setup
 
@@ -55,7 +56,7 @@ class SequenceHandler(InstructionHandler):
 
         def _show_steps(distribution: Distribution, instruction: Instr):
             res = SequenceHandler.compute(instruction, distribution, config)
-            print(f"Instruction: {instruction}\t Result: {res}")
+            print(f"\033[94mInstruction:\033[0m {instruction}\t \033[92mResult:\033[0m {res}")
             return res
 
         def _dont_show_steps(distribution: Distribution, instruction: Instr):
@@ -349,7 +350,7 @@ class WhileHandler(InstructionHandler):
                                instructions=[instr])
                 answer, result = check_equivalence(prog, inv_prog, config)
                 if answer:
-                    print("Invariant successfully validated!")
+                    print( Style.GREEN + "Invariant successfully validated!" + Style.RESET)
                     return compute_discrete_distribution(inv_prog.instructions, dist, config)
                 else:
                     raise VerificationError("Invariant could not be determined as such.")

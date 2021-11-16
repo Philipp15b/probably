@@ -12,7 +12,7 @@ from .distribution import Distribution, MarginalType
 from .exceptions import ComparisonException, NotComputableException, DistributionParameterError
 from probably.util.logger import log_setup
 from probably.util.ref import Mut
-from ...pgcl.ast.expressions import IidSampleExpr, DistrExpr, GeometricExpr
+from ...pgcl.ast.expressions import IidSampleExpr, DistrExpr, GeometricExpr, BernoulliExpr
 
 logger = log_setup(__name__, logging.DEBUG, file="GF_operations.log")
 
@@ -146,9 +146,19 @@ class GeneratingFunction(Distribution):
             result = self.marginal(variable, method=MarginalType.Exclude)
             result._function = result._function.subs(str(subst_var), f"{subst_var} * {dist_gf}")
             return result
+        elif isinstance(sampling_dist, BernoulliExpr):
+            dist_gf = sympy.S(f"{sampling_dist.param} * {variable} + (1 - ({sampling_dist.param})) * {variable}")
+            result = self.marginal(variable, method=MarginalType.Exclude)
+            result._function = result._function.subs(str(subst_var), f"{subst_var} * {dist_gf}")
+            return result
 
         if not isinstance(sampling_dist, get_args(DistrExpr)) and isinstance(sampling_dist, get_args(Expr)):
-            dist_gf = sympy.S(str(sampling_dist))
+            # create distribution in correct variable:
+            expr = Mut.alloc(sampling_dist)
+            for ref in walk_expr(Walk.DOWN, expr):
+                if isinstance(ref.val, VarExpr):
+                    ref.val.var = variable
+            dist_gf = sympy.S(str(expr.val))
             result = self.marginal(variable, method=MarginalType.Exclude)
             result._function = result._function.subs(str(subst_var), f"{subst_var} * {dist_gf}")
             return result

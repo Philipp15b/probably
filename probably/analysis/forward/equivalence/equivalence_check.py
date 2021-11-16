@@ -34,7 +34,7 @@ def generate_equivalence_test_distribution(program: Program, config: ForwardAnal
     logger.debug("Generating test distribution.")
     dist = config.factory.one()
     for i, variable in enumerate(program.variables):
-        dist *= config.factory.geometric(variable, VarExpr(var=f"p{i}", is_parameter=True))
+        dist *= config.factory.geometric(str(variable), VarExpr(var=f"p{i}", is_parameter=True))
     return dist
 
 

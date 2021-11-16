@@ -1,6 +1,7 @@
-nat s;
-nat f;
+nat x;
+nat y;
+rparam p;
 
-while (s < 10 & f < 5){
- {s := s + 1; f:=0 } [1/2] {f := f+1}
-}
+{y:=2}[1/2]{y:=3}
+x := iid(bernoulli(p), y)
+y := 0

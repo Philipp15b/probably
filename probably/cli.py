@@ -18,6 +18,7 @@ from probably.analysis.forward.config import ForwardAnalysisConfig
 from probably.analysis.forward.equivalence.equivalence_check import check_equivalence
 from probably.pgcl.typechecker.check import CheckFail
 import probably.analysis
+from probably.util.color import Style
 
 
 @click.group()
@@ -67,7 +68,7 @@ def main(program_file: IO, input_dist: str, engine: str, intermediate_results: b
         dist = config.factory.from_expr(input_dist, *program.variables.keys(), preciseness=1.0)
 
     dist = probably.analysis.compute_discrete_distribution(program.instructions, dist, config)
-    print(dist)
+    print(Style.CYAN + "Result: \t" + Style.GREEN + str(dist))
 
 
 @cli.command('check_equality')
