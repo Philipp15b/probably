@@ -56,7 +56,7 @@ class SequenceHandler(InstructionHandler):
 
         def _show_steps(distribution: Distribution, instruction: Instr):
             res = SequenceHandler.compute(instruction, distribution, config)
-            print(f"\033[94mInstruction:\033[0m {instruction}\t \033[92mResult:\033[0m {res}")
+            print(f"{Style.OKBLUE}Instruction:{Style.RESET} {instruction}\t {Style.OKGREEN}Result:{Style.RESET} {res}")
             return res
 
         def _dont_show_steps(distribution: Distribution, instruction: Instr):
@@ -304,8 +304,17 @@ class ITEHandler(InstructionHandler):
         logger.info(f"Filtering the guard {instr.cond}")
         sat_part = dist.filter(instr.cond)
         non_sat_part = dist - sat_part
-        result = SequenceHandler.compute(instr.true, sat_part, config) + SequenceHandler.compute(instr.false,
-                                                                                                 non_sat_part, config)
+        if config.show_intermediate_steps:
+            print(f"{Style.YELLOW}Filter:{Style.RESET} {instr.cond} \t {Style.OKGREEN}Result:{Style.RESET} {sat_part}")
+            print(f"{Style.YELLOW}If-branch:{Style.RESET}")
+            if_branch = SequenceHandler.compute(instr.true, sat_part, config)
+            print(f"{Style.YELLOW}Else-branch:{Style.RESET}")
+            else_branch = SequenceHandler.compute(instr.false, non_sat_part, config)
+            print(f"{Style.YELLOW}Combined:{Style.RESET}")
+        else:
+            if_branch = SequenceHandler.compute(instr.true, sat_part, config)
+            else_branch = SequenceHandler.compute(instr.false,non_sat_part, config)
+        result = if_branch + else_branch
         logger.info(f"Combining if-branches.\n{instr}")
         return result
 

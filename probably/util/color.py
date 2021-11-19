@@ -9,4 +9,6 @@ class Style:
     CYAN        = '\033[36m'
     WHITE       = '\033[37m'
     UNDERLINE   = '\033[4m'
+    OKBLUE      = '\033[94m'
+    OKGREEN     = '\033[92m'
     RESET       = '\033[0m'
