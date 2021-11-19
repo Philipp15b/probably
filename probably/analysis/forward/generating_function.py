@@ -147,9 +147,9 @@ class GeneratingFunction(Distribution):
             result._function = result._function.subs(str(subst_var), f"{subst_var} * {dist_gf}")
             return result
         elif isinstance(sampling_dist, BernoulliExpr):
-            dist_gf = sympy.S(f"{sampling_dist.param} * {variable} + (1 - ({sampling_dist.param})) * {variable}")
+            dist_gf = sympy.S(f"{sampling_dist.param} * {variable} + (1 - ({sampling_dist.param}))")
             result = self.marginal(variable, method=MarginalType.Exclude)
-            result._function = result._function.subs(str(subst_var), f"{subst_var} * {dist_gf}")
+            result._function = result._function.subs(str(subst_var), f"{subst_var} * ({dist_gf})")
             return result
 
         if not isinstance(sampling_dist, get_args(DistrExpr)) and isinstance(sampling_dist, get_args(Expr)):
@@ -296,7 +296,7 @@ class GeneratingFunction(Distribution):
         else:
             # We rely on simplification of __sympy__ here. Thus, we cannot guarantee to detect equality when
             # simplification fails.
-            return True if (self._function - other._function).simplify() == 0 else False
+            return True if self._function.equals(other._function) else False
 
     def __le__(self, other):
         return self == other or self < other
