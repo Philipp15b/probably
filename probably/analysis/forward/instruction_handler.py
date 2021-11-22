@@ -15,7 +15,7 @@ from probably.pgcl.ast.expressions import IidSampleExpr
 from probably.pgcl.ast.instructions import OptimizationQuery
 from probably.util.color import Style
 
-from probably.util.logger import log_setup
+from probably.util.logger import log_setup, printProgressBar
 
 logger = log_setup(__name__, logging.DEBUG)
 
@@ -313,7 +313,7 @@ class ITEHandler(InstructionHandler):
             print(f"{Style.YELLOW}Combined:{Style.RESET}")
         else:
             if_branch = SequenceHandler.compute(instr.true, sat_part, config)
-            else_branch = SequenceHandler.compute(instr.false,non_sat_part, config)
+            else_branch = SequenceHandler.compute(instr.false, non_sat_part, config)
         result = if_branch + else_branch
         logger.info(f"Combining if-branches.\n{instr}")
         return result
@@ -359,7 +359,7 @@ class WhileHandler(InstructionHandler):
                                instructions=[instr])
                 answer, result = check_equivalence(prog, inv_prog, config)
                 if answer:
-                    print( Style.GREEN + "Invariant successfully validated!" + Style.RESET)
+                    print(Style.OKGREEN + "Invariant successfully validated!" + Style.RESET)
                     return compute_discrete_distribution(inv_prog.instructions, dist, config)
                 else:
                     raise VerificationError("Invariant could not be determined as such.")
@@ -369,11 +369,13 @@ class WhileHandler(InstructionHandler):
             sat_part = dist.filter(instr.cond)
             non_sat_part = dist - sat_part
             for i in range(max_iter):
-                iterated_part = SequenceHandler.compute(instr.body, sat_part)
+                if config.show_intermediate_steps:
+                    print(f"{Style.YELLOW} Iteration {i + 1}:")
+                iterated_part = SequenceHandler.compute(instr.body, sat_part, config)
                 iterated_sat = iterated_part.filter(instr.cond)
                 iterated_non_sat = iterated_part - iterated_sat
                 if iterated_non_sat == PGFS.zero() and iterated_sat == sat_part:
-                    print(f"Terminated already after {i} step(s)!")
+                    print(f"{Style.OKGREEN}Terminated already after {i + 1} step(s)!{Style.RESET}")
                     break
                 non_sat_part += iterated_non_sat
                 sat_part = iterated_sat
@@ -385,14 +387,17 @@ class WhileHandler(InstructionHandler):
             non_sat_part = dist - sat_part
             while Fraction(non_sat_part.get_probability_mass()) < captured_probability_threshold:
                 logger.info(
-                    f"Collected {non_sat_part.get_probability_mass()} / {captured_probability_threshold} "
+                    f"Collected "
                     f"({(float((Fraction(non_sat_part.get_probability_mass()) / captured_probability_threshold)) * 100):.2f} %)"
-                    f"of the desired mass.")
-                iterated_part = SequenceHandler.compute(instr.body, sat_part)
+                    f" of the desired mass.")
+                iterated_part = SequenceHandler.compute(instr.body, sat_part, config)
                 iterated_sat = iterated_part.filter(instr.cond)
                 iterated_non_sat = iterated_part - iterated_sat
                 non_sat_part += iterated_non_sat
                 sat_part = iterated_sat
+                printProgressBar(
+                    int( (Fraction(non_sat_part.get_probability_mass()) / captured_probability_threshold) * 100 ),
+                    100, suffix="of desired mass captured", length=50, printEnd="\n")
             return non_sat_part
         else:
             raise Exception(f"Input '{user_choice}' cannot be handled properly.")
