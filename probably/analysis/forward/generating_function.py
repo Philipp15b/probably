@@ -802,10 +802,12 @@ class GeneratingFunction(Distribution):
                 replacements.append((var, var * subst_var ** terms[var]))
         res_gf = GeneratingFunction(result.subs(replacements) * const_correction_term, *self._variables,
                                   preciseness=self._preciseness, closed=self._is_closed_form, finite=self._is_finite)
-        test_gf = res_gf.marginal(subst_var)
-        test_gf._function = test_gf._function.subs(subst_var, "0")
-        if test_gf._function.equals(sympy.S("zoo")):
-            print(f"{Style.OKRED} WARNING: subtraction cannot be handled via substitution operations in this example.{Style.RESET}")
+
+        if not all(map(lambda x: terms[x] >= 0, terms)):
+            test_gf = res_gf.marginal(subst_var)
+            test_gf._function = test_gf._function.subs(subst_var, "0")
+            if test_gf._function.equals(sympy.S("zoo")):
+                print(f"{Style.OKRED} WARNING: subtraction cannot be handled via substitution operations in this example.{Style.RESET}")
         return res_gf
 
     def arithmetic_progression(self, variable: str, modulus: str) -> List['GeneratingFunction']:
