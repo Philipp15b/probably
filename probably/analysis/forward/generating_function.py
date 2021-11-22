@@ -13,6 +13,7 @@ from .exceptions import ComparisonException, NotComputableException, Distributio
 from probably.util.logger import log_setup
 from probably.util.ref import Mut
 from ...pgcl.ast.expressions import IidSampleExpr, DistrExpr, GeometricExpr, BernoulliExpr
+from ...util.color import Style
 
 logger = log_setup(__name__, logging.DEBUG, file="GF_operations.log")
 
@@ -345,7 +346,7 @@ class GeneratingFunction(Distribution):
                 func = self._function.expand().ratsimp().as_poly(*self._variables)
             else:
                 if not self._variables:
-                    logger.warn("Empty Polynomial, introducing auxilliary variable to create polynomial.")
+                    logger.warning("Empty Polynomial, introducing auxilliary variable to create polynomial.")
                     func = self._function.as_poly(sympy.S("empty_generator"))
                 else:
                     func = self._function.as_poly(*self._variables)
@@ -788,7 +789,6 @@ class GeneratingFunction(Distribution):
         const_correction_term = 1
         replacements = []
         for var in terms:
-
             # if there is a constant term, just do a multiplication
             if var == 1:
                 const_correction_term = subst_var ** terms[1]
@@ -800,8 +800,13 @@ class GeneratingFunction(Distribution):
             # otherwise we can collect the substitution in our replacement list
             else:
                 replacements.append((var, var * subst_var ** terms[var]))
-        return GeneratingFunction(result.subs(replacements) * const_correction_term, *self._variables,
+        res_gf = GeneratingFunction(result.subs(replacements) * const_correction_term, *self._variables,
                                   preciseness=self._preciseness, closed=self._is_closed_form, finite=self._is_finite)
+        test_gf = res_gf.marginal(subst_var)
+        test_gf._function = test_gf._function.subs(subst_var, "0")
+        if test_gf._function.equals(sympy.S("zoo")):
+            print(f"{Style.OKRED} WARNING: subtraction cannot be handled via substitution operations in this example.{Style.RESET}")
+        return res_gf
 
     def arithmetic_progression(self, variable: str, modulus: str) -> List['GeneratingFunction']:
         """

@@ -56,7 +56,7 @@ class SequenceHandler(InstructionHandler):
 
         def _show_steps(distribution: Distribution, instruction: Instr):
             res = SequenceHandler.compute(instruction, distribution, config)
-            print(f"{Style.OKBLUE}Instruction:{Style.RESET} {instruction}\t {Style.OKGREEN}Result:{Style.RESET} {res}")
+            print(f"{Style.BLUE}Instruction:{Style.RESET} {instruction}\t {Style.GREEN}Result:{Style.RESET} {res}")
             return res
 
         def _dont_show_steps(distribution: Distribution, instruction: Instr):

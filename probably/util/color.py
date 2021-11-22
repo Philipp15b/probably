@@ -11,4 +11,5 @@ class Style:
     UNDERLINE   = '\033[4m'
     OKBLUE      = '\033[94m'
     OKGREEN     = '\033[92m'
+    OKRED       = '\033[91m'
     RESET       = '\033[0m'
