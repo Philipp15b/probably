@@ -6,6 +6,7 @@ from probably.analysis.forward.config import ForwardAnalysisConfig
 from probably.pgcl import Program, IfInstr, SkipInstr, VarExpr
 from probably.pgcl.analyzer.syntax import check_is_one_big_loop
 from probably.analysis.forward.instruction_handler import compute_discrete_distribution
+from probably.util.color import Style
 from probably.util.logger import log_setup
 
 logger = log_setup(__name__, logging.DEBUG)
@@ -30,7 +31,6 @@ def phi(program: Program, invariant: Program):
 
 
 def generate_equivalence_test_distribution(program: Program, config: ForwardAnalysisConfig) -> Distribution:
-    # TODO: give dist an initial value as this looks scary!
     logger.debug("Generating test distribution.")
     dist = config.factory.one()
     for i, variable in enumerate(program.variables):
@@ -51,20 +51,30 @@ def check_equivalence(program: Program, invariant: Program, config: ForwardAnaly
 
     logger.debug("Checking equivalence.")
     # First we create the modified input program in order to fit the premise of Park's Lemma
+    if config.show_intermediate_steps:
+        print(f"{Style.YELLOW} Generate modified invariant program. {Style.RESET}")
     modified_inv = phi(program, invariant)
 
     # Now we have to generate a infinite state parametrized distribution for every program variable.
+    if config.show_intermediate_steps:
+        print(f"{Style.YELLOW} Generate second order generating function. {Style.RESET}")
     test_dist = generate_equivalence_test_distribution(program, config)
 
     # Compute the resulting distributions for both programs
     logger.debug("Compute the modified invariant...")
+    if config.show_intermediate_steps:
+        print(f"\n{Style.YELLOW} Compute the result of the modified invariant. {Style.RESET}")
     modified_inv_result = compute_discrete_distribution(modified_inv.instructions, test_dist, config)
     logger.debug(f"modified invariant result:\t{modified_inv_result}")
     logger.debug("Compute the invariant...")
+    if config.show_intermediate_steps:
+        print(f"\n{Style.YELLOW} Compute the result of the invariant. {Style.RESET}")
     inv_result = compute_discrete_distribution(invariant.instructions, test_dist, config)
     logger.debug(f"invariant result:\t{inv_result}")
     # Compare them and check whether they are equal.
     logger.debug("Compare results")
+    if config.show_intermediate_steps:
+        print(f"\n{Style.YELLOW} Compare the results. {Style.RESET}")
     if modified_inv_result == inv_result:
         logger.debug("Invariant validated.")
         return True, inv_result

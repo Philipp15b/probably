@@ -45,7 +45,7 @@ class GeneratingFunction(Distribution):
                  finite: bool = None):
 
         # Set the basic information.
-        self._function: sympy.Expr = sympy.S(function, rational=True)
+        self._function: sympy.Expr = sympy.S(str(function), rational=True)
         self._preciseness = sympy.S(str(preciseness), rational=True)
 
         # Set variables and parameters
@@ -55,8 +55,8 @@ class GeneratingFunction(Distribution):
             self._variables = set()
             self._parameters = self._function.free_symbols
         elif variables:
-            self._variables = self._variables.union(map(sympy.S, variables))
-            self._parameters = self._variables.difference(map(sympy.S, variables))
+            self._variables = self._variables.union(map(lambda v: sympy.S(str(v)), variables))
+            self._parameters = self._variables.difference(map(lambda v: sympy.S(str(v)), variables))
             self._variables -= self._parameters
 
         for var in self._variables:
@@ -185,7 +185,6 @@ class GeneratingFunction(Distribution):
             return str(RealLitExpr.infinity())
         else:
             return str(expected_value._function)
-
 
     @classmethod
     def split_addend(cls, addend):
@@ -687,7 +686,8 @@ class GeneratingFunction(Distribution):
 
         # Compute the probabilities of the states _var_ = i where i ranges depending on the operator (< , <=, =).
         for i in ranges[condition.operator]:
-            result += (self._function.diff(variable, i) / sympy.factorial(i)).limit(variable, 0, '-') * sympy.S(variable) ** i
+            result += (self._function.diff(variable, i) / sympy.factorial(i)).limit(variable, 0, '-') * sympy.S(
+                variable) ** i
 
         return GeneratingFunction(result, *self._variables, preciseness=self._preciseness,
                                   closed=self._is_closed_form, finite=self._is_finite)
@@ -769,7 +769,6 @@ class GeneratingFunction(Distribution):
         if isinstance(expression, str):
             expr = parse_expr(expression)
 
-
         # Transform expression into sympy readable format
         rhs = sympy.S(str(expression))
         subst_var = sympy.S(variable)
@@ -801,13 +800,14 @@ class GeneratingFunction(Distribution):
             else:
                 replacements.append((var, var * subst_var ** terms[var]))
         res_gf = GeneratingFunction(result.subs(replacements) * const_correction_term, *self._variables,
-                                  preciseness=self._preciseness, closed=self._is_closed_form, finite=self._is_finite)
+                                    preciseness=self._preciseness, closed=self._is_closed_form, finite=self._is_finite)
 
         if not all(map(lambda x: terms[x] >= 0, terms)):
             test_gf = res_gf.marginal(subst_var)
-            test_gf._function = test_gf._function.subs(subst_var, "0")
+            test_gf._function = test_gf._function.subs(subst_var, 0)
             if test_gf._function.equals(sympy.S("zoo")):
-                print(f"{Style.OKRED} WARNING: subtraction cannot be handled via substitution operations in this example.{Style.RESET}")
+                print(
+                    f"{Style.OKRED} WARNING: subtraction cannot be handled via substitution operations in this example.{Style.RESET}")
         return res_gf
 
     def arithmetic_progression(self, variable: str, modulus: str) -> List['GeneratingFunction']:

@@ -56,6 +56,8 @@ class SequenceHandler(InstructionHandler):
 
         def _show_steps(distribution: Distribution, instruction: Instr):
             res = SequenceHandler.compute(instruction, distribution, config)
+            if isinstance(instr, (WhileInstr, IfInstr, LoopInstr)):
+                print("\n")
             print(f"{Style.BLUE}Instruction:{Style.RESET} {instruction}\t {Style.GREEN}Result:{Style.RESET} {res}")
             return res
 
@@ -305,12 +307,12 @@ class ITEHandler(InstructionHandler):
         sat_part = dist.filter(instr.cond)
         non_sat_part = dist - sat_part
         if config.show_intermediate_steps:
-            print(f"{Style.YELLOW}Filter:{Style.RESET} {instr.cond} \t {Style.OKGREEN}Result:{Style.RESET} {sat_part}")
-            print(f"{Style.YELLOW}If-branch:{Style.RESET}")
+            print(f"\n{Style.YELLOW}Filter:{Style.RESET} {instr.cond} \t {Style.GREEN}Result:{Style.RESET} {sat_part}")
+            print(f"\n{Style.YELLOW} If-branch: ({instr.cond}){Style.RESET}")
             if_branch = SequenceHandler.compute(instr.true, sat_part, config)
-            print(f"{Style.YELLOW}Else-branch:{Style.RESET}")
+            print(f"\n{Style.YELLOW} Else-branch:{Style.RESET}")
             else_branch = SequenceHandler.compute(instr.false, non_sat_part, config)
-            print(f"{Style.YELLOW}Combined:{Style.RESET}")
+            print(f"\n{Style.YELLOW}Combined:{Style.RESET}")
         else:
             if_branch = SequenceHandler.compute(instr.true, sat_part, config)
             else_branch = SequenceHandler.compute(instr.false, non_sat_part, config)
@@ -357,9 +359,12 @@ class WhileHandler(InstructionHandler):
                                constants=None,
                                parameters=None,
                                instructions=[instr])
+                print(f"{Style.YELLOW}Verifying invariant...{Style.RESET}")
                 answer, result = check_equivalence(prog, inv_prog, config)
                 if answer:
-                    print(Style.OKGREEN + "Invariant successfully validated!" + Style.RESET)
+                    print(Style.OKGREEN + "Invariant successfully validated!\n" + Style.RESET)
+                    if config.show_intermediate_steps:
+                        print(Style.YELLOW + "\Compute the result using the invariant" + Style.RESET)
                     return compute_discrete_distribution(inv_prog.instructions, dist, config)
                 else:
                     raise VerificationError("Invariant could not be determined as such.")
