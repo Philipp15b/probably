@@ -9,6 +9,7 @@ import attr
 from probably.pgcl.ast import *
 from probably.pgcl.ast.expressions import IidSampleExpr
 from probably.pgcl.ast.instructions import OptimizationQuery
+from probably.util.color import Style
 
 _T = TypeVar('_T')
 
@@ -179,7 +180,11 @@ def get_distribution_type(prog: Program, expr: Expr, check: bool = True) -> Unio
                                              (RealType(), expr.p)
                                              )
     if isinstance(expr, IidSampleExpr):
-        return get_distribution_type(prog, expr.sampling_dist, check)
+        if isinstance(expr.sampling_dist, get_args(DistrExpr)):
+            return get_distribution_type(prog, expr.sampling_dist, check)
+        else:
+            print(Style.OKRED + "Type Checking is not accurate anymore." + Style.RESET)
+            return NatType(bounds=None)
 
 
 def get_type(program: Program,
