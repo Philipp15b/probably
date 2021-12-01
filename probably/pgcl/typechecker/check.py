@@ -120,7 +120,7 @@ def _get_binary_operation_type(prog: Program, expr: Expr, check: bool = True) ->
 
     if check and expr.operator in [
         Binop.LEQ, Binop.LE, Binop.GEQ, Binop.GE, Binop.EQ, Binop.PLUS, Binop.MINUS,
-        Binop.TIMES, Binop.MODULO
+        Binop.TIMES, Binop.MODULO, Binop.POWER
     ]:
         rhs_typ = get_type(prog, expr.rhs, check=check)
         if isinstance(rhs_typ, CheckFail):
@@ -136,7 +136,7 @@ def _get_binary_operation_type(prog: Program, expr: Expr, check: bool = True) ->
         return BoolType()
 
     # binops that take numeric operands and return a numeric value
-    if expr.operator in [Binop.PLUS, Binop.MINUS, Binop.TIMES, Binop.MODULO]:
+    if expr.operator in [Binop.PLUS, Binop.MINUS, Binop.TIMES, Binop.MODULO, Binop.POWER]:
         # intentionally lose the bounds on NatType (see NatType documentation)
         if isinstance(lhs_typ, NatType) and lhs_typ.bounds is not None:
             return NatType(bounds=None)
@@ -184,7 +184,7 @@ def get_distribution_type(prog: Program, expr: Expr, check: bool = True) -> Unio
             return get_distribution_type(prog, expr.sampling_dist, check)
         else:
             print(Style.OKRED + "Type Checking is not accurate anymore." + Style.RESET)
-            return NatType(bounds=None)
+            return check_expression(prog, expr.sampling_dist)
 
 
 def get_type(program: Program,
