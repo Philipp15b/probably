@@ -74,7 +74,9 @@ def main(program_file: IO, input_dist: str, engine: str, intermediate_results: b
 @cli.command('check_equality')
 @click.argument('program_file', type=click.File('r'))
 @click.argument('invariant_file', type=click.File('r'))
-def check_equality(program_file: IO, invariant_file: IO):
+@click.option('--engine', type=str, required=False, default='GF')
+@click.option('--intermediate-results', is_flag=True, required=False, default=False)
+def check_equality(program_file: IO, invariant_file: IO, engine: str, intermediate_results: bool):
     """
     Checks whether a certain loop-free program is an invariant of a specified while loop.
     :param program_file: the file containing the while-loop
@@ -93,9 +95,13 @@ def check_equality(program_file: IO, invariant_file: IO):
     if isinstance(inv, CheckFail):
         print("Error:", inv)
         return
-
-    equiv = check_equivalence(prog, inv, ForwardAnalysisConfig(engine=ForwardAnalysisConfig.Engine.GINAC))
-    print(f"Program is {'not ' if not equiv else ''}equivalent to invaraint")
+    if not engine == "GF":
+        config = ForwardAnalysisConfig(engine=ForwardAnalysisConfig.Engine.GINAC)
+    else:
+        config = ForwardAnalysisConfig(engine=ForwardAnalysisConfig.Engine.GF)
+    config.show_intermediate_steps = intermediate_results
+    equiv = check_equivalence(prog, inv, config)
+    print(f"Program{f'{Style.OKRED} is not equivalent{Style.RESET}' if not equiv else f'{Style.OKGREEN} is equivalent{Style.RESET}'} to invaraint")
     return equiv
 
 
