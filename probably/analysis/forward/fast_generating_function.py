@@ -5,7 +5,7 @@ from .distribution import Distribution, CommonDistributionsFactory, Param
 import prodigy
 
 from ...pgcl import VarExpr, Expr, BinopExpr, UnopExpr, Binop, Unop
-from ...pgcl.ast.expressions import IidSampleExpr, GeometricExpr, DistrExpr, BernoulliExpr, DUniformExpr
+from ...pgcl.ast.expressions import IidSampleExpr, GeometricExpr, DistrExpr, BernoulliExpr, DUniformExpr, PoissonExpr
 
 
 class FPSFactory(CommonDistributionsFactory):
@@ -26,15 +26,18 @@ class FPSFactory(CommonDistributionsFactory):
 
     @staticmethod
     def poisson(var: Union[str, VarExpr], lam: Param) -> Distribution:
-        raise NotImplementedError(__name__)
+        f = f"exp(({lam}) * ({var} - 1))"
+        return FPS(f)
 
     @staticmethod
     def log(var: Union[str, VarExpr], p: Param) -> Distribution:
-        raise NotImplementedError(__name__)
+        f = f"log(1-({p})*{var})/log(1-({p}))"
+        return FPS(f)
 
     @staticmethod
     def binomial(var: Union[str, VarExpr], n: Param, p: Param) -> Distribution:
-        raise NotImplementedError(__name__)
+        f = f"(({p})*{var} + (1-({p})))^({n})"
+        raise FPS(f)
 
     @staticmethod
     def undefined(*variables: Union[str, VarExpr]) -> Distribution:
@@ -194,7 +197,14 @@ class FPS(Distribution):
                                          str(sampling_exp.variable))
             return FPS.from_dist(result)
 
-        if isinstance(sample_dist, DUniformExpr):
+        elif isinstance(sample_dist, PoissonExpr):
+            result = self.dist.updateIid(str(variable),
+                                         prodigy.Dist(f"exp({sample_dist.param} * (test - 1))"),
+                                         str(sampling_exp.variable)
+                                         )
+            return FPS.from_dist(result)
+
+        elif isinstance(sample_dist, DUniformExpr):
             result = self.dist.updateIid(
                 str(variable),
                 prodigy.Dist(f"1/(({sample_dist.end}) - ({sample_dist.start}) + 1) * test^({sample_dist.start}) "

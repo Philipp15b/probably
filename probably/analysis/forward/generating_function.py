@@ -12,7 +12,7 @@ from .distribution import Distribution, MarginalType
 from .exceptions import ComparisonException, NotComputableException, DistributionParameterError
 from probably.util.logger import log_setup
 from probably.util.ref import Mut
-from ...pgcl.ast.expressions import IidSampleExpr, DistrExpr, GeometricExpr, BernoulliExpr, DUniformExpr
+from ...pgcl.ast.expressions import IidSampleExpr, DistrExpr, GeometricExpr, BernoulliExpr, DUniformExpr, PoissonExpr
 from ...util.color import Style
 
 logger = log_setup(__name__, logging.DEBUG, file="GF_operations.log")
@@ -149,6 +149,11 @@ class GeneratingFunction(Distribution):
             return result
         elif isinstance(sampling_dist, BernoulliExpr):
             dist_gf = sympy.S(f"{sampling_dist.param} * {variable} + (1 - ({sampling_dist.param}))")
+            result = self.marginal(variable, method=MarginalType.Exclude)
+            result._function = result._function.subs(str(subst_var), f"{subst_var} * ({dist_gf})")
+            return result
+        elif isinstance(sampling_dist, PoissonExpr):
+            dist_gf = sympy.S(f"exp({sampling_dist.param} * ({variable} - 1))")
             result = self.marginal(variable, method=MarginalType.Exclude)
             result._function = result._function.subs(str(subst_var), f"{subst_var} * ({dist_gf})")
             return result
