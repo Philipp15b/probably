@@ -5,7 +5,7 @@ from .distribution import Distribution, CommonDistributionsFactory, Param
 import prodigy
 
 from ...pgcl import VarExpr, Expr, BinopExpr, UnopExpr, Binop, Unop
-from ...pgcl.ast.expressions import IidSampleExpr, GeometricExpr, DistrExpr, BernoulliExpr
+from ...pgcl.ast.expressions import IidSampleExpr, GeometricExpr, DistrExpr, BernoulliExpr, DUniformExpr
 
 
 class FPSFactory(CommonDistributionsFactory):
@@ -192,6 +192,15 @@ class FPS(Distribution):
             result = self.dist.updateIid(str(variable),
                                          prodigy.Dist(f"{sample_dist.param} * test + (1-{sample_dist.param})"),
                                          str(sampling_exp.variable))
+            return FPS.from_dist(result)
+
+        if isinstance(sample_dist, DUniformExpr):
+            result = self.dist.updateIid(
+                str(variable),
+                prodigy.Dist(f"1/(({sample_dist.end}) - ({sample_dist.start}) + 1) * test^({sample_dist.start}) "
+                             f"* (test^(({sample_dist.end}) - ({sample_dist.start}) + 1) - 1) / (test - 1)"),
+                str(sampling_exp.variable)
+            )
             return FPS.from_dist(result)
 
         elif isinstance(sample_dist, get_args(Expr)) and not isinstance(sample_dist, get_args(DistrExpr)):
