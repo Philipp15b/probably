@@ -26,20 +26,24 @@ from probably.util.color import Style
 @click.option('--engine', type=str, required=False, default='GF')
 @click.option('--intermediate-results', is_flag=True, required=False, default=False)
 @click.option('--no-simplification', is_flag=True, required=False, default=False)
-def cli(ctx, engine: str, intermediate_results: bool, no_simplification: bool):
+@click.option('--use-latex', is_flag=True, required=False, default=False)
+def cli(ctx, engine: str, intermediate_results: bool, no_simplification: bool, use_latex: bool):
     ctx.ensure_object(dict)
-    ctx.obj['SIMP'] = not no_simplification
-    ctx.obj['ENGINE'] = ForwardAnalysisConfig.Engine.GINAC if engine == 'prodigy' else ForwardAnalysisConfig.Engine.GF
-    ctx.obj['STEPWISE_RESULTS'] = intermediate_results
+    ctx.obj['CONFIG'] = \
+        ForwardAnalysisConfig(
+            engine=ForwardAnalysisConfig.Engine.GINAC if engine == 'prodigy' else ForwardAnalysisConfig.Engine.GF,
+            show_intermediate_steps=intermediate_results,
+            use_simplification=not no_simplification,
+            use_latex=use_latex
+            )
 
 
 @cli.command('main')
 @click.pass_context
 @click.argument('program_file', type=click.File('r'))
 @click.argument('input_dist', type=str, required=False)
-@click.option('--use-latex', is_flag=True, required=False, default=False)
 @click.option('--show-input-program', is_flag=True, required=False, default=False)
-def main(ctx, program_file: IO, input_dist: str, use_latex: bool, show_input_program: bool) -> None:
+def main(ctx, program_file: IO, input_dist: str, show_input_program: bool) -> None:
     """
     Compile the given program and print some information about it.
     """
@@ -60,16 +64,12 @@ def main(ctx, program_file: IO, input_dist: str, use_latex: bool, show_input_pro
         print(program_source)
         print()
 
-    config = ForwardAnalysisConfig(show_intermediate_steps=ctx.obj['STEPWISE_RESULTS'],
-                                   use_latex=use_latex, use_simplification=ctx.obj['SIMP'],
-                                   engine=ctx.obj['ENGINE'])
-
     if input_dist is None:
-        dist = config.factory.one(*program.variables.keys())
+        dist = ctx.obj['CONFIG'].factory.one(*program.variables.keys())
     else:
-        dist = config.factory.from_expr(input_dist, *program.variables.keys(), preciseness=1.0)
+        dist = ctx.obj['CONFIG'].factory.from_expr(input_dist, *program.variables.keys(), preciseness=1.0)
 
-    dist = probably.analysis.compute_discrete_distribution(program.instructions, dist, config)
+    dist = probably.analysis.compute_discrete_distribution(program.instructions, dist, ctx.obj['CONFIG'])
     print(Style.OKBLUE + "Result: \t" + Style.OKGREEN + str(dist))
 
 
@@ -97,10 +97,9 @@ def check_equality(ctx, program_file: IO, invariant_file: IO):
         print("Error:", inv)
         return
 
-    config = ForwardAnalysisConfig(engine=ctx.obj['ENGINE'], show_intermediate_steps=ctx.obj['STEPWISE_RESULTS'],
-                                   use_simplification=ctx.obj['SIMP'])
-    equiv = check_equivalence(prog, inv, config)
-    print(f"Program{f'{Style.OKRED} is not equivalent{Style.RESET}' if not equiv else f'{Style.OKGREEN} is equivalent{Style.RESET}'} to invaraint")
+    equiv = check_equivalence(prog, inv, ctx.obj['CONFIG'])
+    print(
+        f"Program{f'{Style.OKRED} is not equivalent{Style.RESET}' if not equiv else f'{Style.OKGREEN} is equivalent{Style.RESET}'} to invaraint")
     return equiv
 
 
