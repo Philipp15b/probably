@@ -1,13 +1,12 @@
 #!/bin/bash
 
-for file in pgfexamples/*
+for file in pgfexamples/inference/*
 do
   echo "Run example ${file}"
-  if [[ $file == pgfexamples/skip_*.pgcl ]]
+  if [[ $file == pgfexamples/inference/skip_*.pgcl ]]
   then
     echo "Skipped!"
   else
-    printf "\e[32mResult:\t\e[m"
-    time poetry run probably $file $@ 
+    time python probably/cli.py $@ main $file
   fi
 done

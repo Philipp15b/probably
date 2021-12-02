@@ -114,7 +114,7 @@ class FPS(Distribution):
         raise NotImplementedError(__name__)
 
     def copy(self, deep: bool = True) -> Distribution:
-        raise NotImplementedError(__name__)
+        return FPS.from_dist(self.dist)
 
     def get_probability_of(self, condition: Union[Expr, str]):
         raise NotImplementedError(__name__)
@@ -123,7 +123,7 @@ class FPS(Distribution):
         return self.dist.mass()
 
     def get_expected_value_of(self, expression: Union[Expr, str]) -> str:
-        return self.dist.E(expression)
+        return self.dist.E(str(expression))
 
     def normalize(self) -> Distribution:
         return FPS.from_dist(self.dist.normalize())
@@ -234,7 +234,7 @@ class FPS(Distribution):
                 return FPS.from_dist(result)
             elif method == MarginalType.Include:
                 for var in variables:
-                    return FPS.from_dist(self.dist.marginal(var))
+                    return FPS.from_dist(self.dist.marginal(str(var)))
 
     def set_variables(self, *variables: str) -> Distribution:
         raise NotImplementedError(__name__)
