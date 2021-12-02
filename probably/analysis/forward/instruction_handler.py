@@ -58,7 +58,8 @@ class SequenceHandler(InstructionHandler):
             res = SequenceHandler.compute(instruction, distribution, config)
             if isinstance(instr, (WhileInstr, IfInstr, LoopInstr)):
                 print("\n")
-            print(f"{Style.BLUE}Instruction:{Style.RESET} {instruction}\t {Style.GREEN}Result:{Style.RESET} {res}")
+            output = f"\n{Style.BLUE}Instruction:{Style.RESET} {instruction}\t {Style.GREEN}Result:{Style.RESET} {res}"
+            print(output)
             return res
 
         def _dont_show_steps(distribution: Distribution, instruction: Instr):
@@ -402,7 +403,7 @@ class WhileHandler(InstructionHandler):
                 sat_part = iterated_sat
                 printProgressBar(
                     int( (Fraction(non_sat_part.get_probability_mass()) / captured_probability_threshold) * 100 ),
-                    100, suffix="of desired mass captured", length=50, printEnd="\n")
+                    100, suffix="of desired mass captured", length=50)
             return non_sat_part
         else:
             raise Exception(f"Input '{user_choice}' cannot be handled properly.")
