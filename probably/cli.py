@@ -63,14 +63,14 @@ def main(ctx, program_file: IO, input_dist: str, show_input_program: bool) -> No
         print("Program source:")
         print(program_source)
         print()
-
+    config = ctx.obj['CONFIG']
     if input_dist is None:
-        dist = ctx.obj['CONFIG'].factory.one(*program.variables.keys())
+        dist = config.factory.one(*program.variables.keys())
     else:
-        dist = ctx.obj['CONFIG'].factory.from_expr(input_dist, *program.variables.keys(), preciseness=1.0)
+        dist = config.factory.from_expr(input_dist, *program.variables.keys(), preciseness=1.0)
 
-    dist = probably.analysis.compute_discrete_distribution(program.instructions, dist, ctx.obj['CONFIG'])
-    print(Style.OKBLUE + "Result: \t" + Style.OKGREEN + str(dist))
+    dist = probably.analysis.compute_discrete_distribution(program.instructions, dist, config)
+    print(Style.OKBLUE + "Result: \t" + Style.OKGREEN + str(dist) + Style.RESET)
 
 
 @cli.command('check_equality')
