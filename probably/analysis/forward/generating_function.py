@@ -36,6 +36,7 @@ class GeneratingFunction(Distribution):
     """ Class Attributes defining a configuration. """
     rational_preciseness = False
     use_simplification = False
+    intermediate_results = False
     use_latex_output = False
 
     def __init__(self, function: Union[str, sympy.Expr] = "",
@@ -245,6 +246,7 @@ class GeneratingFunction(Distribution):
             is_closed_form = self._is_closed_form and other._is_closed_form
             is_finite = self._is_finite and other._is_finite
             preciseness = (s + o) / (s / self._preciseness + o / other._preciseness)
+
 
             # do the actual operation
             function = op(self._function, other._function)
@@ -590,13 +592,17 @@ class GeneratingFunction(Distribution):
         marginal = self.copy()
         if method == MarginalType.Include:
             for s_var in marginal._variables.difference(map(sympy.S, map(str, variables))):
-                marginal._function = marginal._function.limit(s_var, 1, "-") if marginal._is_closed_form \
-                    else marginal._function.subs(s_var, 1)
+                if marginal._is_closed_form:
+                    marginal._function = marginal._function.limit(s_var, 1, "-")
+                else:
+                    marginal._function = marginal._function.subs(s_var, 1)
             marginal._variables = set(map(sympy.S, map(str, variables)))
         else:
             for s_var in variables:
-                marginal._function = marginal._function.limit(s_var, 1, "-") if marginal._is_closed_form \
-                    else marginal._function.subs(s_var, 1)
+                if marginal._is_closed_form:
+                    marginal._function = marginal._function.limit(s_var, 1, "-")
+                else:
+                    marginal._function = marginal._function.subs(s_var, 1)
             marginal._variables = marginal._variables.difference(map(sympy.S, variables))
 
         marginal._is_closed_form = not marginal._function.is_polynomial()
@@ -763,7 +769,9 @@ class GeneratingFunction(Distribution):
     def limit(self, variable: Union[str, sympy.Symbol], value: Union[str, sympy.Expr]) -> 'GeneratingFunction':
         func = self._function
         if self._is_closed_form:
+            print(f"\rComputing limit...", end="\r", flush=True)
             func = func.limit(sympy.S(variable), sympy.S(value), "-")
+            #func = func.subs(sympy.S(variable), sympy.S(value))
         else:
             func = func.subs(sympy.S(variable), sympy.S(value))
         return GeneratingFunction(func, preciseness=self._preciseness, closed=self._is_closed_form,
@@ -792,7 +800,11 @@ class GeneratingFunction(Distribution):
         terms = rhs.as_coefficients_dict()
         result = self._function
         if subst_var not in terms.keys():
-            result = result.limit(subst_var, 1, '-') if self._is_closed_form else result.subs(subst_var, 1)
+            if self._is_closed_form:
+                print(f"\rComputing limit(linear transformation)...", end='\r', flush=True)
+                result = result.limit(subst_var, 1, '-')
+            else:
+                result = result.subs(subst_var, 1)
 
         # Do the actual update stepwise
         const_correction_term = 1
