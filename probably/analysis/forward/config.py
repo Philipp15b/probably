@@ -53,4 +53,5 @@ class ForwardAnalysisConfig:
         GeneratingFunction.use_latex_output = self.use_latex
         GeneratingFunction.rational_preciseness = self.show_rational_probabilities
         GeneratingFunction.use_simplification = self.use_simplification
+        GeneratingFunction.intermediate_results = self.show_intermediate_steps
 
