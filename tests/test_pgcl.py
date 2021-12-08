@@ -2,6 +2,7 @@
 import pytest
 
 from probably.pgcl import *
+from probably.pgcl.analyzer.syntax import check_for_nested_loops, get_nested_while_loops
 
 
 def test_chain():
@@ -58,13 +59,53 @@ def test_parameter_writing():
         n := 12 // <- this should give an error!
         """)
 
+
 def test_variable_in_distribution_parameter():
     with pytest.raises(SyntaxError, match="In distribution parameter expressions, no variables are allowed."):
         program = parse_pgcl(
-        """
+            """
         nparam n;
         nat x;
         
         x := unif(x, n)
         """
+        )
+
+
+def test_check_for_nested_loops():
+    program = parse_pgcl(
+        """
+        nat x;
+        nat y;
+        nat s;
+        
+        s := 0;
+        while( x > 0){
+            while (y > 0){
+               s := s + x;
+               y := y - 1;
+            }
+            x := x - 1;
+        }
+        """
     )
+    assert len(get_nested_while_loops(program.instructions)) == 2
+    print(get_nested_while_loops(program.instructions))
+
+    program = program = parse_pgcl(
+        """
+        nat x;
+        nat y;
+        nat s;
+        
+        s := 0;
+        while( x > 0){
+            x := x-1;
+        }
+        while (y > 0){
+          s := s + x;
+          y := y - 1;
+        }
+        """
+    )
+    assert len(get_nested_while_loops(program.instructions)) == 1

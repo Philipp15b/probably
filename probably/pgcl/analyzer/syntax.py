@@ -249,3 +249,33 @@ def check_is_one_big_loop(instrs: Sequence[Instr],
         if isinstance(instr.val, WhileInstr):
             return CheckFail(instr.val, err)
     return None
+
+
+def is_loopfree(instrs: Sequence[Instr]) -> bool:
+    if not instrs:
+        return True
+    return all(map(lambda x: not isinstance(x.val, WhileInstr), walk_instrs(Walk.DOWN, list(instrs))))
+
+
+def check_for_nested_loops(instrs: Sequence[Instr]) -> bool:
+    assert isinstance(instrs[0], WhileInstr)
+    return len(get_nested_while_loops(instrs)) > 1
+
+
+def _skip_to_while(instrs: Sequence[Instr]) -> Mut[WhileInstr]:
+    assert not is_loopfree(instrs)
+    for instr in walk_instrs(Walk.DOWN, list(instrs)):
+        if isinstance(instr.val, WhileInstr):
+            return instr
+
+
+def get_nested_while_loops(instrs: Sequence[Instr]) -> [Mut[WhileInstr]]:
+    assert not is_loopfree(instrs)
+    loops = []
+    loop = _skip_to_while(instrs)
+    loops.append(loop)
+    while not is_loopfree(loop.val.body):
+        loop = _skip_to_while(loop.val.body)
+        loops.append(loop)
+    loops.reverse()
+    return loops

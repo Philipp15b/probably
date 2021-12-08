@@ -17,7 +17,7 @@ start: declarations instructions queries
 
     instruction: "skip"                                      -> skip
                | "while" "(" expression ")" block            -> while
-               | "if" "(" expression ")" block "else" block -> if
+               | "if" "(" expression ")" block "else"? block -> if
                | var ":=" rvalue                             -> assign
                | block "[" expression "]" block              -> choice
                | "tick" "(" expression ")"                   -> tick
