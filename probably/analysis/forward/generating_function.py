@@ -764,7 +764,7 @@ class GeneratingFunction(Distribution):
         equalities: List[BinopExpr] = []
         for var, val in state.items():
             equalities.append(BinopExpr(Binop.EQ, lhs=VarExpr(var), rhs=NatLitExpr(val)))
-        return functools.reduce(lambda expr1, expr2: BinopExpr(Binop.AND, expr1, expr2), equalities)
+        return functools.reduce(lambda expr1, expr2: BinopExpr(Binop.AND, expr1, expr2), equalities, BoolLitExpr(value=True))
 
     def limit(self, variable: Union[str, sympy.Symbol], value: Union[str, sympy.Expr]) -> 'GeneratingFunction':
         func = self._function
