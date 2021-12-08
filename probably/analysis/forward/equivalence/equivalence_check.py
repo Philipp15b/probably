@@ -3,8 +3,7 @@ from typing import Tuple, Optional
 
 from probably.analysis.forward.distribution import Distribution
 from probably.analysis.forward.config import ForwardAnalysisConfig
-from probably.pgcl import Program, IfInstr, SkipInstr, VarExpr
-from probably.pgcl.analyzer.syntax import check_is_one_big_loop
+from probably.pgcl import Program, IfInstr, SkipInstr, VarExpr, WhileInstr
 from probably.analysis.forward.instruction_handler import compute_discrete_distribution
 from probably.util.color import Style
 from probably.util.logger import log_setup
@@ -13,7 +12,7 @@ logger = log_setup(__name__, logging.DEBUG)
 
 
 def phi(program: Program, invariant: Program):
-    assert check_is_one_big_loop(program.instructions) is None, "Program can only be one big loop to analyze."
+    assert isinstance(program.instructions[0], WhileInstr), "Program can only be one big loop to analyze."
     logger.debug("Create modified invariant program.")
     new_instructions = program.instructions[0].body.copy()
 
