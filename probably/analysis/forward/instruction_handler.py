@@ -374,14 +374,13 @@ class WhileHandler(InstructionHandler):
             max_iter = int(input("Specify a maximum iteration limit: "))
             sat_part = dist.filter(instr.cond)
             non_sat_part = dist - sat_part
-            for i in range(max_iter):
-                if config.show_intermediate_steps:
-                    print(f"{Style.YELLOW} Iteration {i + 1}:")
+            for i in range(max_iter+1):
+                printProgressBar(i, max_iter, "Iteration:", length=50)
                 iterated_part = SequenceHandler.compute(instr.body, sat_part, config)
                 iterated_sat = iterated_part.filter(instr.cond)
                 iterated_non_sat = iterated_part - iterated_sat
                 if iterated_non_sat == PGFS.zero() and iterated_sat == sat_part:
-                    print(f"{Style.OKGREEN}Terminated already after {i + 1} step(s)!{Style.RESET}")
+                    print(f"\n{Style.OKGREEN}Terminated already after {i + 1} step(s)!{Style.RESET}")
                     break
                 non_sat_part += iterated_non_sat
                 sat_part = iterated_sat
