@@ -99,7 +99,7 @@ def check_equality(ctx, program_file: IO, invariant_file: IO):
 
     equiv = check_equivalence(prog, inv, ctx.obj['CONFIG'])
     print(
-        f"Program{f'{Style.OKRED} is not equivalent{Style.RESET}' if not equiv else f'{Style.OKGREEN} is equivalent{Style.RESET}'} to invaraint")
+        f"Program{f'{Style.OKRED} is not equivalent{Style.RESET}' if not equiv[0] else f'{Style.OKGREEN} is equivalent{Style.RESET}'} to invaraint")
     return equiv
 
 
