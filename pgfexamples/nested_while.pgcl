@@ -1,5 +1,6 @@
 nat x;
 nat y;
+nat c;
 nat temp;
 
 while( x > 0){
@@ -9,4 +10,5 @@ while( x > 0){
        temp := 0
     }
     x := x - 1;
+    c := c+1
 }
