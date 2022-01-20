@@ -1,12 +1,17 @@
-nat x;
-nat y;
-nat temp;
+nat k;
+nat flag;
+nat send;
+nat failed;
 
-while( x > 0){
-    while (y = 1){
-       {y := 0}[1/2]{x:= x+1}
-       temp := 0
+while (k > 0 & not failed=1) {
+    retry := 5;
+    success := 0;
+    while( not (retry <= 0 || success=1) ){
+        {success := 1} [1/2] {retry := retry-1}
     }
-    x := x - 1;
-    temp := 0;
+    if (success = 1){
+        k := k-1;
+    } else {
+        failed := 1
+    }
 }
