@@ -11,6 +11,10 @@ class DistributionParameterError(ForwardAnalysisError):
     pass
 
 
+class IncomparableTypesException(Exception):
+    pass
+
+
 class ComparisonException(Exception):
     pass
 

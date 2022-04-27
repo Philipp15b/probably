@@ -8,7 +8,8 @@ from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr, Boo
 from probably.pgcl.analyzer.syntax import check_is_constant_constraint, check_is_modulus_condition, check_is_linear_expr
 from probably.pgcl.parser.parser import parse_expr
 from .distribution import Distribution, MarginalType
-from .exceptions import ComparisonException, NotComputableException, DistributionParameterError
+from .exceptions import ComparisonException, NotComputableException, DistributionParameterError, \
+    IncomparableTypesException
 from probably.util.logger import log_setup, logging, Style
 from probably.util.ref import Mut
 
@@ -243,7 +244,7 @@ class GeneratingFunction(Distribution):
             s, o = self.coefficient_sum(), other.coefficient_sum()
             is_closed_form = self._is_closed_form and other._is_closed_form
             is_finite = self._is_finite and other._is_finite
-            preciseness = (s + o) / (s / self._preciseness + o / other._preciseness)
+            preciseness = (s + o) / (s / self._preciseness + o / other._preciseness)  # BUG: Something not working.
 
             # do the actual operation
             function = op(self._function, other._function)
@@ -285,6 +286,7 @@ class GeneratingFunction(Distribution):
         return self._arithmetic(other, operator.mul)
 
     def __truediv__(self, other):
+        logger.debug("Isn't it weird to divide Distributions?")
         return self._arithmetic(other, operator.truediv)
 
     def __str__(self):
@@ -299,13 +301,42 @@ class GeneratingFunction(Distribution):
     def __repr__(self):
         return repr(self._function)
 
+    """ Comparison of Generating Functions """
+
+    def __lt__(self, other):
+        if not isinstance(other, GeneratingFunction):
+            raise IncomparableTypesException(f"Incomparable types {type(self)} and {type(other)}.")
+        else:
+            # if one of the generating functions is finite, we can check the relation coefficient-wise.
+            if self._is_finite:
+                for prob, state in self:
+                    if sympy.S(prob) >= other.probability_of_state(state):
+                        return False
+                return True
+            elif other._is_finite:
+                for prob, state in other:
+                    if self.probability_of_state(state) >= sympy.S(prob):
+                        return False
+                return True
+            # when both generating functions have infinite support we can only try to check whether we can eliminate
+            # common terms and check whether the result is finite. If so we can do a coefficient-wise pass again.
+            else:
+
+                difference = (self._function - other._function)
+                if difference.is_polynomial():
+                    return all(map(lambda x: x >= 0, difference.as_coefficients_dict().values()))
+
+                # We currently do not know what to do otherwise.
+                else:
+                    raise ComparisonException(
+                        "Both objects have infinite support. We cannot determine the order between them.")
+
     def __eq__(self, other):
         if not isinstance(other, GeneratingFunction):
             return False
-        else:
-            # We rely on simplification of __sympy__ here. Thus, we cannot guarantee to detect equality when
-            # simplification fails.
-            return True if self._function.equals(other._function) else False
+        # We rely on simplification of __sympy__ here. Thus, we cannot guarantee to detect equality when
+        # simplification fails.
+        return True if self._function.equals(other._function) else False
 
     def __le__(self, other):
         return self == other or self < other
@@ -313,41 +344,20 @@ class GeneratingFunction(Distribution):
     def __ge__(self, other):
         return not (self < other)
 
-    def __lt__(self, other):
-        if not isinstance(other, GeneratingFunction):
-            return False
-        else:
-            if self._is_finite:
-                func = self._function.expand() if self._is_closed_form else self._function
-                terms = func.as_coefficients_dict()
-                for monomial in terms:
-                    variables = monomial.as_powers_dict()
-                    for var in variables:
-                        if terms[monomial] >= other.probability_of_state({var: variables[var]}):
-                            return False
-                return True
-            elif other._is_finite:
-                func = other._function.expand() if other._is_closed_form else other._function
-                terms = func.as_coefficients_dict()
-                for monomial in terms:
-                    if terms[monomial] >= self.probability_of_state(monomial):
-                        return False
-                return True
-            else:
-                difference = (self._function - other._function)
-                if difference.is_polynomial():
-                    return all(map(lambda x: x >= 0, difference.as_coefficients_dict().values()))
-                else:
-                    raise ComparisonException(
-                        "Both objects have infinite support. We cannot determine the order between them.")
-
     def __gt__(self, other):
         return not (self <= other)
 
     def __ne__(self, other):
         return not (self == other)
 
+
     def __iter__(self):
+        """ Iterates over the generating function yielding (coefficient, state) pairs.
+
+            For implicit (closed-form) generating functions, we generate terms via tailor expansion.
+            If the generating function is even multivariate this might be costly as we try to enumerate all different
+            k-tuples, for which the coefficient might be zero (this we do not know upfront).
+        """
         logger.debug(f"iterating over {self}...")
         if self._is_finite:
             if self._is_closed_form:
@@ -364,7 +374,7 @@ class GeneratingFunction(Distribution):
             return map(lambda term: (str(term[0]), self.monomial_to_state(term[1])), self._mult_term_generator())
 
     def monomial_to_state(self, monomial: sympy.Expr) -> Dict[str, int]:
-        """ Converts a `monomial` into a state."""
+        """ Converts a `monomial` into a state representation, i.e., a (variable_name, variable_value) dict."""
         result: Dict[str, int] = dict()
         if monomial.free_symbols == set():
             for var in self._variables:
@@ -379,7 +389,7 @@ class GeneratingFunction(Distribution):
         return result
 
     def state_to_monomial(self, state: Dict[str, int]) -> sympy.Expr:
-        """ Returns the monomial generated from a specific state."""
+        """ Returns the monomial generated from a given state."""
         assert state, f"State is not valid. {state}"
         monomial = sympy.S(1)
         for var in self._variables:
@@ -404,14 +414,21 @@ class GeneratingFunction(Distribution):
                                   preciseness=self._preciseness)
 
     def _mult_term_generator(self):
+        """
+            Generates terms of multivariate generating function in `grlex` order.
+        """
         i = 1
         while True:
+            # The easiest method is to create all monomials of until total degree `i` and sort them.
             logger.debug(f"generating and sorting of new monomials")
             new_monomials = sorted(sympy.polys.monomials.itermonomials(self._variables, i),
                                    key=sympy.polys.orderings.monomial_key("grlex", list(self._variables)))
+            # instead of repeating all the monomials for higher total degrees, just cut-off the already created ones.
             if i > 1:
                 new_monomials = new_monomials[sympy.polys.monomials.monomial_count(len(self._variables), i - 1):]
             logger.debug(f"Monomial_generation done")
+
+            # after we have the list of new monomials, create (probability, state) pais and yielding them.
             for monomial in new_monomials:
                 state = dict()
                 if monomial == 1:
@@ -423,7 +440,14 @@ class GeneratingFunction(Distribution):
             logger.debug(f"\t>Terms generated until total degree of {i}")
             i += 1
 
+    # FIXME: Its not nice to have different behaviour depending on the variable type of `thershold`.
     def approximate(self, threshold: Union[str, int]) -> Generator['GeneratingFunction', None, None]:
+        """
+            Generate an approximation of a generating function, until `threshold` percent or terms of the probability
+            mass is caputred.
+        :param threshold: The probability percentage threshold of the probability mass of the distribution.
+        :return: A Generating Function generator.
+        """
         logger.debug(f"expand_until() call")
         approx = sympy.S("0")
         precision = sympy.S(0)

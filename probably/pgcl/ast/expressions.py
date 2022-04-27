@@ -511,11 +511,11 @@ class CategoricalExpr(ExprClass):
                            for expr, prob in self.exprs))
 
 
+""" A type combining all sampling expressions"""
 DistrExpr = Union[DUniformExpr, CUniformExpr, BernoulliExpr, GeometricExpr, PoissonExpr, LogDistExpr, BinomialExpr,
                   IidSampleExpr]
-""" A type combining all sampling expressions"""
 
+"""Union type for all expression objects. See :class:`ExprClass` for use with isinstance."""
 Expr = Union[VarExpr, BoolLitExpr, NatLitExpr, RealLitExpr,
              UnopExpr, BinopExpr, CategoricalExpr,
              SubstExpr, TickExpr, DistrExpr]
-"""Union type for all expression objects. See :class:`ExprClass` for use with isinstance."""
