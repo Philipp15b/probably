@@ -1,19 +1,16 @@
 import functools
-import logging
 from typing import Tuple, List, Set, Dict, Union, Generator, get_args
 
 import sympy
 import operator
 from probably.pgcl import Unop, VarExpr, NatLitExpr, BinopExpr, Binop, Expr, BoolLitExpr, UnopExpr, RealLitExpr, \
-    walk_expr, Walk
+    walk_expr, Walk, IidSampleExpr, DistrExpr, GeometricExpr, BernoulliExpr, DUniformExpr, PoissonExpr
 from probably.pgcl.analyzer.syntax import check_is_constant_constraint, check_is_modulus_condition, check_is_linear_expr
 from probably.pgcl.parser.parser import parse_expr
 from .distribution import Distribution, MarginalType
 from .exceptions import ComparisonException, NotComputableException, DistributionParameterError
-from probably.util.logger import log_setup
+from probably.util.logger import log_setup, logging, Style
 from probably.util.ref import Mut
-from ...pgcl.ast.expressions import IidSampleExpr, DistrExpr, GeometricExpr, BernoulliExpr, DUniformExpr, PoissonExpr
-from ...util.color import Style
 
 logger = log_setup(__name__, logging.DEBUG, file="GF_operations.log")
 
@@ -41,7 +38,7 @@ class GeneratingFunction(Distribution):
 
     def __init__(self, function: Union[str, sympy.Expr] = "",
                  *variables: Union[str, sympy.Symbol],
-                 preciseness=1.0,
+                 preciseness: float = 1.0,
                  closed: bool = None,
                  finite: bool = None):
 
@@ -159,7 +156,8 @@ class GeneratingFunction(Distribution):
             result._function = result._function.subs(str(subst_var), f"{subst_var} * ({dist_gf})")
             return result
         elif isinstance(sampling_dist, DUniformExpr):
-            dist_gf = sympy.S(f"1/(({sampling_dist.end}) - ({sampling_dist.start}) + 1) * {variable}**({sampling_dist.start}) * ({variable}**(({sampling_dist.end}) - ({sampling_dist.start}) + 1) - 1) / ({variable} - 1)")
+            dist_gf = sympy.S(
+                f"1/(({sampling_dist.end}) - ({sampling_dist.start}) + 1) * {variable}**({sampling_dist.start}) * ({variable}**(({sampling_dist.end}) - ({sampling_dist.start}) + 1) - 1) / ({variable} - 1)")
             result = self.marginal(variable, method=MarginalType.Exclude)
             result._function = result._function.subs(str(subst_var), f"{subst_var} * ({dist_gf})")
             return result
@@ -246,7 +244,6 @@ class GeneratingFunction(Distribution):
             is_closed_form = self._is_closed_form and other._is_closed_form
             is_finite = self._is_finite and other._is_finite
             preciseness = (s + o) / (s / self._preciseness + o / other._preciseness)
-
 
             # do the actual operation
             function = op(self._function, other._function)
@@ -764,14 +761,15 @@ class GeneratingFunction(Distribution):
         equalities: List[BinopExpr] = []
         for var, val in state.items():
             equalities.append(BinopExpr(Binop.EQ, lhs=VarExpr(var), rhs=NatLitExpr(val)))
-        return functools.reduce(lambda expr1, expr2: BinopExpr(Binop.AND, expr1, expr2), equalities, BoolLitExpr(value=True))
+        return functools.reduce(lambda expr1, expr2: BinopExpr(Binop.AND, expr1, expr2), equalities,
+                                BoolLitExpr(value=True))
 
     def limit(self, variable: Union[str, sympy.Symbol], value: Union[str, sympy.Expr]) -> 'GeneratingFunction':
         func = self._function
         if self._is_closed_form:
             print(f"\rComputing limit...", end="\r", flush=True)
             func = func.limit(sympy.S(variable), sympy.S(value), "-")
-            #func = func.subs(sympy.S(variable), sympy.S(value))
+            # func = func.subs(sympy.S(variable), sympy.S(value))
         else:
             func = func.subs(sympy.S(variable), sympy.S(value))
         return GeneratingFunction(func, preciseness=self._preciseness, closed=self._is_closed_form,

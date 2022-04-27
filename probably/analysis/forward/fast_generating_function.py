@@ -22,7 +22,7 @@ class FPS(Distribution):
             self.dist = prodigy.Dist(expression)
 
     @classmethod
-    def from_dist(cls, dist: prodigy.Dist):
+    def from_dist(cls, dist: prodigy.Dist) -> 'FPS':
         result = FPS("0")
         result.dist = dist
         return result
@@ -139,7 +139,7 @@ class FPS(Distribution):
     def update(self, expression: Expr) -> Distribution:
         return FPS.from_dist(self.dist.update(str(expression.lhs), str(expression.rhs)))
 
-    def update_iid(self, sampling_exp: IidSampleExpr, variable: Union[str, VarExpr]) -> 'Distribution':
+    def update_iid(self, sampling_exp: IidSampleExpr, variable: Union[str, VarExpr]) -> Distribution:
 
         sample_dist = sampling_exp.sampling_dist
         if isinstance(sample_dist, GeometricExpr):
