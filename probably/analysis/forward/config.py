@@ -3,13 +3,13 @@ from typing import Type
 
 import attr
 
-from .distribution import CommonDistributionsFactory
+from .distribution_factory import CommonDistributionsFactory
 from .exceptions import ConfigurationError
-from .fast_generating_function import FPSFactory
+from .pgfs import ProdigyPGF
 from .generating_function import GeneratingFunction
 from .optimization.gf_optimizer import GFOptimizer
 from .optimization import Optimizer
-from .pgfs import PGFS
+from .pgfs import SympyPGF
 
 
 @attr.s
@@ -43,9 +43,9 @@ class ForwardAnalysisConfig:
     @property
     def factory(self) -> Type[CommonDistributionsFactory]:
         if self.engine == self.Engine.GF:
-            return PGFS
+            return SympyPGF
         elif self.engine == self.Engine.GINAC:
-            return FPSFactory
+            return ProdigyPGF
         else:
             return CommonDistributionsFactory
 

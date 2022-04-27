@@ -8,7 +8,7 @@ from typing import get_args, Union, Sequence
 from probably.analysis.forward.config import ForwardAnalysisConfig
 from probably.analysis.forward.distribution import Distribution, MarginalType
 from probably.analysis.forward.exceptions import ObserveZeroEventError, VerificationError
-from probably.analysis.forward.pgfs import PGFS
+from probably.analysis.forward.pgfs import SympyPGF
 from probably.analysis.plotter import Plotter
 from probably.pgcl import *
 from probably.pgcl.ast.expressions import IidSampleExpr
@@ -379,7 +379,7 @@ class WhileHandler(InstructionHandler):
                 iterated_part = SequenceHandler.compute(instr.body, sat_part, config)
                 iterated_sat = iterated_part.filter(instr.cond)
                 iterated_non_sat = iterated_part - iterated_sat
-                if iterated_non_sat == PGFS.zero() and iterated_sat == sat_part:
+                if iterated_non_sat == SympyPGF.zero() and iterated_sat == sat_part:
                     print(f"\n{Style.OKGREEN}Terminated already after {i + 1} step(s)!{Style.RESET}")
                     break
                 non_sat_part += iterated_non_sat

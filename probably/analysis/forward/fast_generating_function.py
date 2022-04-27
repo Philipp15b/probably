@@ -1,55 +1,11 @@
 from typing import Union, Generator, Set, Iterator, Tuple, Dict, get_args
 
 from .distribution import MarginalType
-from .distribution import Distribution, CommonDistributionsFactory, Param
+from .distribution import Distribution
 import prodigy
 
 from ...pgcl import VarExpr, Expr, BinopExpr, UnopExpr, Binop, Unop
 from ...pgcl.ast.expressions import IidSampleExpr, GeometricExpr, DistrExpr, BernoulliExpr, DUniformExpr, PoissonExpr
-
-
-class FPSFactory(CommonDistributionsFactory):
-
-    @staticmethod
-    def geometric(var: Union[str, VarExpr], p: Param) -> Distribution:
-        return FPS(str(prodigy.geometric(var, str(p))))
-
-    @staticmethod
-    def uniform(var: Union[str, VarExpr], a: Param, b: Param) -> Distribution:
-        f = f"1/({b} - {a} + 1) * ({var}^{a}) * (({var}^({b} - {a} + 1) - 1)/({var} - 1))"
-        return FPS(f)
-
-    @staticmethod
-    def bernoulli(var: Union[str, VarExpr], p: Param) -> Distribution:
-        f = f"({p}) * {var} + 1-({p})"
-        return FPS(f)
-
-    @staticmethod
-    def poisson(var: Union[str, VarExpr], lam: Param) -> Distribution:
-        f = f"exp(({lam}) * ({var} - 1))"
-        return FPS(f)
-
-    @staticmethod
-    def log(var: Union[str, VarExpr], p: Param) -> Distribution:
-        f = f"log(1-({p})*{var})/log(1-({p}))"
-        return FPS(f)
-
-    @staticmethod
-    def binomial(var: Union[str, VarExpr], n: Param, p: Param) -> Distribution:
-        f = f"(({p})*{var} + (1-({p})))^({n})"
-        raise FPS(f)
-
-    @staticmethod
-    def undefined(*variables: Union[str, VarExpr]) -> Distribution:
-        raise NotImplementedError(__name__)
-
-    @staticmethod
-    def one(*variables: Union[str, VarExpr]) -> 'Distribution':
-        return FPS("1")
-
-    @staticmethod
-    def from_expr(expression: Union[str, Expr], *variables, **kwargs) -> 'Distribution':
-        return FPS(expression)
 
 
 class FPS(Distribution):

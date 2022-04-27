@@ -1,15 +1,17 @@
 from typing import Union
 
+import prodigy
 import sympy as sp
 
-from probably.analysis.forward.distribution import CommonDistributionsFactory, Distribution, Param
+from probably.analysis.forward.distribution_factory import CommonDistributionsFactory, Distribution, Param
 from probably.analysis.forward.exceptions import DistributionParameterError
+from probably.analysis.forward.fast_generating_function import FPS
 from probably.analysis.forward.generating_function import GeneratingFunction
 from probably.pgcl import VarExpr, Expr
 from probably.pgcl.analyzer.syntax import has_variable
 
 
-class PGFS(CommonDistributionsFactory):
+class SympyPGF(CommonDistributionsFactory):
     """Implements PGFs of standard distributions."""
 
     @staticmethod
@@ -78,7 +80,7 @@ class PGFS(CommonDistributionsFactory):
     @staticmethod
     def undefined(*variables: Union[str, VarExpr]) -> Distribution:
         """ A distribution where actually no information about the states is given."""
-        return PGFS.zero(*map(str, variables))
+        return SympyPGF.zero(*map(str, variables))
 
     @staticmethod
     def one(*variables: Union[str, VarExpr]) -> 'Distribution':
@@ -87,3 +89,47 @@ class PGFS(CommonDistributionsFactory):
     @staticmethod
     def from_expr(expression: Union[str, Expr], *variables, **kwargs) -> 'Distribution':
         return GeneratingFunction(str(expression), *variables, **kwargs)
+
+
+class ProdigyPGF(CommonDistributionsFactory):
+
+    @staticmethod
+    def geometric(var: Union[str, VarExpr], p: Param) -> Distribution:
+        return FPS(str(prodigy.geometric(var, str(p))))
+
+    @staticmethod
+    def uniform(var: Union[str, VarExpr], a: Param, b: Param) -> Distribution:
+        f = f"1/({b} - {a} + 1) * ({var}^{a}) * (({var}^({b} - {a} + 1) - 1)/({var} - 1))"
+        return FPS(f)
+
+    @staticmethod
+    def bernoulli(var: Union[str, VarExpr], p: Param) -> Distribution:
+        f = f"({p}) * {var} + 1-({p})"
+        return FPS(f)
+
+    @staticmethod
+    def poisson(var: Union[str, VarExpr], lam: Param) -> Distribution:
+        f = f"exp(({lam}) * ({var} - 1))"
+        return FPS(f)
+
+    @staticmethod
+    def log(var: Union[str, VarExpr], p: Param) -> Distribution:
+        f = f"log(1-({p})*{var})/log(1-({p}))"
+        return FPS(f)
+
+    @staticmethod
+    def binomial(var: Union[str, VarExpr], n: Param, p: Param) -> Distribution:
+        f = f"(({p})*{var} + (1-({p})))^({n})"
+        raise FPS(f)
+
+    @staticmethod
+    def undefined(*variables: Union[str, VarExpr]) -> Distribution:
+        raise NotImplementedError(__name__)
+
+    @staticmethod
+    def one(*variables: Union[str, VarExpr]) -> 'Distribution':
+        return FPS("1")
+
+    @staticmethod
+    def from_expr(expression: Union[str, Expr], *variables, **kwargs) -> 'Distribution':
+        return FPS(expression)

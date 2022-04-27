@@ -5,7 +5,7 @@ import pytest
 
 from probably.analysis.forward.distribution import MarginalType
 from probably.analysis.forward.exceptions import ComparisonException
-from probably.analysis.forward.pgfs import PGFS
+from probably.analysis.forward.pgfs import SympyPGF
 from probably.analysis.forward.generating_function import GeneratingFunction
 from probably.pgcl import Binop, BinopExpr, VarExpr, NatLitExpr
 
@@ -76,27 +76,27 @@ class TestDistributionInterface:
         gf = GeneratingFunction("(1-sqrt(1-x**2))/x")
         assert gf.get_probability_of(probably.pgcl.parse_expr("x <= 3")) == probably.pgcl.parse_expr("5/8")
 
-        gf = PGFS.zero("x")
+        gf = SympyPGF.zero("x")
         assert gf.get_probability_of(probably.pgcl.parse_expr("not (z*y < 12)")) == probably.pgcl.parse_expr("0")
 
     def test_get_probability_mass(self):
         gf = GeneratingFunction("(1-sqrt(1-x**2))/x")
         assert gf.get_probability_mass() == "1"
 
-        gf = PGFS.zero("x")
+        gf = SympyPGF.zero("x")
         assert gf.get_probability_mass() == "0"
 
-        gf = PGFS.uniform("x", "3", "10")
+        gf = SympyPGF.uniform("x", "3", "10")
         assert gf.get_probability_mass() == "1"
 
     def test_expected_value_of(self):
         gf = GeneratingFunction("(1-sqrt(1-x**2))/x")
         assert gf.get_expected_value_of("x") == "Infinity"
 
-        gf = PGFS.zero("x")
+        gf = SympyPGF.zero("x")
         assert gf.get_expected_value_of("x") == "0"
 
-        gf = PGFS.uniform("x", "3", "10")
+        gf = SympyPGF.uniform("x", "3", "10")
         assert gf.get_expected_value_of("x**2+y") == "95/2"
 
     def test_normalize(self):
@@ -130,7 +130,7 @@ class TestDistributionInterface:
             f"Should be {{'a', 'b'}}, is {gf.get_parameters()}."
 
     def test_filter(self):
-        gf = PGFS.zero("x")
+        gf = SympyPGF.zero("x")
         assert gf.filter(probably.pgcl.parse_expr("x*3 < 25*y")) == gf
 
         # check filter on infinite GF
@@ -142,14 +142,14 @@ class TestDistributionInterface:
         assert gf.filter(probably.pgcl.parse_expr("x*c < 123")) == gf
 
         gf = GeneratingFunction("(1-sqrt(1-c**2))/c")
-        assert gf.filter(probably.pgcl.parse_expr("x*z <= 10")) == PGFS.zero()
+        assert gf.filter(probably.pgcl.parse_expr("x*z <= 10")) == SympyPGF.zero()
 
     def test_is_zero_dist(self):
         gf = create_random_gf(4, 10)
-        assert (gf == PGFS.zero(*gf.get_variables())) == gf.is_zero_dist()
+        assert (gf == SympyPGF.zero(*gf.get_variables())) == gf.is_zero_dist()
 
-        gf = PGFS.zero("x")
-        assert (gf == PGFS.zero(*gf.get_variables())) == gf.is_zero_dist()
+        gf = SympyPGF.zero("x")
+        assert (gf == SympyPGF.zero(*gf.get_variables())) == gf.is_zero_dist()
 
     def test_is_finite(self):
         gf = create_random_gf(10, 10)
@@ -166,7 +166,7 @@ class TestDistributionInterface:
         assert gf.update(BinopExpr(Binop.EQ, VarExpr('c'), BinopExpr(Binop.PLUS, VarExpr('c'), NatLitExpr(1)))) == \
                GeneratingFunction("c*(1-sqrt(1-c**2))/c")
 
-        gf = PGFS.zero("x")
+        gf = SympyPGF.zero("x")
         expr = BinopExpr(Binop.EQ,
                          VarExpr('x'),
                          BinopExpr(Binop.PLUS,
@@ -177,9 +177,9 @@ class TestDistributionInterface:
                                    NatLitExpr(1)
                                    )
                          )
-        assert gf.update(expr) == PGFS.zero("x")
+        assert gf.update(expr) == SympyPGF.zero("x")
 
-        gf = PGFS.uniform("x", "0", "5")
+        gf = SympyPGF.uniform("x", "0", "5")
         expr = BinopExpr(Binop.EQ, VarExpr('x'), BinopExpr(Binop.TIMES, VarExpr('x'), VarExpr('x')))
         assert gf.update(expr) == GeneratingFunction("1/6 * (1 + x + x**4 + x**9 + x**16 + x**25)")
 
@@ -187,9 +187,9 @@ class TestDistributionInterface:
         gf = GeneratingFunction("(1-sqrt(1-c**2))/c")
         assert gf.marginal("x") == GeneratingFunction('1', 'x')
 
-        gf = PGFS.uniform("x", '0', '10') * PGFS.binomial('y', n='10', p='1/2')
-        assert gf.marginal('x') == PGFS.uniform("x", '0', '10')
-        assert gf.marginal('x', method=MarginalType.Exclude) == PGFS.binomial('y', n='10', p='1/2')
+        gf = SympyPGF.uniform("x", '0', '10') * SympyPGF.binomial('y', n='10', p='1/2')
+        assert gf.marginal('x') == SympyPGF.uniform("x", '0', '10')
+        assert gf.marginal('x', method=MarginalType.Exclude) == SympyPGF.binomial('y', n='10', p='1/2')
         assert gf.marginal('x','y') == gf
 
     def test_set_variables(self):
@@ -202,7 +202,7 @@ class TestDistributionInterface:
         assert list(gf.approximate("0.99"))[-1] == GeneratingFunction("1/2*x + 1/4*x**2 + 1/8 * x**3 + 1/16 * x**4"
                                                                       "+ 1/32 * x**5 + 1/64 * x**6 + 1/128 * x**7")
 
-        gf = PGFS.zero("x", 'y')
+        gf = SympyPGF.zero("x", 'y')
         for prob, state in gf.approximate(10):
             assert prob == "0" and state == dict()
 
