@@ -38,16 +38,10 @@ For more details on what syntax is accepted for pGCL programs, you can view the 
 .. automodule:: probably.pgcl.compiler
 .. automodule:: probably.pgcl.ast
     :no-members:
-.. automodule:: probably.pgcl.backward
-    :no-members:
-.. automodule:: probably.pgcl.cf
-.. automodule:: probably.pgcl.syntax
-    :no-members:
+.. automodule:: probably.pgcl.analyzer
 .. automodule:: probably.pgcl.parser
-.. automodule:: probably.pgcl.walk
-.. automodule:: probably.pgcl.check
+.. automodule:: probably.pgcl.typechecker
 .. automodule:: probably.pgcl.substitute
-.. automodule:: probably.pgcl.simplify
 .. automodule:: probably.pgcl.cfg
 """
 

@@ -1,7 +1,4 @@
 """
-------
-Parser
-------
 
 A Lark-based parser for pGCL.
 
@@ -21,6 +18,7 @@ import textwrap
 from fractions import Fraction
 
 import attr
+import os
 from decimal import Decimal
 from typing import Optional, Union, Tuple, Dict
 
@@ -31,12 +29,15 @@ from probably.pgcl.ast import *
 from probably.pgcl.ast.expressions import expr_str_parens, IidSampleExpr
 from probably.pgcl.ast.instructions import OptimizationQuery
 from probably.util.lark_expr_parser import (atom, build_expr_parser, infixl,
-                                            prefix)
+                                            prefix, infixr)
 from probably.util.ref import Mut
+
+_PGCL_GRAMMAR = ""
 
 
 def setup(filename: str) -> Lark:
     # Read the specification grammar
+    global _PGCL_GRAMMAR
     with open(filename, 'r') as file:
         _PGCL_GRAMMAR = file.read()
 
@@ -47,8 +48,8 @@ def setup(filename: str) -> Lark:
                         infixl("geq", ">="),
                         infixl("eq", "=")],
                        [infixl("plus", "+"),
-                        infixl("minus", "-")], [infixl("times", "*")], [infixl("power", "^")],
-                       [infixl("likely", ":")], [infixl("divide", "/")], [infixl("mod", "%")],
+                        infixl("minus", "-")], [infixl("times", "*"), infixl("divide", "/")], [infixr("power", "^")],
+                       [infixl("likely", ":")], [infixl("mod", "%")],
                        [
                            prefix("neg", "not "),
                            atom("parens", '"(" expression ")"'),
@@ -58,18 +59,20 @@ def setup(filename: str) -> Lark:
                        ]]
     _PGCL_GRAMMAR += "\n" + textwrap.indent(build_expr_parser(_OPERATOR_TABLE, "expression"), '    ')
 
-    def _doc_parser_grammar():
-        raise Exception(
-            "This function only exists for documentation purposes and should never be called"
-        )
-
-    _doc_parser_grammar.__doc__ = "The Lark grammar for pGCL::\n" + _PGCL_GRAMMAR + "\n\nThis function only exists for " \
-                                                                                    "documentation purposes and should " \
-                                                                                    "never be called in code. "
     return Lark(_PGCL_GRAMMAR)
 
 
-_PARSER = setup("probably/pgcl/parser/pgcl_grammar.txt")
+def _doc_parser_grammar():
+    raise Exception(
+        "This function only exists for documentation purposes and should never be called"
+    )
+
+
+_doc_parser_grammar.__doc__ = "The Lark grammar for pGCL::\n" + _PGCL_GRAMMAR + "\n\nThis function only exists for " \
+                                                                                "documentation purposes and should " \
+                                                                                "never be called in code. "
+
+_PARSER = setup(os.path.dirname(os.path.abspath(__file__)) + "/pgcl_grammar.txt")
 
 # Collect parameter information here.
 parameters: Dict[Var, Type] = dict()
@@ -132,6 +135,7 @@ def _parse_bounds(t: Optional[Tree]) -> Optional[Bounds]:
     assert isinstance(t, Tree) and t.data == "bounds"
     return Bounds(_parse_expr(_child_tree(t, 0)),
                   _parse_expr(_child_tree(t, 1)))
+
 
 def _parse_declaration(t: Tree) -> Decl:
     def var0():
@@ -250,7 +254,8 @@ def _parse_distribution(t: Tree) -> Expr:
     for i in range(param_count):
         param = _parse_expr(_child_tree(t, i))
         if has_variable(param):
-            raise SyntaxError("In distribution parameter expressions, no variables are allowed. - Forgot parameter declaration?")
+            raise SyntaxError(
+                "In distribution parameter expressions, no variables are allowed. - Forgot parameter declaration?")
         params.append(param)
     return constructor(*params)
 
@@ -349,7 +354,8 @@ def _parse_query(t: Tree):
             raise SyntaxError(f"The Optimization can either be 'MAX' or 'MIN', but not {mode}")
         parameter = _parse_var(_child_tree(t, 1))
         if parameter not in parameters:
-            raise SyntaxError(f"In Optimization queries, the variable can only be a program parameter, was {parameter}.")
+            raise SyntaxError(
+                f"In Optimization queries, the variable can only be a program parameter, was {parameter}.")
         return OptimizationQuery(_parse_expr(_child_tree(t, 0)), parameter, opt_type)
     elif t.data == "plot":
         if len(t.children) == 3:
@@ -387,6 +393,7 @@ def _parse_query(t: Tree):
             return PlotInstr(VarExpr(_parse_var(_child_tree(t, 0))))
     else:
         raise Exception(f'invalid AST: {t.data}')
+
 
 def _parse_program(config: ProgramConfig, t: Tree) -> Program:
     assert t.data == 'start'

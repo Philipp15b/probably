@@ -3,7 +3,7 @@ Probably also offers a simple command-line interface for quick program inspectio
 
 If you use `poetry` and do not have probably installed globally, you can use `poetry run probably INPUT`.
 
-.. click:: probably.cmd:main
+.. click:: probably.cli:cli
    :prog: probably
    :show-nested:
 """

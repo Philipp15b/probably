@@ -7,7 +7,6 @@ from probably.analysis.forward.distribution import Distribution
 from probably.pgcl import Expr, VarExpr, OptimizationType
 
 
-
 @attr.s
 class Optimizer(ABC):
     """
