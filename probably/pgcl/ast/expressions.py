@@ -5,7 +5,6 @@ from enum import Enum, auto
 from fractions import Fraction
 from functools import reduce
 from typing import Optional, List, Any, Union, Tuple, Dict
-
 import attr
 from abc import abstractmethod
 

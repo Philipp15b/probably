@@ -50,7 +50,7 @@ class Distribution(ABC):
 
     @abstractmethod
     def __iter__(self) -> Iterator[Tuple[str, Dict[str, int]]]:
-        """ Returns an iterator that iterates over the probability, state pairs of the distribution."""
+        """ Returns an iterator that iterates over the (probability, state) pairs of the distribution."""
         pass
 
     @abstractmethod

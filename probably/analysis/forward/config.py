@@ -1,3 +1,8 @@
+"""
+-----------------------
+Forward Analysis Config
+-----------------------
+"""
 from enum import Enum, auto
 from typing import Type
 
@@ -17,32 +22,37 @@ class ForwardAnalysisConfig:
     """Global configurable options for forward analysis."""
 
     class Engine(Enum):
-        GF = auto()
+        """
+        This enumeration specifies the type of backend used for distribution encodings and mathematical operations.
+        """
+        SYMPY = auto()
         GINAC = auto()
 
+    """Enables the printing of results after each instruction."""
     show_intermediate_steps: bool = attr.ib(default=False)
 
-    # IMPORTANT: show_ attributes just change the string representation, not the actual computation
+    """Displays the probabilities in rational form. This does not change the preciseness of computation."""
     show_rational_probabilities: bool = attr.ib(default=False)
 
+    """Enables simplification heuristics for expressions."""
     use_simplification: bool = attr.ib(default=False)
 
-    # Print output in Latex
+    """Toggle to print LaTeX-Code instead of ASCII expressions."""
     use_latex: bool = attr.ib(default=False)
 
-    # The distribution engine (defaults to generating functions)
-    engine: Engine = attr.ib(default=Engine.GF)
+    """Selects the distribution backend."""
+    engine: Engine = attr.ib(default=Engine.SYMPY)
 
     @property
     def optimizer(self) -> Type[Optimizer]:
-        if self.engine == ForwardAnalysisConfig.Engine.GF:
+        if self.engine == ForwardAnalysisConfig.Engine.SYMPY:
             return GFOptimizer
         else:
             raise ConfigurationError("The configured engine does not implement an optimizer.")
 
     @property
     def factory(self) -> Type[CommonDistributionsFactory]:
-        if self.engine == self.Engine.GF:
+        if self.engine == self.Engine.SYMPY:
             return SympyPGF
         elif self.engine == self.Engine.GINAC:
             return ProdigyPGF

@@ -14,6 +14,8 @@ click = "^7.1.2"
 sphinxcontrib-katex = "^0.7.1"
 graphviz = "^0.15"
 networkx = "2.5"
+sympy = "^1.8"
+matplotlib = "^3.4.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
@@ -27,8 +29,7 @@ sphinx-git = "^11.0.0"
 rope = "^0.17.0"
 pytest-cov = "^2.9.0"
 hypothesis = "^5.18.0"
-sympy = "^1.8"
-matplotlib = "^3.4.2"
+
 
 [tool.poetry.scripts]
 probably = "probably.cli:main"

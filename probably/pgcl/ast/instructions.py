@@ -4,7 +4,6 @@ import attr
 from abc import abstractmethod
 from typing import List, Union
 from textwrap import indent
-
 from .ast import Node
 from .expressions import NatLitExpr, VarExpr, RealLitExpr, Expr
 from . import Var

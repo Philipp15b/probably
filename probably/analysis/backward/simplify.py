@@ -8,12 +8,11 @@ Your program has dumb expressions a toddler could simplify?
 This is the right place for you!
 """
 
-from typing import Dict, List, Union, Optional
+from typing import Dict, Union, Optional
 
 import attr
 
 from probably.pgcl.ast.expressions import expr_str_parens
-from probably.util.ref import Mut
 
 from probably.pgcl.ast import *
 from probably.pgcl.typechecker.check import CheckFail, get_type

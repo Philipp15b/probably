@@ -31,7 +31,7 @@ def cli(ctx, engine: str, intermediate_results: bool, no_simplification: bool, u
     ctx.ensure_object(dict)
     ctx.obj['CONFIG'] = \
         ForwardAnalysisConfig(
-            engine=ForwardAnalysisConfig.Engine.GINAC if engine == 'prodigy' else ForwardAnalysisConfig.Engine.GF,
+            engine=ForwardAnalysisConfig.Engine.GINAC if engine == 'prodigy' else ForwardAnalysisConfig.Engine.SYMPY,
             show_intermediate_steps=intermediate_results,
             use_simplification=not no_simplification,
             use_latex=use_latex
@@ -89,13 +89,11 @@ def check_equality(ctx, program_file: IO, invariant_file: IO):
 
     prog = pgcl.compile_pgcl(prog_src)
     if isinstance(prog, CheckFail):
-        print("Error:", prog)
-        return
+        raise Exception(f"Could not compile the Program. {prog}")
 
     inv = pgcl.compile_pgcl(inv_src)
     if isinstance(inv, CheckFail):
-        print("Error:", inv)
-        return
+        raise Exception(f"Could not compile invariant. {inv}")
 
     equiv = check_equivalence(prog, inv, ctx.obj['CONFIG'])
     print(

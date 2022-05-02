@@ -3,7 +3,7 @@ import copy
 import attr
 
 from typing import List, Dict, Any
-from . import Decl, Var, Type, Expr, Instr, VarDecl, ConstDecl, ParameterDecl
+from . import Decl, Var, Type, Expr, Instr, VarDecl, ConstDecl
 
 
 @attr.s(frozen=True)

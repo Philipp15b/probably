@@ -24,6 +24,7 @@ author = 'Philipp Schröer'
 master_doc = 'index'
 pygments_style = 'sphinx'
 todo_include_todos = True
+add_module_names = False
 
 html_theme_path = ["themes"] + sphinx_bootstrap_theme.get_html_theme_path()
 html_theme = 'fixedbootstrap'
@@ -47,7 +48,8 @@ html_extra_path = [".nojekyll"]
 
 autodoc_default_options = {'members': True, 'undoc-members': True}
 autodoc_member_order = "bysource"
-
+autodoc_typehints_format = 'short'
+autodoc_type_aliases = {'Instr': 'Union[SkipInstr, WhileInstr, IfInstr, AsgnInstr, ChoiceInstr, LoopInstr, TickInstr, ObserveInstr, ProbabilityQueryInstr, ExpectationInstr, PlotInstr, PrintInstr, OptimizationQuery, Sequence[Union[SkipInstr, WhileInstr, IfInstr, AsgnInstr, ChoiceInstr, LoopInstr, TickInstr, ObserveInstr, ProbabilityQueryInstr, ExpectationInstr, PlotInstr, PrintInstr, OptimizationQuery]]]'}
 #napoleon_use_ivar = True
 
 # et typing.TYPE_CHECKING to True to enable “expensive” typing imports

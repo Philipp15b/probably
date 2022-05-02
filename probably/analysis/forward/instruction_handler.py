@@ -29,6 +29,18 @@ def _assume(instruction: Instr, instr_type, clsname: str):
 def compute_discrete_distribution(instr: Union[Instr, Sequence[Instr]],
                                   dist: Distribution,
                                   config: ForwardAnalysisConfig) -> Distribution:
+    """
+    Computes the resulting distribution given the program instruction(s) `instr` and the initial distribution `dist`.
+    Sometimes this computation is not possible, and the user is asked for strategies to resolve this problem.
+
+    Args:
+        instr: The list of program instructions.
+        dist: The initial distribution.
+        config: The forward analysis configuration.
+
+    Returns:
+        The (sub-)distribution after executing the instructions on the given input distribution.
+    """
     result = SequenceHandler.compute(instr, dist, config)
     if SequenceHandler.normalization:
         result = result.normalize()
@@ -47,7 +59,13 @@ class InstructionHandler(ABC):
 
 
 class SequenceHandler(InstructionHandler):
+    """
+    This class defines the strategy for a sequence of instructions. Basically here we decide to do the analysis
+    in *forward* direction.
+    """
+
     normalization: bool = False
+    """A flag that is set to true if normalization has to be taken into account at the end of the program execution."""
 
     @classmethod
     def compute(cls, instr: Union[Instr, Sequence[Instr]],
@@ -105,6 +123,11 @@ class SequenceHandler(InstructionHandler):
 
 
 class QueryHandler(InstructionHandler):
+    """
+        The `QueryHandler` is responsible for computing queries specified in the extended *pGCL* language. Currently
+        the queries `?Ex[], ?Pr[], !Plot[], !Print, ?Opt[]` are supported. Optimization very limited at the moment
+        and only applicable when using *SymPy* backend.
+    """
 
     @staticmethod
     def compute(instr: Instr, dist: Distribution, config: ForwardAnalysisConfig) -> Distribution:
@@ -374,7 +397,7 @@ class WhileHandler(InstructionHandler):
             max_iter = int(input("Specify a maximum iteration limit: "))
             sat_part = dist.filter(instr.cond)
             non_sat_part = dist - sat_part
-            for i in range(max_iter+1):
+            for i in range(max_iter + 1):
                 printProgressBar(i, max_iter, "Iteration:", length=50)
                 iterated_part = SequenceHandler.compute(instr.body, sat_part, config)
                 iterated_sat = iterated_part.filter(instr.cond)
@@ -401,7 +424,7 @@ class WhileHandler(InstructionHandler):
                 non_sat_part += iterated_non_sat
                 sat_part = iterated_sat
                 printProgressBar(
-                    int( (Fraction(non_sat_part.get_probability_mass()) / captured_probability_threshold) * 100 ),
+                    int((Fraction(non_sat_part.get_probability_mass()) / captured_probability_threshold) * 100),
                     100, suffix="of desired mass captured", length=50)
             return non_sat_part
         else:
