@@ -88,7 +88,7 @@ import attr
 from probably.util.ref import Mut
 
 from .ast import (AsgnInstr, Binop, BinopExpr, CategoricalExpr, ChoiceInstr,
-                  Expr, FloatLitExpr, IfInstr, Instr, Program,
+                  Expr, RealLitExpr, IfInstr, Instr, Program,
                   SkipInstr, SubstExpr, TickExpr, TickInstr, DUniformExpr, Unop,
                   UnopExpr, Var, VarExpr, WhileInstr)
 from .substitute import substitute_expr
@@ -116,10 +116,10 @@ def loopfree_wp(instr: Union[Instr, Sequence[Instr]],
     .. doctest::
 
         >>> from .parser import parse_pgcl
-        >>> from .ast import FloatLitExpr, VarExpr
+        >>> from .ast import RealLitExpr, VarExpr
 
         >>> program = parse_pgcl("bool a; bool x; if (a) { x := 1 } {}")
-        >>> res = loopfree_wp(program.instructions, FloatLitExpr("1.0"))
+        >>> res = loopfree_wp(program.instructions, RealLitExpr("1.0"))
         >>> str(res)
         '([a] * ((1.0)[x/1])) + ([not a] * 1.0)'
 
@@ -184,7 +184,7 @@ def loopfree_wp(instr: Union[Instr, Sequence[Instr]],
         lhs = BinopExpr(Binop.TIMES, lhs_block, instr.prob)
         rhs = BinopExpr(
             Binop.TIMES, rhs_block,
-            BinopExpr(Binop.MINUS, FloatLitExpr("1.0"), instr.prob))
+            BinopExpr(Binop.MINUS, RealLitExpr("1.0"), instr.prob))
         return BinopExpr(Binop.PLUS, lhs, rhs)
 
     if isinstance(instr, TickInstr):
