@@ -89,7 +89,7 @@ from probably.util.ref import Mut
 
 from .ast import (AsgnInstr, Binop, BinopExpr, CategoricalExpr, ChoiceInstr,
                   Expr, FloatLitExpr, IfInstr, Instr, Program,
-                  SkipInstr, SubstExpr, TickExpr, TickInstr, UniformExpr, Unop,
+                  SkipInstr, SubstExpr, TickExpr, TickInstr, DUniformExpr, Unop,
                   UnopExpr, Var, VarExpr, WhileInstr)
 from .substitute import substitute_expr
 from .syntax import check_is_one_big_loop
@@ -164,7 +164,7 @@ def loopfree_wp(instr: Union[Instr, Sequence[Instr]],
         return BinopExpr(Binop.PLUS, true, false)
 
     if isinstance(instr, AsgnInstr):
-        if isinstance(instr.rhs, (UniformExpr, CategoricalExpr)):
+        if isinstance(instr.rhs, (DUniformExpr, CategoricalExpr)):
             distribution = instr.rhs.distribution()
             branches = [
                 BinopExpr(
