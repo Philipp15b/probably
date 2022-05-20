@@ -223,7 +223,7 @@ class ControlFlowGraph:
             >>> list(graph)
             [BasicBlock(typ=..., ident=0, assignments=[], terminator=Terminator(kind=..., condition=BoolLitExpr(True), if_true=None, if_false=None))]
         """
-        graph = ControlFlowGraph(BasicBlockId(0), list())
+        graph = ControlFlowGraph(BasicBlockId(0), [])
         if len(instructions) == 0:
             block = graph.fresh_block()
             start_id = cast(Optional[BasicBlockId], block.ident)
@@ -284,7 +284,7 @@ class ControlFlowGraph:
             g.add_node(block.ident)
         for block in self:
             for succ_id in block.terminator.successors:
-                if(succ_id != None):
+                if succ_id is not None:
                     g.add_edge(block.ident, succ_id)
         g.add_edge("start", self.entry_id)
         return g
@@ -317,7 +317,7 @@ class ControlFlowGraph:
 
         for block in self._basic_blocks:
             styles = {
-                BlockType.FORWARD: dict(),
+                BlockType.FORWARD: {},
                 BlockType.LOOP_HEAD: {
                     "style": "rounded"
                 },
@@ -450,7 +450,7 @@ class JumpTable:
         error.typ = BlockType.TRAMPOLINE
         error.terminator = Terminator.goto(error.ident)
         self.error_id = error.ident
-        self._jumps = list()
+        self._jumps = []
 
     def trampoline(self, target: Optional[BasicBlockId]) -> BasicBlockId:
         """

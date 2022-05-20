@@ -125,13 +125,13 @@ def check_is_linear_program(program: Program) -> Optional[CheckFail]:
     return None
 
 
-def has_variable(expr: Expr) -> bool:
+def _has_variable(expr: Expr) -> bool:
     if isinstance(expr, UnopExpr) and expr.operator == Unop.IVERSON:
         return False
     if isinstance(expr, VarExpr) and not expr.is_parameter:
         return True
     for child_ref in mut_expr_children(Mut.alloc(expr)):
-        if has_variable(child_ref.val):
+        if _has_variable(child_ref.val):
             return True
     return False
 
@@ -162,7 +162,7 @@ def check_is_linear_expr(expr: Expr) -> Optional[CheckFail]:
         node = node_ref.val
         if isinstance(node, BinopExpr):
             if node.operator == Binop.MODULO or \
-                        (node.operator == Binop.TIMES and has_variable(node.lhs) and has_variable(node.rhs)):
+                        (node.operator == Binop.TIMES and _has_variable(node.lhs) and _has_variable(node.rhs)):
                 return CheckFail(node, "Is not a linear expression")
             if node.operator == Binop.DIVIDE:
                 return CheckFail(
