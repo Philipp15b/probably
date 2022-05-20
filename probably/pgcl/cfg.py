@@ -284,8 +284,7 @@ class ControlFlowGraph:
             g.add_node(block.ident)
         for block in self:
             for succ_id in block.terminator.successors:
-                if succ_id is not None:
-                    g.add_edge(block.ident, succ_id)
+                g.add_edge(block.ident, succ_id)
         g.add_edge("start", self.entry_id)
         return g
 
