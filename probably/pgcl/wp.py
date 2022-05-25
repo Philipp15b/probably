@@ -93,7 +93,7 @@ from .ast import (AsgnInstr, Binop, BinopExpr, CategoricalExpr, ChoiceInstr,
                   UnopExpr, Var, VarExpr, WhileInstr)
 from .substitute import substitute_expr
 from .syntax import check_is_one_big_loop
-from .walk import Walk, walk_expr
+from .ast.walk import Walk, walk_expr
 
 
 def loopfree_wp(instr: Union[Instr, Sequence[Instr]],

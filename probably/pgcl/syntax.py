@@ -96,7 +96,7 @@ from probably.util.ref import Mut
 from .ast import (AsgnInstr, Binop, BinopExpr, Expr, Instr, Program, Unop,
                   UnopExpr, VarExpr, WhileInstr)
 from .check import CheckFail
-from .walk import Walk, instr_exprs, mut_expr_children, walk_expr, walk_instrs
+from .ast.walk import Walk, instr_exprs, mut_expr_children, walk_expr, walk_instrs
 
 
 def check_is_linear_program(program: Program) -> Optional[CheckFail]:

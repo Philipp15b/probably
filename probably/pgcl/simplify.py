@@ -19,7 +19,7 @@ from .ast import (Binop, BinopExpr, BoolLitExpr, Expr, RealLitExpr, RealType,
                   NatLitExpr, NatType, Program, SubstExpr, TickExpr, Unop,
                   UnopExpr, Var, expr_str_parens)
 from .check import CheckFail, get_type
-from .walk import Walk, walk_expr
+from .ast import Walk, walk_expr
 from .wp import ExpectationTransformer
 
 
