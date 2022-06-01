@@ -89,7 +89,8 @@ of initialization assignments before the loop using
 
 """
 
-from typing import Set, Optional, Sequence
+from typing import Optional, Sequence
+from collections.abc import Container
 
 from probably.util.ref import Mut
 
@@ -125,8 +126,7 @@ def check_is_linear_program(program: Program) -> Optional[CheckFail]:
     return None
 
 
-#pylint: disable = dangerous-default-value
-def check_is_linear_expr(expr: Expr, not_a_variable: Set[Var] = set()) -> Optional[CheckFail]:
+def check_is_linear_expr(expr: Expr, not_a_variable: Container[Var] = frozenset()) -> Optional[CheckFail]:
     """
     Linear expressions do not multiply variables with each other.
     However, they may contain multiplication with constants or Iverson brackets.
