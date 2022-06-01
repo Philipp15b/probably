@@ -89,12 +89,12 @@ of initialization assignments before the loop using
 
 """
 
-from typing import List, Optional, Sequence
+from typing import Set, Optional, Sequence
 
 from probably.util.ref import Mut
 
 from .ast import (AsgnInstr, Binop, BinopExpr, Expr, Instr, Program, Unop,
-                  UnopExpr, VarExpr, WhileInstr)
+                  UnopExpr, Var, VarExpr, WhileInstr)
 from .check import CheckFail
 from .ast.walk import Walk, instr_exprs, mut_expr_children, walk_expr, walk_instrs
 
@@ -119,32 +119,22 @@ def check_is_linear_program(program: Program) -> Optional[CheckFail]:
     """
     for instr_ref in walk_instrs(Walk.DOWN, program.instructions):
         for expr in instr_exprs(instr_ref.val):
-            res = check_is_linear_expr(expr, [*program.constants.keys(), *program.parameters.keys()])
+            res = check_is_linear_expr(expr, {*program.parameters.keys()})
             if isinstance(res, CheckFail):
                 return res
     return None
 
 
-def _has_variable(expr: Expr, not_a_variable: List[str]) -> bool:
-    if isinstance(expr, UnopExpr) and expr.operator == Unop.IVERSON:
-        return False
-    if isinstance(expr, VarExpr) and not expr in not_a_variable:
-        return True
-    for child_ref in mut_expr_children(Mut.alloc(expr)):
-        if _has_variable(child_ref.val, not_a_variable):
-            return True
-    return False
-
-
-def check_is_linear_expr(expr: Expr, not_a_variable: List[str]) -> Optional[CheckFail]:
+#pylint: disable = dangerous-default-value
+def check_is_linear_expr(expr: Expr, not_a_variable: Set[Var] = set()) -> Optional[CheckFail]:
     """
     Linear expressions do not multiply variables with each other.
     However, they may contain multiplication with constants or Iverson brackets.
     Division is also not allowed in linear expressions.
 
     :param expr:
-    :param not_a_variable: A list of literals that are not to be considered variables. Usually, this
-        consists of all parameters and constants of a program.
+    :param not_a_variable: A collection of literals that are not to be considered variables, for example the
+        parameters of a program
 
     .. doctest::
 
@@ -162,12 +152,21 @@ def check_is_linear_expr(expr: Expr, not_a_variable: List[str]) -> Optional[Chec
         CheckFail(location=..., message='General division is not linear (division of constants is)')
     """
 
+    def _has_variable(expr: Expr) -> bool:
+        if isinstance(expr, UnopExpr) and expr.operator == Unop.IVERSON:
+            return False
+        if isinstance(expr, VarExpr) and not expr.var in not_a_variable:
+            return True
+        for child_ref in mut_expr_children(Mut.alloc(expr)):
+            if _has_variable(child_ref.val):
+                return True
+        return False
+
     for node_ref in walk_expr(Walk.DOWN, Mut.alloc(expr)):
         node = node_ref.val
         if isinstance(node, BinopExpr):
             if node.operator == Binop.MODULO or \
-                        (node.operator == Binop.TIMES and _has_variable(node.lhs, not_a_variable) \
-                             and _has_variable(node.rhs, not_a_variable)):
+                        (node.operator == Binop.TIMES and _has_variable(node.lhs) and _has_variable(node.rhs)):
                 return CheckFail(node, "Is not a linear expression")
             if node.operator == Binop.DIVIDE:
                 return CheckFail(
