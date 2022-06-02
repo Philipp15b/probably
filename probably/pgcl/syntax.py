@@ -90,12 +90,11 @@ of initialization assignments before the loop using
 """
 
 from typing import Optional, Sequence
-from collections.abc import Container
 
 from probably.util.ref import Mut
 
 from .ast import (AsgnInstr, Binop, BinopExpr, Expr, Instr, Program, Unop,
-                  UnopExpr, Var, VarExpr, WhileInstr)
+                  UnopExpr, VarExpr, WhileInstr)
 from .check import CheckFail
 from .ast.walk import Walk, instr_exprs, mut_expr_children, walk_expr, walk_instrs
 
@@ -120,42 +119,42 @@ def check_is_linear_program(program: Program) -> Optional[CheckFail]:
     """
     for instr_ref in walk_instrs(Walk.DOWN, program.instructions):
         for expr in instr_exprs(instr_ref.val):
-            res = check_is_linear_expr(expr, {*program.parameters.keys()})
+            res = check_is_linear_expr(expr, program)
             if isinstance(res, CheckFail):
                 return res
     return None
 
 
-def check_is_linear_expr(expr: Expr, not_a_variable: Container[Var] = frozenset()) -> Optional[CheckFail]:
+def check_is_linear_expr(expr: Expr, context: Program) -> Optional[CheckFail]:
     """
     Linear expressions do not multiply variables with each other.
     However, they may contain multiplication with constants or Iverson brackets.
     Division is also not allowed in linear expressions.
 
     :param expr:
-    :param not_a_variable: A collection of literals that are not to be considered variables, for example the
-        parameters of a program
+    :param not_a_variable: The context in which the expression is to be evaluated. Literals that are
+            parameters according to this context not considered variables.
 
     .. doctest::
 
         >>> from .ast import *
         >>> from .parser import parse_expectation
         >>> nat = NatLitExpr(10)
-        >>> check_is_linear_expr(BinopExpr(Binop.TIMES, nat, nat))
-        >>> check_is_linear_expr(BinopExpr(Binop.TIMES, nat, VarExpr('x')))
-        >>> check_is_linear_expr(BinopExpr(Binop.TIMES, VarExpr('x'), VarExpr('x')))
+        >>> check_is_linear_expr(BinopExpr(Binop.TIMES, nat, nat), None)
+        >>> check_is_linear_expr(BinopExpr(Binop.TIMES, nat, VarExpr('x')), None)
+        >>> check_is_linear_expr(BinopExpr(Binop.TIMES, VarExpr('x'), VarExpr('x')), None)
         CheckFail(location=..., message='Is not a linear expression')
-        >>> check_is_linear_expr(parse_expectation("[x < 6] * x"))
-        >>> check_is_linear_expr(parse_expectation("[x * x]"))
+        >>> check_is_linear_expr(parse_expectation("[x < 6] * x"), None)
+        >>> check_is_linear_expr(parse_expectation("[x * x]"), None)
         CheckFail(location=..., message='Is not a linear expression')
-        >>> check_is_linear_expr(parse_expectation("x/x"))
+        >>> check_is_linear_expr(parse_expectation("x/x"), None)
         CheckFail(location=..., message='General division is not linear (division of constants is)')
     """
 
     def _has_variable(expr: Expr) -> bool:
         if isinstance(expr, UnopExpr) and expr.operator == Unop.IVERSON:
             return False
-        if isinstance(expr, VarExpr) and not expr.var in not_a_variable:
+        if isinstance(expr, VarExpr) and (context is None or expr.var not in context.parameters):
             return True
         for child_ref in mut_expr_children(Mut.alloc(expr)):
             if _has_variable(child_ref.val):
