@@ -133,7 +133,7 @@ def check_is_linear_expr(expr: Expr, context: Program) -> Optional[CheckFail]:
 
     :param expr:
     :param not_a_variable: The context in which the expression is to be evaluated. Literals that are
-            parameters according to this context not considered variables.
+            parameters according to this context are not considered variables.
 
     .. doctest::
 
