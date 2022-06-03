@@ -125,15 +125,16 @@ def check_is_linear_program(program: Program) -> Optional[CheckFail]:
     return None
 
 
-def check_is_linear_expr(expr: Expr, context: Program) -> Optional[CheckFail]:
+def check_is_linear_expr(context: Optional[Program], expr: Expr) -> Optional[CheckFail]:
     """
     Linear expressions do not multiply variables with each other.
     However, they may contain multiplication with constants or Iverson brackets.
     Division is also not allowed in linear expressions.
 
+    :param context: The context in which the expression is to be evaluated. Literals that are
+            parameters according to this context are not considered variables. Pass None if
+            no context is required.
     :param expr:
-    :param not_a_variable: The context in which the expression is to be evaluated. Literals that are
-            parameters according to this context are not considered variables.
 
     .. doctest::
 
