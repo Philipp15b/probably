@@ -103,6 +103,9 @@ def check_is_linear_program(program: Program) -> Optional[CheckFail]:
     """
     Check if the given (well-typed) program is linear.
 
+    :param program: The program to check. It must not contain any constants
+            (see :py:mod:`probably.pgcl.substitute`).
+
     .. doctest::
 
         >>> from .parser import parse_pgcl
@@ -133,7 +136,8 @@ def check_is_linear_expr(context: Optional[Program], expr: Expr) -> Optional[Che
 
     :param context: The context in which the expression is to be evaluated. Literals that are
             parameters according to this context are not considered variables. Pass None if
-            no context is required.
+            no context is required. If the context is not None, it must not contain any constants
+            (see :py:mod:`probably.pgcl.substitute`).
     :param expr:
 
     .. doctest::
@@ -153,6 +157,8 @@ def check_is_linear_expr(context: Optional[Program], expr: Expr) -> Optional[Che
     """
 
     def _has_variable(expr: Expr) -> bool:
+        if isinstance(expr, VarExpr) and context is not None and expr.var in context.constants:
+            raise Exception("The context program must not contain constants")
         if isinstance(expr, UnopExpr) and expr.operator == Unop.IVERSON:
             return False
         if isinstance(expr, VarExpr) and (context is None or expr.var not in context.parameters):
