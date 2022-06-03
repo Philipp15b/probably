@@ -119,7 +119,7 @@ def check_is_linear_program(program: Program) -> Optional[CheckFail]:
     """
     for instr_ref in walk_instrs(Walk.DOWN, program.instructions):
         for expr in instr_exprs(instr_ref.val):
-            res = check_is_linear_expr(expr, program)
+            res = check_is_linear_expr(program, expr)
             if isinstance(res, CheckFail):
                 return res
     return None
@@ -141,14 +141,14 @@ def check_is_linear_expr(context: Optional[Program], expr: Expr) -> Optional[Che
         >>> from .ast import *
         >>> from .parser import parse_expectation
         >>> nat = NatLitExpr(10)
-        >>> check_is_linear_expr(BinopExpr(Binop.TIMES, nat, nat), None)
-        >>> check_is_linear_expr(BinopExpr(Binop.TIMES, nat, VarExpr('x')), None)
-        >>> check_is_linear_expr(BinopExpr(Binop.TIMES, VarExpr('x'), VarExpr('x')), None)
+        >>> check_is_linear_expr(None, BinopExpr(Binop.TIMES, nat, nat))
+        >>> check_is_linear_expr(None, BinopExpr(Binop.TIMES, nat, VarExpr('x')))
+        >>> check_is_linear_expr(None, BinopExpr(Binop.TIMES, VarExpr('x'), VarExpr('x')))
         CheckFail(location=..., message='Is not a linear expression')
-        >>> check_is_linear_expr(parse_expectation("[x < 6] * x"), None)
-        >>> check_is_linear_expr(parse_expectation("[x * x]"), None)
+        >>> check_is_linear_expr(None, parse_expectation("[x < 6] * x"))
+        >>> check_is_linear_expr(None, parse_expectation("[x * x]"))
         CheckFail(location=..., message='Is not a linear expression')
-        >>> check_is_linear_expr(parse_expectation("x/x"), None)
+        >>> check_is_linear_expr(None, parse_expectation("x/x"))
         CheckFail(location=..., message='General division is not linear (division of constants is)')
     """
 
