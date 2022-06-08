@@ -158,7 +158,7 @@ def check_is_linear_expr(context: Optional[Program], expr: Expr) -> Optional[Che
 
     def _has_variable(expr: Expr) -> bool:
         if isinstance(expr, VarExpr) and context is not None and expr.var in context.constants:
-            raise Exception("The context program must not contain constants")
+            raise Exception(f"The expression must not contain constants. Found the constant '{expr.var}'")
         if isinstance(expr, UnopExpr) and expr.operator == Unop.IVERSON:
             return False
         if isinstance(expr, VarExpr) and (context is None or expr.var not in context.parameters):
