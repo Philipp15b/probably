@@ -2,7 +2,7 @@
 
 .DEFAULT: help
 help:
-	@echo "Available targets: install, lint, mypy, test, docs, clean"
+	@echo "Available targets: install, lint, mypy, test, docs, clean, format"
 
 install:
 	poetry install
@@ -21,3 +21,7 @@ docs:
 
 clean:
 	rm -rf docs/build
+
+format:
+	poetry run yapf -r -i probably/ tests/
+	poetry run isort probably/ tests/
