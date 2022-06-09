@@ -8,18 +8,17 @@ Your program has dumb expressions a toddler could simplify?
 This is the right place for you!
 """
 
-from typing import Dict, List, Union, Optional
+from typing import Dict, List, Optional, Union
 
 import attr
 
 from probably.util.ref import Mut
 
 from .ast import VarExpr  # pylint:disable=unused-import
-from .ast import (Binop, BinopExpr, BoolLitExpr, Expr, RealLitExpr, RealType,
-                  NatLitExpr, NatType, Program, SubstExpr, TickExpr, Unop,
-                  UnopExpr, Var, expr_str_parens)
+from .ast import (Binop, BinopExpr, BoolLitExpr, Expr, NatLitExpr, NatType,
+                  Program, RealLitExpr, RealType, SubstExpr, TickExpr, Unop,
+                  UnopExpr, Var, Walk, expr_str_parens, walk_expr)
 from .check import CheckFail, get_type
-from .ast import Walk, walk_expr
 from .wp import ExpectationTransformer
 
 
@@ -351,7 +350,8 @@ def normalize_expectation_transformer(
                 # n] * 1/2 * ((𝑋)[r/0, x/x + 0] + tick(1))`.
                 if isinstance(expr.rhs, TickExpr):
                     for value in lhs:
-                        value.ticks = TickExpr(simplifying_plus(value.ticks.expr, expr.rhs.expr))
+                        value.ticks = TickExpr(
+                            simplifying_plus(value.ticks.expr, expr.rhs.expr))
                     return lhs
                 else:
                     rhs = recurse(expr.rhs)

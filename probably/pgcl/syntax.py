@@ -95,8 +95,9 @@ from probably.util.ref import Mut
 
 from .ast import (AsgnInstr, Binop, BinopExpr, Expr, Instr, Program, Unop,
                   UnopExpr, VarExpr, WhileInstr)
+from .ast.walk import (Walk, instr_exprs, mut_expr_children, walk_expr,
+                       walk_instrs)
 from .check import CheckFail
-from .ast.walk import Walk, instr_exprs, mut_expr_children, walk_expr, walk_instrs
 
 
 def check_is_linear_program(program: Program) -> Optional[CheckFail]:
@@ -128,7 +129,8 @@ def check_is_linear_program(program: Program) -> Optional[CheckFail]:
     return None
 
 
-def check_is_linear_expr(context: Optional[Program], expr: Expr) -> Optional[CheckFail]:
+def check_is_linear_expr(context: Optional[Program],
+                         expr: Expr) -> Optional[CheckFail]:
     """
     Linear expressions do not multiply variables with each other.
     However, they may contain multiplication with constants or Iverson brackets.
@@ -155,13 +157,17 @@ def check_is_linear_expr(context: Optional[Program], expr: Expr) -> Optional[Che
         >>> check_is_linear_expr(None, parse_expectation("x/x"))
         CheckFail(location=..., message='General division is not linear (division of constants is)')
     """
-
     def _has_variable(expr: Expr) -> bool:
-        if isinstance(expr, VarExpr) and context is not None and expr.var in context.constants:
-            raise Exception(f"The expression must not contain constants. Found the constant '{expr.var}'")
+        if isinstance(
+                expr, VarExpr
+        ) and context is not None and expr.var in context.constants:
+            raise Exception(
+                f"The expression must not contain constants. Found the constant '{expr.var}'"
+            )
         if isinstance(expr, UnopExpr) and expr.operator == Unop.IVERSON:
             return False
-        if isinstance(expr, VarExpr) and (context is None or expr.var not in context.parameters):
+        if isinstance(expr, VarExpr) and (context is None or expr.var
+                                          not in context.parameters):
             return True
         for child_ref in mut_expr_children(Mut.alloc(expr)):
             if _has_variable(child_ref.val):

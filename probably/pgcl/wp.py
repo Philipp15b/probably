@@ -88,12 +88,12 @@ import attr
 from probably.util.ref import Mut
 
 from .ast import (AsgnInstr, Binop, BinopExpr, CategoricalExpr, ChoiceInstr,
-                  Expr, RealLitExpr, IfInstr, Instr, Program,
-                  SkipInstr, SubstExpr, TickExpr, TickInstr, DUniformExpr, Unop,
-                  UnopExpr, Var, VarExpr, WhileInstr)
+                  DUniformExpr, Expr, IfInstr, Instr, Program, RealLitExpr,
+                  SkipInstr, SubstExpr, TickExpr, TickInstr, Unop, UnopExpr,
+                  Var, VarExpr, WhileInstr)
+from .ast.walk import Walk, walk_expr
 from .substitute import substitute_expr
 from .syntax import check_is_one_big_loop
-from .ast.walk import Walk, walk_expr
 
 
 def loopfree_wp(instr: Union[Instr, Sequence[Instr]],
@@ -182,9 +182,8 @@ def loopfree_wp(instr: Union[Instr, Sequence[Instr]],
         lhs_block = loopfree_wp(instr.lhs, postexpectation)
         rhs_block = loopfree_wp(instr.rhs, deepcopy(postexpectation))
         lhs = BinopExpr(Binop.TIMES, lhs_block, instr.prob)
-        rhs = BinopExpr(
-            Binop.TIMES, rhs_block,
-            BinopExpr(Binop.MINUS, RealLitExpr("1.0"), instr.prob))
+        rhs = BinopExpr(Binop.TIMES, rhs_block,
+                        BinopExpr(Binop.MINUS, RealLitExpr("1.0"), instr.prob))
         return BinopExpr(Binop.PLUS, lhs, rhs)
 
     if isinstance(instr, TickInstr):
@@ -221,6 +220,7 @@ class ExpectationTransformer:
     def _expectation_ref(self) -> Mut[Expr]:
         def write_expectation(value):
             self.expectation = value
+
         return Mut(lambda: self.expectation, write_expectation)
 
     def substitute(self) -> 'ExpectationTransformer':
@@ -231,10 +231,11 @@ class ExpectationTransformer:
 
         Returns ``self`` for convenience.
         """
-        substitute_expr(self._expectation_ref, symbolic=frozenset([self.variable]))
+        substitute_expr(self._expectation_ref,
+                        symbolic=frozenset([self.variable]))
         return self
 
-    def apply(self, expectation: Expr, substitute: bool=True) -> Expr:
+    def apply(self, expectation: Expr, substitute: bool = True) -> Expr:
         """
         Transform the given expectation with this expectation transformer.
 
@@ -277,7 +278,6 @@ class ExpectationTransformer:
         if substitute:
             substitute_expr(self._expectation_ref, deepcopy=True)
         return self.expectation
-
 
     def __str__(self) -> str:
         return f"λ{self.variable}. {self.expectation}"
@@ -356,7 +356,7 @@ def one_loop_wp_transformer(
         program: Program,
         instr: Union[Instr, List[Instr]],
         variable: str = '𝑋',
-        substitute: bool=True) -> LoopExpectationTransformer:
+        substitute: bool = True) -> LoopExpectationTransformer:
     """
     Calculate the weakest pre-expectation transformer of a program that consists
     of exactly one while loop with some optional assignments at the beginning.
@@ -385,7 +385,8 @@ def one_loop_wp_transformer(
         substitute: Whether to call :meth:`ExpectationTransformer.substitute` on the ``body``.
     """
     # avoid a cyclic import
-    from .simplify import simplifying_neg  # pylint: disable=import-outside-toplevel,cyclic-import
+    from .simplify import \
+        simplifying_neg  # pylint: disable=import-outside-toplevel,cyclic-import
 
     # extract assignments and the loop from the program
     instrs = list(instr) if isinstance(instr, list) else [instr]
@@ -400,8 +401,13 @@ def one_loop_wp_transformer(
     assert isinstance(loop, WhileInstr), err
 
     # weakest pre-expectation of the loop body
-    body = loopfree_wp_transformer(program, loop.body, variable=variable, substitute=substitute)
-    body.expectation = BinopExpr(Binop.TIMES, UnopExpr(Unop.IVERSON, loop.cond), body.expectation)
+    body = loopfree_wp_transformer(program,
+                                   loop.body,
+                                   variable=variable,
+                                   substitute=substitute)
+    body.expectation = BinopExpr(Binop.TIMES, UnopExpr(Unop.IVERSON,
+                                                       loop.cond),
+                                 body.expectation)
 
     # weakest pre-expectation of the done term
     done = UnopExpr(Unop.IVERSON, simplifying_neg(loop.cond))
@@ -409,7 +415,9 @@ def one_loop_wp_transformer(
     return LoopExpectationTransformer(init, body, done)
 
 
-def general_wp_transformer(program: Program, substitute: bool=True) -> LoopExpectationTransformer:
+def general_wp_transformer(
+        program: Program,
+        substitute: bool = True) -> LoopExpectationTransformer:
     """
     Calculate the weakest pre-expectation transformer for any pGCL program. For
     programs that consist of one big loop (see :ref:`one_big_loop`),
@@ -438,4 +446,6 @@ def general_wp_transformer(program: Program, substitute: bool=True) -> LoopExpec
     if one_big_loop_err is None:
         return one_loop_wp_transformer(program, program.instructions)
     program = program_one_big_loop(program, pc_var='pc')
-    return one_loop_wp_transformer(program, program.instructions, substitute=substitute)
+    return one_loop_wp_transformer(program,
+                                   program.instructions,
+                                   substitute=substitute)
