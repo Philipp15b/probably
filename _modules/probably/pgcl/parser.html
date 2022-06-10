@@ -5,17 +5,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>probably.pgcl.parser &#8212; Probably  documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script>
     <script src="../../../_static/katex_autorenderer.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -24,10 +23,10 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:ital,wght@0,300;0,400;1,400&family=Source+Serif+Pro:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -230,28 +229,35 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">textwrap</span>
 <span class="kn">from</span> <span class="nn">decimal</span> <span class="kn">import</span> <span class="n">Decimal</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">fractions</span> <span class="kn">import</span> <span class="n">Fraction</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
+<span class="kn">import</span> <span class="nn">attr</span>
 <span class="kn">from</span> <span class="nn">lark</span> <span class="kn">import</span> <span class="n">Lark</span><span class="p">,</span> <span class="n">Tree</span>
 
 <span class="kn">from</span> <span class="nn">probably.pgcl.ast</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">probably.pgcl.walk</span> <span class="kn">import</span> <span class="n">Walk</span><span class="p">,</span> <span class="n">walk_expr</span>
+<span class="kn">from</span> <span class="nn">probably.pgcl.ast.walk</span> <span class="kn">import</span> <span class="n">Walk</span><span class="p">,</span> <span class="n">walk_expr</span>
 <span class="kn">from</span> <span class="nn">probably.util.lark_expr_parser</span> <span class="kn">import</span> <span class="p">(</span><span class="n">atom</span><span class="p">,</span> <span class="n">build_expr_parser</span><span class="p">,</span> <span class="n">infixl</span><span class="p">,</span>
-                                            <span class="n">prefix</span><span class="p">)</span>
+                                            <span class="n">infixr</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">probably.util.ref</span> <span class="kn">import</span> <span class="n">Mut</span>
 
 <span class="n">_PGCL_GRAMMAR</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    start: declarations instructions</span>
+<span class="s2">    start: declarations instructions queries</span>
 
 <span class="s2">    declarations: declaration* -&gt; declarations</span>
 
 <span class="s2">    declaration: &quot;bool&quot; var                  -&gt; bool</span>
 <span class="s2">               | &quot;nat&quot; var bounds?           -&gt; nat</span>
+<span class="s2">               | &quot;real&quot; var bounds?          -&gt; real</span>
 <span class="s2">               | &quot;const&quot; var &quot;:=&quot; expression -&gt; const</span>
+<span class="s2">               | &quot;rparam&quot; var                -&gt; rparam</span>
+<span class="s2">               | &quot;nparam&quot; var                -&gt; nparam</span>
 
 <span class="s2">    bounds: &quot;[&quot; expression &quot;,&quot; expression &quot;]&quot;</span>
 
 <span class="s2">    instructions: instruction* -&gt; instructions</span>
+
+<span class="s2">    queries: query* -&gt; queries</span>
 
 <span class="s2">    instruction: &quot;skip&quot;                                      -&gt; skip</span>
 <span class="s2">               | &quot;while&quot; &quot;(&quot; expression &quot;)&quot; block            -&gt; while</span>
@@ -259,21 +265,38 @@
 <span class="s2">               | var &quot;:=&quot; rvalue                             -&gt; assign</span>
 <span class="s2">               | block &quot;[&quot; expression &quot;]&quot; block              -&gt; choice</span>
 <span class="s2">               | &quot;tick&quot; &quot;(&quot; expression &quot;)&quot;                   -&gt; tick</span>
+<span class="s2">               | &quot;observe&quot; &quot;(&quot; expression &quot;)&quot;                -&gt; observe</span>
+<span class="s2">               | &quot;loop&quot; &quot;(&quot; INT &quot;)&quot; block                    -&gt; loop</span>
+
+<span class="s2">    query: &quot;?Ex&quot; &quot;[&quot; expression &quot;]&quot;                          -&gt; expectation</span>
+<span class="s2">               | &quot;?Pr&quot; &quot;[&quot; expression &quot;]&quot;                    -&gt; prquery</span>
+<span class="s2">               | &quot;!Print&quot;                                    -&gt; print</span>
+<span class="s2">               | &quot;!Plot&quot; &quot;[&quot; var (&quot;,&quot; var)? (&quot;,&quot; literal)?&quot;]&quot;-&gt; plot</span>
+<span class="s2">               | &quot;?Opt&quot; &quot;[&quot; expression &quot;,&quot; var &quot;,&quot; var &quot;]&quot;   -&gt; optimize</span>
 
 
 <span class="s2">    block: &quot;{&quot; instruction* &quot;}&quot;</span>
 
-<span class="s2">    rvalue: &quot;unif&quot; &quot;(&quot; expression &quot;,&quot; expression &quot;)&quot; -&gt; uniform</span>
+<span class="s2">    rvalue: &quot;unif_d&quot; &quot;(&quot; expression &quot;,&quot; expression &quot;)&quot; -&gt; duniform</span>
+<span class="s2">          | &quot;unif&quot; &quot;(&quot; expression &quot;,&quot; expression &quot;)&quot; -&gt; duniform</span>
+<span class="s2">          | &quot;unif_c&quot; &quot;(&quot; expression &quot;,&quot; expression &quot;)&quot; -&gt; cuniform</span>
+<span class="s2">          | &quot;geometric&quot; &quot;(&quot; expression &quot;)&quot; -&gt; geometric</span>
+<span class="s2">          | &quot;poisson&quot; &quot;(&quot; expression &quot;)&quot; -&gt; poisson</span>
+<span class="s2">          | &quot;logdist&quot; &quot;(&quot; expression &quot;)&quot; -&gt; logdist</span>
+<span class="s2">          | &quot;binomial&quot; &quot;(&quot; expression &quot;,&quot; expression &quot;)&quot; -&gt; binomial</span>
+<span class="s2">          | &quot;bernoulli&quot; &quot;(&quot; expression &quot;)&quot; -&gt; bernoulli</span>
+<span class="s2">          | &quot;iid&quot; &quot;(&quot; rvalue &quot;,&quot; var &quot;)&quot; -&gt; iid</span>
 <span class="s2">          | expression</span>
 
 <span class="s2">    literal: &quot;true&quot;  -&gt; true</span>
 <span class="s2">           | &quot;false&quot; -&gt; false</span>
 <span class="s2">           | INT     -&gt; nat</span>
-<span class="s2">           | FLOAT   -&gt; float</span>
+<span class="s2">           | FLOAT   -&gt; real</span>
 <span class="s2">           | &quot;∞&quot;     -&gt; infinity</span>
 <span class="s2">           | &quot;</span><span class="se">\\</span><span class="s2">infty&quot; -&gt; infinity</span>
 
 <span class="s2">    var: CNAME</span>
+
 
 <span class="s2">    </span><span class="si">%i</span><span class="s2">gnore /#.*$/m</span>
 <span class="s2">    </span><span class="si">%i</span><span class="s2">gnore /</span><span class="se">\\</span><span class="s2">/</span><span class="se">\\</span><span class="s2">/.*$/m</span>
@@ -286,13 +309,22 @@
 <span class="s2">    </span><span class="si">%i</span><span class="s2">mport common.WS</span>
 <span class="s2">&quot;&quot;&quot;</span>
 
+<span class="n">_illegal_variable_names</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;true&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">}</span>
+
 <span class="n">_OPERATOR_TABLE</span> <span class="o">=</span> <span class="p">[[</span><span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;or&quot;</span><span class="p">,</span> <span class="s2">&quot;||&quot;</span><span class="p">)],</span> <span class="p">[</span><span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;and&quot;</span><span class="p">,</span> <span class="s2">&quot;&amp;&quot;</span><span class="p">)],</span>
-                   <span class="p">[</span><span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;leq&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">),</span>
-                    <span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;le&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">),</span>
-                    <span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;eq&quot;</span><span class="p">,</span> <span class="s2">&quot;=&quot;</span><span class="p">)],</span>
-                   <span class="p">[</span><span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;plus&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">),</span>
-                    <span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;minus&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)],</span> <span class="p">[</span><span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;times&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">)],</span>
-                   <span class="p">[</span><span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;likely&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">)],</span> <span class="p">[</span><span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;divide&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)],</span>
+                   <span class="p">[</span>
+                       <span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;leq&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">),</span>
+                       <span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;le&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">),</span>
+                       <span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;ge&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">),</span>
+                       <span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;geq&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">),</span>
+                       <span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;eq&quot;</span><span class="p">,</span> <span class="s2">&quot;=&quot;</span><span class="p">)</span>
+                   <span class="p">],</span> <span class="p">[</span><span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;plus&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">),</span>
+                       <span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;minus&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)],</span> <span class="p">[</span><span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;likely&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">)],</span>
+                   <span class="p">[</span>
+                       <span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;times&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">),</span>
+                       <span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;divide&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">),</span>
+                       <span class="n">infixl</span><span class="p">(</span><span class="s2">&quot;mod&quot;</span><span class="p">,</span> <span class="s2">&quot;%&quot;</span><span class="p">)</span>
+                   <span class="p">],</span> <span class="p">[</span><span class="n">infixr</span><span class="p">(</span><span class="s2">&quot;power&quot;</span><span class="p">,</span> <span class="s2">&quot;^&quot;</span><span class="p">)],</span>
                    <span class="p">[</span>
                        <span class="n">prefix</span><span class="p">(</span><span class="s2">&quot;neg&quot;</span><span class="p">,</span> <span class="s2">&quot;not &quot;</span><span class="p">),</span>
                        <span class="n">atom</span><span class="p">(</span><span class="s2">&quot;parens&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;(&quot; expression &quot;)&quot;&#39;</span><span class="p">),</span>
@@ -300,6 +332,10 @@
                        <span class="n">atom</span><span class="p">(</span><span class="s2">&quot;literal&quot;</span><span class="p">,</span> <span class="s2">&quot;literal&quot;</span><span class="p">),</span>
                        <span class="n">atom</span><span class="p">(</span><span class="s2">&quot;var&quot;</span><span class="p">,</span> <span class="s2">&quot;var&quot;</span><span class="p">)</span>
                    <span class="p">]]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The order of the operators corresponds to their precedence (earlier operators have lower precedence).</span>
+<span class="sd">See also: :module:`probably.util.lark_expr_parser`</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="n">_PGCL_GRAMMAR</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span>
     <span class="n">build_expr_parser</span><span class="p">(</span><span class="n">_OPERATOR_TABLE</span><span class="p">,</span> <span class="s2">&quot;expression&quot;</span><span class="p">),</span> <span class="s1">&#39;    &#39;</span><span class="p">)</span>
@@ -315,6 +351,18 @@
 
 <span class="n">_doc_parser_grammar</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;The Lark grammar for pGCL::</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">_PGCL_GRAMMAR</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">This function only exists for documentation purposes and should never be called in code.&quot;</span>
 
+<span class="c1"># All known distribution types. Dictionary entry contains the token name as key.</span>
+<span class="c1"># Also the value of a given gey is a tuple consisting of the number of parameters and the Class name (constructor call)</span>
+<span class="n">distributions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;duniform&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">DUniformExpr</span><span class="p">),</span>
+    <span class="s2">&quot;cuniform&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">CUniformExpr</span><span class="p">),</span>
+    <span class="s2">&quot;geometric&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">GeometricExpr</span><span class="p">),</span>
+    <span class="s2">&quot;poisson&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">PoissonExpr</span><span class="p">),</span>
+    <span class="s2">&quot;logdist&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">LogDistExpr</span><span class="p">),</span>
+    <span class="s2">&quot;bernoulli&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">BernoulliExpr</span><span class="p">),</span>
+    <span class="s2">&quot;binomial&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">BinomialExpr</span><span class="p">)</span>
+<span class="p">}</span>
+
 
 <span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
 <span class="k">class</span> <span class="nc">_LikelyExpr</span><span class="p">(</span><span class="n">ExprClass</span><span class="p">):</span>
@@ -328,7 +376,7 @@
 <span class="sd">    of errors emitted by the parser before translation to CategoricalExprs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">value</span><span class="p">:</span> <span class="n">Expr</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
-    <span class="n">prob</span><span class="p">:</span> <span class="n">FloatLitExpr</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
+    <span class="n">prob</span><span class="p">:</span> <span class="n">RealLitExpr</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">expr_str_parens</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s1"> : </span><span class="si">{</span><span class="n">expr_str_parens</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prob</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
@@ -352,6 +400,8 @@
 <span class="k">def</span> <span class="nf">_parse_var</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">Tree</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Var</span><span class="p">:</span>
     <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;var&#39;</span>
     <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;CNAME&#39;</span>  <span class="c1"># type: ignore</span>
+    <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">_illegal_variable_names</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Illegal variable name: </span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">_child_str</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 
 
@@ -376,8 +426,14 @@
         <span class="k">return</span> <span class="n">VarDecl</span><span class="p">(</span><span class="n">var0</span><span class="p">(),</span> <span class="n">BoolType</span><span class="p">())</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s2">&quot;nat&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">VarDecl</span><span class="p">(</span><span class="n">var0</span><span class="p">(),</span> <span class="n">NatType</span><span class="p">(</span><span class="n">_parse_bounds</span><span class="p">(</span><span class="n">opt_child1</span><span class="p">())))</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s2">&quot;real&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">VarDecl</span><span class="p">(</span><span class="n">var0</span><span class="p">(),</span> <span class="n">RealType</span><span class="p">())</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s2">&quot;const&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ConstDecl</span><span class="p">(</span><span class="n">var0</span><span class="p">(),</span> <span class="n">_parse_expr</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s2">&quot;rparam&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ParameterDecl</span><span class="p">(</span><span class="n">var0</span><span class="p">(),</span> <span class="n">RealType</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s2">&quot;nparam&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ParameterDecl</span><span class="p">(</span><span class="n">var0</span><span class="p">(),</span> <span class="n">NatType</span><span class="p">(</span><span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid AST: </span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">data</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
@@ -397,7 +453,8 @@
     <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;literal&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_parse_literal</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;var&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">VarExpr</span><span class="p">(</span><span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">VarExpr</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;or&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">OR</span><span class="p">,</span> <span class="n">expr0</span><span class="p">(),</span> <span class="n">expr1</span><span class="p">())</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;and&#39;</span><span class="p">:</span>
@@ -405,7 +462,11 @@
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;leq&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">LEQ</span><span class="p">,</span> <span class="n">expr0</span><span class="p">(),</span> <span class="n">expr1</span><span class="p">())</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;le&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">LE</span><span class="p">,</span> <span class="n">expr0</span><span class="p">(),</span> <span class="n">expr1</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">LT</span><span class="p">,</span> <span class="n">expr0</span><span class="p">(),</span> <span class="n">expr1</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;geq&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">GEQ</span><span class="p">,</span> <span class="n">expr0</span><span class="p">(),</span> <span class="n">expr1</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;ge&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">GT</span><span class="p">,</span> <span class="n">expr0</span><span class="p">(),</span> <span class="n">expr1</span><span class="p">())</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;eq&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">EQ</span><span class="p">,</span> <span class="n">expr0</span><span class="p">(),</span> <span class="n">expr1</span><span class="p">())</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;plus&#39;</span><span class="p">:</span>
@@ -414,11 +475,15 @@
         <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">MINUS</span><span class="p">,</span> <span class="n">expr0</span><span class="p">(),</span> <span class="n">expr1</span><span class="p">())</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;times&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">TIMES</span><span class="p">,</span> <span class="n">expr0</span><span class="p">(),</span> <span class="n">expr1</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;power&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">POWER</span><span class="p">,</span> <span class="n">expr0</span><span class="p">(),</span> <span class="n">expr1</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;mod&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">MODULO</span><span class="p">,</span> <span class="n">expr0</span><span class="p">(),</span> <span class="n">expr1</span><span class="p">())</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;divide&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_parse_fraction</span><span class="p">(</span><span class="n">expr0</span><span class="p">(),</span> <span class="n">expr1</span><span class="p">())</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;likely&#39;</span><span class="p">:</span>
         <span class="n">prob_expr</span> <span class="o">=</span> <span class="n">expr1</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prob_expr</span><span class="p">,</span> <span class="n">FloatLitExpr</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prob_expr</span><span class="p">,</span> <span class="n">RealLitExpr</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Probability annotation must be a probability literal: </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="c1"># We return a _LikelyExpr here, which is not in the Expr union type, but</span>
@@ -435,9 +500,9 @@
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid AST: </span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">data</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_parse_fraction</span><span class="p">(</span><span class="n">num</span><span class="p">:</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">denom</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">FloatLitExpr</span><span class="p">,</span> <span class="n">BinopExpr</span><span class="p">]:</span>
+<span class="k">def</span> <span class="nf">_parse_fraction</span><span class="p">(</span><span class="n">num</span><span class="p">:</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">denom</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">RealLitExpr</span><span class="p">,</span> <span class="n">BinopExpr</span><span class="p">]:</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">NatLitExpr</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">denom</span><span class="p">,</span> <span class="n">NatLitExpr</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">FloatLitExpr</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">denom</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">RealLitExpr</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">denom</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">DIVIDE</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">denom</span><span class="p">)</span>
 
 
@@ -448,23 +513,31 @@
         <span class="k">return</span> <span class="n">BoolLitExpr</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;nat&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">NatLitExpr</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">_child_str</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
-    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;float&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">FloatLitExpr</span><span class="p">(</span><span class="n">Decimal</span><span class="p">(</span><span class="n">_child_str</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;real&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">RealLitExpr</span><span class="p">(</span><span class="n">Decimal</span><span class="p">(</span><span class="n">_child_str</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;infinity&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">FloatLitExpr</span><span class="o">.</span><span class="n">infinity</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">RealLitExpr</span><span class="o">.</span><span class="n">infinity</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid AST: </span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">data</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
 
+<span class="k">def</span> <span class="nf">_parse_distribution</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">Tree</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="ow">in</span> <span class="n">distributions</span>
+    <span class="n">param_count</span><span class="p">,</span> <span class="n">constructor</span> <span class="o">=</span> <span class="n">distributions</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">data</span><span class="p">]</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">param_count</span><span class="p">):</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="n">_parse_expr</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">constructor</span><span class="p">(</span><span class="o">*</span><span class="n">params</span><span class="p">)</span>
+
+
 <span class="k">def</span> <span class="nf">_parse_rvalue</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">Tree</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;uniform&#39;</span><span class="p">:</span>
-        <span class="n">start</span> <span class="o">=</span> <span class="n">_parse_expr</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">NatLitExpr</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">start</span><span class="si">}</span><span class="s2"> is not a natural number&quot;</span><span class="p">)</span>
-        <span class="n">end</span> <span class="o">=</span> <span class="n">_parse_expr</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="n">NatLitExpr</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">end</span><span class="si">}</span><span class="s2"> is not a natural number&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">UniformExpr</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="ow">in</span> <span class="n">distributions</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_parse_distribution</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s2">&quot;iid&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">IidSampleExpr</span><span class="p">(</span><span class="n">_parse_rvalue</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+                             <span class="n">VarExpr</span><span class="p">(</span><span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">))))</span>
 
     <span class="c1"># otherwise we have an expression, but it may contain _LikelyExprs, which we</span>
     <span class="c1"># need to parse.</span>
@@ -480,7 +553,7 @@
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;Failed to parse categorical expression: each term in </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> must have an associated probability&quot;</span>
                 <span class="p">)</span>
-            <span class="n">categories</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Expr</span><span class="p">,</span> <span class="n">FloatLitExpr</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">categories</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Expr</span><span class="p">,</span> <span class="n">RealLitExpr</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="p">(</span><span class="n">operand</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">operand</span><span class="o">.</span><span class="n">prob</span><span class="p">)</span> <span class="k">for</span> <span class="n">operand</span> <span class="ow">in</span> <span class="n">likely_operands</span>
             <span class="p">]</span>
             <span class="k">return</span> <span class="n">CategoricalExpr</span><span class="p">(</span><span class="n">categories</span><span class="p">)</span>
@@ -515,6 +588,12 @@
                            <span class="n">_parse_instrs</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
     <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;tick&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">TickInstr</span><span class="p">(</span><span class="n">_parse_expr</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;observe&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ObserveInstr</span><span class="p">(</span><span class="n">_parse_expr</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;loop&#39;</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">LoopInstr</span><span class="p">(</span><span class="n">NatLitExpr</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span>
+                         <span class="n">_parse_instrs</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid AST: </span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">data</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
@@ -524,27 +603,103 @@
     <span class="k">return</span> <span class="p">[</span><span class="n">_parse_instr</span><span class="p">(</span><span class="n">_as_tree</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">]</span>
 
 
+<span class="k">def</span> <span class="nf">_parse_queries</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">Tree</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Instr</span><span class="p">]:</span>
+    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s2">&quot;queries&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">_parse_query</span><span class="p">(</span><span class="n">_as_tree</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_query</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">Tree</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;expectation&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ExpectationInstr</span><span class="p">(</span><span class="n">_parse_expr</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;prquery&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ProbabilityQueryInstr</span><span class="p">(</span><span class="n">_parse_expr</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;print&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">PrintInstr</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;optimize&#39;</span><span class="p">:</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;MAX&quot;</span><span class="p">:</span>
+            <span class="n">opt_type</span> <span class="o">=</span> <span class="n">OptimizationType</span><span class="o">.</span><span class="n">MAXIMIZE</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;MIN&quot;</span><span class="p">:</span>
+            <span class="n">opt_type</span> <span class="o">=</span> <span class="n">OptimizationType</span><span class="o">.</span><span class="n">MINIMIZE</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The optimization can either be &#39;MAX&#39; or &#39;MIN&#39;, but not </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">parameter</span> <span class="o">=</span> <span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">OptimizationQuery</span><span class="p">(</span><span class="n">_parse_expr</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="n">parameter</span><span class="p">,</span>
+                                 <span class="n">opt_type</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s2">&quot;plot&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">lit</span> <span class="o">=</span> <span class="n">_parse_literal</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lit</span><span class="p">,</span> <span class="n">BoolLitExpr</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span>
+                    <span class="s2">&quot;Plot instructions cannot handle boolean literals as arguments&quot;</span>
+                <span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">Tree</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;real&#39;</span><span class="p">,</span> <span class="s1">&#39;infinity&#39;</span><span class="p">):</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lit</span><span class="p">,</span> <span class="n">RealLitExpr</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">PlotInstr</span><span class="p">(</span><span class="n">VarExpr</span><span class="p">(</span><span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">))),</span>
+                                 <span class="n">VarExpr</span><span class="p">(</span><span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">))),</span>
+                                 <span class="n">prob</span><span class="o">=</span><span class="n">lit</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lit</span><span class="p">,</span> <span class="n">NatLitExpr</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">PlotInstr</span><span class="p">(</span><span class="n">VarExpr</span><span class="p">(</span><span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">))),</span>
+                                 <span class="n">VarExpr</span><span class="p">(</span><span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">))),</span>
+                                 <span class="n">term_count</span><span class="o">=</span><span class="n">lit</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Tree</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;real&#39;</span><span class="p">:</span>
+                <span class="n">lit</span> <span class="o">=</span> <span class="n">_parse_literal</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lit</span><span class="p">,</span> <span class="n">RealLitExpr</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">PlotInstr</span><span class="p">(</span><span class="n">VarExpr</span><span class="p">(</span><span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">))),</span>
+                                 <span class="n">prob</span><span class="o">=</span><span class="n">lit</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;nat&#39;</span><span class="p">:</span>
+                <span class="n">lit</span> <span class="o">=</span> <span class="n">_parse_literal</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lit</span><span class="p">,</span> <span class="n">NatLitExpr</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">PlotInstr</span><span class="p">(</span><span class="n">VarExpr</span><span class="p">(</span><span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">))),</span>
+                                 <span class="n">term_count</span><span class="o">=</span><span class="n">lit</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;infinity&#39;</span><span class="p">:</span>
+                <span class="n">lit</span> <span class="o">=</span> <span class="n">_parse_literal</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lit</span><span class="p">,</span> <span class="n">RealLitExpr</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">PlotInstr</span><span class="p">(</span><span class="n">VarExpr</span><span class="p">(</span><span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">))),</span>
+                                 <span class="n">prob</span><span class="o">=</span><span class="n">lit</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;false&#39;</span><span class="p">)</span> <span class="ow">or</span> \
+                    <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;var&#39;</span> <span class="ow">and</span> <span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;false&#39;</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span>
+                    <span class="s2">&quot;Plot instruction does not support boolean operators&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">PlotInstr</span><span class="p">(</span>
+                    <span class="n">VarExpr</span><span class="p">(</span><span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">))),</span>
+                    <span class="n">VarExpr</span><span class="p">(</span><span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">))),</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">PlotInstr</span><span class="p">(</span><span class="n">VarExpr</span><span class="p">(</span><span class="n">_parse_var</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">))))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid AST: </span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">data</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+
 <span class="k">def</span> <span class="nf">_parse_program</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">Tree</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Program</span><span class="p">:</span>
     <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;start&#39;</span>
     <span class="n">declarations</span> <span class="o">=</span> <span class="n">_parse_declarations</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
     <span class="n">instructions</span> <span class="o">=</span> <span class="n">_parse_instrs</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">instructions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_parse_queries</span><span class="p">(</span><span class="n">_child_tree</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
     <span class="k">return</span> <span class="n">Program</span><span class="o">.</span><span class="n">from_parse</span><span class="p">(</span><span class="n">declarations</span><span class="p">,</span> <span class="n">instructions</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="parse_pgcl"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.parser.parse_pgcl">[docs]</a><span class="k">def</span> <span class="nf">parse_pgcl</span><span class="p">(</span><span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Program</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Parse a pGCL program.</span>
+<span class="sd">    Parse a pGCL program with an optional :py:class:`probably.pgcl.ast.ProgramConfig`.</span>
 
 <span class="sd">    .. doctest::</span>
 
 <span class="sd">        &gt;&gt;&gt; parse_pgcl(&quot;x := y&quot;)</span>
-<span class="sd">        Program(variables={}, constants={}, instructions=[AsgnInstr(lhs=&#39;x&#39;, rhs=VarExpr(&#39;y&#39;))])</span>
+<span class="sd">        Program(variables={}, constants={}, parameters={}, instructions=[AsgnInstr(lhs=&#39;x&#39;, rhs=VarExpr(&#39;y&#39;))])</span>
 
 <span class="sd">        &gt;&gt;&gt; parse_pgcl(&quot;x := unif(5, 17)&quot;).instructions[0]</span>
-<span class="sd">        AsgnInstr(lhs=&#39;x&#39;, rhs=UniformExpr(start=NatLitExpr(5), end=NatLitExpr(17)))</span>
+<span class="sd">        AsgnInstr(lhs=&#39;x&#39;, rhs=DUniformExpr(start=NatLitExpr(5), end=NatLitExpr(17)))</span>
 
 <span class="sd">        &gt;&gt;&gt; parse_pgcl(&quot;x := x : 1/3 + y : 2/3&quot;).instructions[0]</span>
-<span class="sd">        AsgnInstr(lhs=&#39;x&#39;, rhs=CategoricalExpr(exprs=[(VarExpr(&#39;x&#39;), FloatLitExpr(&quot;1/3&quot;)), (VarExpr(&#39;y&#39;), FloatLitExpr(&quot;2/3&quot;))]))</span>
+<span class="sd">        AsgnInstr(lhs=&#39;x&#39;, rhs=CategoricalExpr(exprs=[(VarExpr(&#39;x&#39;), RealLitExpr(&quot;1/3&quot;)), (VarExpr(&#39;y&#39;), RealLitExpr(&quot;2/3&quot;))]))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">tree</span> <span class="o">=</span> <span class="n">_PARSER</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_parse_program</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span></div>
@@ -559,7 +714,7 @@
 <span class="sd">    .. doctest::</span>
 
 <span class="sd">        &gt;&gt;&gt; parse_expr(&quot;x &lt; y &amp; z&quot;)</span>
-<span class="sd">        BinopExpr(operator=Binop.AND, lhs=BinopExpr(operator=Binop.LE, lhs=VarExpr(&#39;x&#39;), rhs=VarExpr(&#39;y&#39;)), rhs=VarExpr(&#39;z&#39;))</span>
+<span class="sd">        BinopExpr(operator=Binop.AND, lhs=BinopExpr(operator=Binop.LT, lhs=VarExpr(&#39;x&#39;), rhs=VarExpr(&#39;y&#39;)), rhs=VarExpr(&#39;z&#39;))</span>
 
 <span class="sd">        &gt;&gt;&gt; parse_expr(&quot;[x]&quot;)</span>
 <span class="sd">        Traceback (most recent call last):</span>
@@ -589,13 +744,13 @@
 <span class="sd">        UnopExpr(operator=Unop.IVERSON, expr=VarExpr(&#39;x&#39;))</span>
 
 <span class="sd">        &gt;&gt;&gt; parse_expectation(&quot;0.2&quot;)</span>
-<span class="sd">        FloatLitExpr(&quot;0.2&quot;)</span>
+<span class="sd">        RealLitExpr(&quot;0.2&quot;)</span>
 
 <span class="sd">        &gt;&gt;&gt; parse_expectation(&quot;1/3&quot;)</span>
-<span class="sd">        FloatLitExpr(&quot;1/3&quot;)</span>
+<span class="sd">        RealLitExpr(&quot;1/3&quot;)</span>
 
 <span class="sd">        &gt;&gt;&gt; parse_expectation(&quot;∞&quot;)</span>
-<span class="sd">        FloatLitExpr(&quot;Infinity&quot;)</span>
+<span class="sd">        RealLitExpr(&quot;Infinity&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">tree</span> <span class="o">=</span> <span class="n">_PARSER</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s2">&quot;expression&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_parse_expr</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span></div>
@@ -615,8 +770,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2021, Philipp Schröer.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+        &copy; Copyright 2022, Philipp Schröer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
     </p>
   </div>
 </footer>

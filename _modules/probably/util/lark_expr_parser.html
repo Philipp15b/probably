@@ -5,17 +5,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>probably.util.lark_expr_parser &#8212; Probably  documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script>
     <script src="../../../_static/katex_autorenderer.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -24,10 +23,10 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:ital,wght@0,300;0,400;1,400&family=Source+Serif+Pro:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -241,8 +240,8 @@
 
 
 <div class="viewcode-block" id="Assoc"><a class="viewcode-back" href="../../../util.html#probably.util.lark_expr_parser.Assoc">[docs]</a><span class="k">class</span> <span class="nc">Assoc</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="n">Left</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
-    <span class="n">Right</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
+    <span class="n">LEFT</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">RIGHT</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
 
 
 <span class="n">RuleName</span> <span class="o">=</span> <span class="nb">str</span>
@@ -264,7 +263,7 @@
 
     <span class="k">def</span> <span class="nf">grammar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">RuleName</span><span class="p">,</span> <span class="n">next_name</span><span class="p">:</span> <span class="n">RuleName</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span>
-                      <span class="n">next_name</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">assoc</span> <span class="o">==</span> <span class="n">Assoc</span><span class="o">.</span><span class="n">Left</span> <span class="k">else</span> <span class="p">(</span><span class="n">next_name</span><span class="p">,</span>
+                      <span class="n">next_name</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">assoc</span> <span class="o">==</span> <span class="n">Assoc</span><span class="o">.</span><span class="n">LEFT</span> <span class="k">else</span> <span class="p">(</span><span class="n">next_name</span><span class="p">,</span>
                                                                    <span class="n">name</span><span class="p">)</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">lhs</span><span class="si">}</span><span class="s1"> &quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">op</span><span class="si">}</span><span class="s1">&quot; </span><span class="si">{</span><span class="n">rhs</span><span class="si">}</span><span class="s1"> -&gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span>
 
@@ -292,11 +291,11 @@
 
 
 <div class="viewcode-block" id="infixl"><a class="viewcode-back" href="../../../util.html#probably.util.lark_expr_parser.infixl">[docs]</a><span class="k">def</span> <span class="nf">infixl</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="n">RuleName</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Operator</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">_InfixOperator</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">Assoc</span><span class="o">.</span><span class="n">Left</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_InfixOperator</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">Assoc</span><span class="o">.</span><span class="n">LEFT</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="infixr"><a class="viewcode-back" href="../../../util.html#probably.util.lark_expr_parser.infixr">[docs]</a><span class="k">def</span> <span class="nf">infixr</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="n">RuleName</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Operator</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">_InfixOperator</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">Assoc</span><span class="o">.</span><span class="n">Right</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_InfixOperator</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">Assoc</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="prefix"><a class="viewcode-back" href="../../../util.html#probably.util.lark_expr_parser.prefix">[docs]</a><span class="k">def</span> <span class="nf">prefix</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="n">RuleName</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Operator</span><span class="p">:</span>
@@ -359,8 +358,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2021, Philipp Schröer.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+        &copy; Copyright 2022, Philipp Schröer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
     </p>
   </div>
 </footer>

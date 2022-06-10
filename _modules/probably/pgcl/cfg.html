@@ -5,17 +5,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>probably.pgcl.cfg &#8212; Probably  documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script>
     <script src="../../../_static/katex_autorenderer.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -24,10 +23,10 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:ital,wght@0,300;0,400;1,400&family=Source+Serif+Pro:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -434,7 +433,7 @@
 <span class="sd">            &gt;&gt;&gt; list(graph)</span>
 <span class="sd">            [BasicBlock(typ=..., ident=0, assignments=[], terminator=Terminator(kind=..., condition=BoolLitExpr(True), if_true=None, if_false=None))]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">graph</span> <span class="o">=</span> <span class="n">ControlFlowGraph</span><span class="p">(</span><span class="n">BasicBlockId</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="nb">list</span><span class="p">())</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">ControlFlowGraph</span><span class="p">(</span><span class="n">BasicBlockId</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="p">[])</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">instructions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">block</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">fresh_block</span><span class="p">()</span>
             <span class="n">start_id</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">],</span> <span class="n">block</span><span class="o">.</span><span class="n">ident</span><span class="p">)</span>
@@ -527,7 +526,7 @@
 
         <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_basic_blocks</span><span class="p">:</span>
             <span class="n">styles</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="n">BlockType</span><span class="o">.</span><span class="n">FORWARD</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(),</span>
+                <span class="n">BlockType</span><span class="o">.</span><span class="n">FORWARD</span><span class="p">:</span> <span class="p">{},</span>
                 <span class="n">BlockType</span><span class="o">.</span><span class="n">LOOP_HEAD</span><span class="p">:</span> <span class="p">{</span>
                     <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="s2">&quot;rounded&quot;</span>
                 <span class="p">},</span>
@@ -660,7 +659,7 @@
         <span class="n">error</span><span class="o">.</span><span class="n">typ</span> <span class="o">=</span> <span class="n">BlockType</span><span class="o">.</span><span class="n">TRAMPOLINE</span>
         <span class="n">error</span><span class="o">.</span><span class="n">terminator</span> <span class="o">=</span> <span class="n">Terminator</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">ident</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">error_id</span> <span class="o">=</span> <span class="n">error</span><span class="o">.</span><span class="n">ident</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_jumps</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jumps</span> <span class="o">=</span> <span class="p">[]</span>
 
 <div class="viewcode-block" id="JumpTable.trampoline"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.JumpTable.trampoline">[docs]</a>    <span class="k">def</span> <span class="nf">trampoline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasicBlockId</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1076,8 +1075,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2021, Philipp Schröer.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+        &copy; Copyright 2022, Philipp Schröer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
     </p>
   </div>
 </footer>

@@ -3,19 +3,19 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>probably.pysmt &#8212; Probably  documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" />
     <link rel="stylesheet" type="text/css" href="_static/katex-math.css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script>
     <script src="_static/katex_autorenderer.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -26,10 +26,10 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:ital,wght@0,300;0,400;1,400&family=Source+Serif+Pro:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -214,51 +214,51 @@
       </div>
     <div class="body col-md-9 content" role="main">
       
-  <span class="target" id="module-probably.pysmt"></span><div class="section" id="probably-pysmt">
+  <span class="target" id="module-probably.pysmt"></span><section id="probably-pysmt">
 <h1><code class="docutils literal notranslate"><span class="pre">probably.pysmt</span></code><a class="headerlink" href="#probably-pysmt" title="Permalink to this headline">¶</a></h1>
 <p>Probably contains some utility functions to translate parts of a pGCL program to
 pySMT.</p>
-<span class="target" id="module-probably.pysmt.context"></span><div class="section" id="translation-context">
+<span class="target" id="module-probably.pysmt.context"></span><section id="translation-context">
 <h2>Translation Context<a class="headerlink" href="#translation-context" title="Permalink to this headline">¶</a></h2>
 <p>The translation of pGCL programs to pySMT requires a few details to be known:
 How to translate variables to pySMT, how to handle infinities, and so on. The
 <a class="reference internal" href="#probably.pysmt.context.TranslationContext" title="probably.pysmt.context.TranslationContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranslationContext</span></code></a> handles all that.</p>
 <dl class="py class">
-<dt id="probably.pysmt.context.TranslationContext">
-<em class="property">class </em><code class="sig-prename descclassname">probably.pysmt.context.</code><code class="sig-name descname">TranslationContext</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">infinity</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">id_subst</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probably/pysmt/context.html#TranslationContext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#probably.pysmt.context.TranslationContext" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="probably.pysmt.context.TranslationContext">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">probably.pysmt.context.</span></span><span class="sig-name descname"><span class="pre">TranslationContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infinity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_subst</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probably/pysmt/context.html#TranslationContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probably.pysmt.context.TranslationContext" title="Permalink to this definition">¶</a></dt>
 <dd><p>Context used for translation of pGCL parts.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">FNode</span></code>]) – </p></li>
-<li><p><strong>infinity</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FNode</span></code>]) – </p></li>
-<li><p><strong>id_subst</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FNode</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">FNode</span></code>]]) – </p></li>
+<li><p><strong>variables</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">FNode</span></code>]) – </p></li>
+<li><p><strong>infinity</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FNode</span></code>]) – </p></li>
+<li><p><strong>id_subst</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FNode</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">FNode</span></code>]]) – </p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
-<dt id="probably.pysmt.context.TranslationContext.variables">
-<code class="sig-name descname">variables</code><em class="property">: Dict<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a><span class="p">, </span>pysmt.fnode.FNode<span class="p">]</span></em><a class="headerlink" href="#probably.pysmt.context.TranslationContext.variables" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="probably.pysmt.context.TranslationContext.variables">
+<span class="sig-name descname"><span class="pre">variables</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pysmt.fnode.FNode</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#probably.pysmt.context.TranslationContext.variables" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="probably.pysmt.context.TranslationContext.infinity">
-<code class="sig-name descname">infinity</code><em class="property">: pysmt.fnode.FNode</em><a class="headerlink" href="#probably.pysmt.context.TranslationContext.infinity" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="probably.pysmt.context.TranslationContext.infinity">
+<span class="sig-name descname"><span class="pre">infinity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pysmt.fnode.FNode</span></em><a class="headerlink" href="#probably.pysmt.context.TranslationContext.infinity" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="probably.pysmt.context.TranslationContext.id_subst">
-<code class="sig-name descname">id_subst</code><em class="property">: Dict<span class="p">[</span>pysmt.fnode.FNode<span class="p">, </span>pysmt.fnode.FNode<span class="p">]</span></em><a class="headerlink" href="#probably.pysmt.context.TranslationContext.id_subst" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="probably.pysmt.context.TranslationContext.id_subst">
+<span class="sig-name descname"><span class="pre">id_subst</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">pysmt.fnode.FNode</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pysmt.fnode.FNode</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#probably.pysmt.context.TranslationContext.id_subst" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="probably.pysmt.context.TranslationContext.from_program">
-<em class="property">static </em><code class="sig-name descname">from_program</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">program</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probably/pysmt/context.html#TranslationContext.from_program"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#probably.pysmt.context.TranslationContext.from_program" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="probably.pysmt.context.TranslationContext.from_program">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_program</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">program</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probably/pysmt/context.html#TranslationContext.from_program"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probably.pysmt.context.TranslationContext.from_program" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a new TranslationContext from a pGCL program’s declared
 variables.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>program</strong> (<a class="reference internal" href="pgcl.html#probably.pgcl.ast.Program" title="probably.pgcl.ast.Program"><code class="xref py py-class docutils literal notranslate"><span class="pre">Program</span></code></a>) – </p>
+<dd class="field-odd"><p><strong>program</strong> (<a class="reference internal" href="pgcl.html#probably.pgcl.ast.Program" title="probably.pgcl.ast.program.Program"><code class="xref py py-class docutils literal notranslate"><span class="pre">Program</span></code></a>) – </p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><a class="reference internal" href="#probably.pysmt.context.TranslationContext" title="probably.pysmt.context.TranslationContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranslationContext</span></code></a></p>
@@ -268,13 +268,13 @@ variables.</p>
 
 </dd></dl>
 
-</div>
-<span class="target" id="module-probably.pysmt.expr"></span><div class="section" id="expression-translation">
+</section>
+<span class="target" id="module-probably.pysmt.expr"></span><section id="expression-translation">
 <h2>Expression Translation<a class="headerlink" href="#expression-translation" title="Permalink to this headline">¶</a></h2>
 <p>Translation of pGCL expressions to pySMT formulas.</p>
 <dl class="py function">
-<dt id="probably.pysmt.expr.expr_to_pysmt">
-<code class="sig-prename descclassname">probably.pysmt.expr.</code><code class="sig-name descname">expr_to_pysmt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">context</span></em>, <em class="sig-param"><span class="n">expr</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">is_expectation</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">allow_infinity</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probably/pysmt/expr.html#expr_to_pysmt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#probably.pysmt.expr.expr_to_pysmt" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="probably.pysmt.expr.expr_to_pysmt">
+<span class="sig-prename descclassname"><span class="pre">probably.pysmt.expr.</span></span><span class="sig-name descname"><span class="pre">expr_to_pysmt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_expectation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_infinity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/probably/pysmt/expr.html#expr_to_pysmt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#probably.pysmt.expr.expr_to_pysmt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Translate a pGCL expression to a pySMT formula.</p>
 <p>Note that substitution expressions are not allowed here (they are not
 supported in pySMT).</p>
@@ -299,9 +299,9 @@ infinity, to prevent expressions like <cite>infinity - infinity</cite>.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>context</strong> (<a class="reference internal" href="#probably.pysmt.context.TranslationContext" title="probably.pysmt.context.TranslationContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranslationContext</span></code></a>) – </p></li>
-<li><p><strong>expr</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference internal" href="pgcl.html#probably.pgcl.ast.VarExpr" title="probably.pgcl.ast.VarExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">VarExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.BoolLitExpr" title="probably.pgcl.ast.BoolLitExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">BoolLitExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.NatLitExpr" title="probably.pgcl.ast.NatLitExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">NatLitExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.FloatLitExpr" title="probably.pgcl.ast.FloatLitExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">FloatLitExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.UnopExpr" title="probably.pgcl.ast.UnopExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnopExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.BinopExpr" title="probably.pgcl.ast.BinopExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinopExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.UniformExpr" title="probably.pgcl.ast.UniformExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">UniformExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.CategoricalExpr" title="probably.pgcl.ast.CategoricalExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">CategoricalExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.SubstExpr" title="probably.pgcl.ast.SubstExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubstExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.TickExpr" title="probably.pgcl.ast.TickExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">TickExpr</span></code></a>]) – </p></li>
-<li><p><strong>is_expectation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – </p></li>
-<li><p><strong>allow_infinity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – </p></li>
+<li><p><strong>expr</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference internal" href="pgcl.html#probably.pgcl.ast.VarExpr" title="probably.pgcl.ast.expressions.VarExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">VarExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.BoolLitExpr" title="probably.pgcl.ast.expressions.BoolLitExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">BoolLitExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.NatLitExpr" title="probably.pgcl.ast.expressions.NatLitExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">NatLitExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.RealLitExpr" title="probably.pgcl.ast.expressions.RealLitExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">RealLitExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.UnopExpr" title="probably.pgcl.ast.expressions.UnopExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnopExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.BinopExpr" title="probably.pgcl.ast.expressions.BinopExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinopExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.CategoricalExpr" title="probably.pgcl.ast.expressions.CategoricalExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">CategoricalExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.SubstExpr" title="probably.pgcl.ast.expressions.SubstExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubstExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.TickExpr" title="probably.pgcl.ast.expressions.TickExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">TickExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.DUniformExpr" title="probably.pgcl.ast.expressions.DUniformExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">DUniformExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.CUniformExpr" title="probably.pgcl.ast.expressions.CUniformExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">CUniformExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.BernoulliExpr" title="probably.pgcl.ast.expressions.BernoulliExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">BernoulliExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.GeometricExpr" title="probably.pgcl.ast.expressions.GeometricExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeometricExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.PoissonExpr" title="probably.pgcl.ast.expressions.PoissonExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">PoissonExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.LogDistExpr" title="probably.pgcl.ast.expressions.LogDistExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogDistExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.BinomialExpr" title="probably.pgcl.ast.expressions.BinomialExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">BinomialExpr</span></code></a>, <a class="reference internal" href="pgcl.html#probably.pgcl.ast.IidSampleExpr" title="probably.pgcl.ast.expressions.IidSampleExpr"><code class="xref py py-class docutils literal notranslate"><span class="pre">IidSampleExpr</span></code></a>]) – </p></li>
+<li><p><strong>is_expectation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – </p></li>
+<li><p><strong>allow_infinity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -310,8 +310,8 @@ infinity, to prevent expressions like <cite>infinity - infinity</cite>.</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
     </div>
@@ -332,8 +332,8 @@ infinity, to prevent expressions like <cite>infinity - infinity</cite>.</p>
       
     </p>
     <p>
-        &copy; Copyright 2021, Philipp Schröer.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+        &copy; Copyright 2022, Philipp Schröer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
     </p>
   </div>
 </footer>

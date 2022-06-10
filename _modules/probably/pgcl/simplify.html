@@ -5,17 +5,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>probably.pgcl.simplify &#8212; Probably  documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script>
     <script src="../../../_static/katex_autorenderer.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -24,10 +23,10 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:ital,wght@0,300;0,400;1,400&family=Source+Serif+Pro:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -219,18 +218,17 @@
 <span class="sd">This is the right place for you!</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">attr</span>
 
 <span class="kn">from</span> <span class="nn">probably.util.ref</span> <span class="kn">import</span> <span class="n">Mut</span>
 
 <span class="kn">from</span> <span class="nn">.ast</span> <span class="kn">import</span> <span class="n">VarExpr</span>  <span class="c1"># pylint:disable=unused-import</span>
-<span class="kn">from</span> <span class="nn">.ast</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Binop</span><span class="p">,</span> <span class="n">BinopExpr</span><span class="p">,</span> <span class="n">BoolLitExpr</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">FloatLitExpr</span><span class="p">,</span> <span class="n">FloatType</span><span class="p">,</span>
-                  <span class="n">NatLitExpr</span><span class="p">,</span> <span class="n">NatType</span><span class="p">,</span> <span class="n">Program</span><span class="p">,</span> <span class="n">SubstExpr</span><span class="p">,</span> <span class="n">TickExpr</span><span class="p">,</span> <span class="n">Unop</span><span class="p">,</span>
-                  <span class="n">UnopExpr</span><span class="p">,</span> <span class="n">Var</span><span class="p">,</span> <span class="n">expr_str_parens</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.ast</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Binop</span><span class="p">,</span> <span class="n">BinopExpr</span><span class="p">,</span> <span class="n">BoolLitExpr</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">NatLitExpr</span><span class="p">,</span> <span class="n">NatType</span><span class="p">,</span>
+                  <span class="n">Program</span><span class="p">,</span> <span class="n">RealLitExpr</span><span class="p">,</span> <span class="n">RealType</span><span class="p">,</span> <span class="n">SubstExpr</span><span class="p">,</span> <span class="n">TickExpr</span><span class="p">,</span> <span class="n">Unop</span><span class="p">,</span>
+                  <span class="n">UnopExpr</span><span class="p">,</span> <span class="n">Var</span><span class="p">,</span> <span class="n">Walk</span><span class="p">,</span> <span class="n">expr_str_parens</span><span class="p">,</span> <span class="n">walk_expr</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.check</span> <span class="kn">import</span> <span class="n">CheckFail</span><span class="p">,</span> <span class="n">get_type</span>
-<span class="kn">from</span> <span class="nn">.walk</span> <span class="kn">import</span> <span class="n">Walk</span><span class="p">,</span> <span class="n">walk_expr</span>
 <span class="kn">from</span> <span class="nn">.wp</span> <span class="kn">import</span> <span class="n">ExpectationTransformer</span>
 
 
@@ -274,14 +272,14 @@
 
 <div class="viewcode-block" id="simplifying_times"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.simplifying_times">[docs]</a><span class="k">def</span> <span class="nf">simplifying_times</span><span class="p">(</span><span class="n">lhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">rhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Combine with ``Binop.TIMES``, but simplify when one operand is ``FloatLitExpr(&quot;1.0&quot;)``.</span>
+<span class="sd">    Combine with ``Binop.TIMES``, but simplify when one operand is ``RealLitExpr(&quot;1.0&quot;)``.</span>
 
 <span class="sd">    .. doctest::</span>
 
-<span class="sd">        &gt;&gt;&gt; simplifying_times(FloatLitExpr(&quot;1.0&quot;), VarExpr(&#39;x&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; simplifying_times(RealLitExpr(&quot;1.0&quot;), VarExpr(&#39;x&#39;))</span>
 <span class="sd">        VarExpr(&#39;x&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">one</span> <span class="o">=</span> <span class="n">FloatLitExpr</span><span class="p">(</span><span class="s2">&quot;1.0&quot;</span><span class="p">)</span>
+    <span class="n">one</span> <span class="o">=</span> <span class="n">RealLitExpr</span><span class="p">(</span><span class="s2">&quot;1.0&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">lhs</span> <span class="o">==</span> <span class="n">one</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">rhs</span>
     <span class="k">if</span> <span class="n">rhs</span> <span class="o">==</span> <span class="n">one</span><span class="p">:</span>
@@ -295,10 +293,10 @@
 
 <span class="sd">    .. doctest::</span>
 
-<span class="sd">        &gt;&gt;&gt; simplifying_subst(dict(), FloatLitExpr(&quot;1.0&quot;))</span>
-<span class="sd">        FloatLitExpr(&quot;1.0&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; simplifying_subst(dict(), RealLitExpr(&quot;1.0&quot;))</span>
+<span class="sd">        RealLitExpr(&quot;1.0&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="p">(</span><span class="n">BoolLitExpr</span><span class="p">,</span> <span class="n">FloatLitExpr</span><span class="p">,</span> <span class="n">NatLitExpr</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="p">(</span><span class="n">BoolLitExpr</span><span class="p">,</span> <span class="n">RealLitExpr</span><span class="p">,</span> <span class="n">NatLitExpr</span><span class="p">)):</span>
         <span class="k">return</span> <span class="n">expr</span>
     <span class="k">return</span> <span class="n">SubstExpr</span><span class="p">(</span><span class="n">subst</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span></div>
 
@@ -332,13 +330,13 @@
 <span class="sd">    .. doctest::</span>
 
 <span class="sd">        &gt;&gt;&gt; a = SnfExpectationTransformerProduct.from_iverson(BoolLitExpr(True))</span>
-<span class="sd">        &gt;&gt;&gt; b = SnfExpectationTransformerProduct(guard=BoolLitExpr(True), prob=FloatLitExpr(&quot;5.0&quot;), subst=None, ticks=TickExpr(NatLitExpr(1)))</span>
-<span class="sd">        &gt;&gt;&gt; c = SnfExpectationTransformerProduct(guard=BoolLitExpr(False), prob=FloatLitExpr(&quot;2.0&quot;), subst=None, ticks=TickExpr(NatLitExpr(5)))</span>
+<span class="sd">        &gt;&gt;&gt; b = SnfExpectationTransformerProduct(guard=BoolLitExpr(True), prob=RealLitExpr(&quot;5.0&quot;), subst=None, ticks=TickExpr(NatLitExpr(1)))</span>
+<span class="sd">        &gt;&gt;&gt; c = SnfExpectationTransformerProduct(guard=BoolLitExpr(False), prob=RealLitExpr(&quot;2.0&quot;), subst=None, ticks=TickExpr(NatLitExpr(5)))</span>
 <span class="sd">        &gt;&gt;&gt; print(a * b)</span>
 <span class="sd">        [true] * 5.0 * tick(1)</span>
 <span class="sd">        &gt;&gt;&gt; print(a * b * c)</span>
 <span class="sd">        [false] * (5.0 * 2.0) * tick(6)</span>
-<span class="sd">        &gt;&gt;&gt; print(SnfExpectationTransformerProduct(guard=BoolLitExpr(True), prob=FloatLitExpr(&quot;2.0&quot;), subst={&quot;x&quot;: VarExpr(&quot;y&quot;)}, ticks=TickExpr(NatLitExpr(0))))</span>
+<span class="sd">        &gt;&gt;&gt; print(SnfExpectationTransformerProduct(guard=BoolLitExpr(True), prob=RealLitExpr(&quot;2.0&quot;), subst={&quot;x&quot;: VarExpr(&quot;y&quot;)}, ticks=TickExpr(NatLitExpr(0))))</span>
 <span class="sd">        [true] * 2.0 * (𝑋)[x/y]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -349,7 +347,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The probability without any Iverson brackets or</span>
 <span class="sd">    :class:`probably.pgcl.ast.TickExpr`. It has types</span>
-<span class="sd">    :class:`probably.pgcl.ast.FloatType` or :class:`probably.pgcl.ast.NatType`.</span>
+<span class="sd">    :class:`probably.pgcl.ast.RealType` or :class:`probably.pgcl.ast.NatType`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">subst</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span> <span class="n">Expr</span><span class="p">]]</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
@@ -363,7 +361,7 @@
     <span class="k">def</span> <span class="nf">from_iverson</span><span class="p">(</span><span class="n">guard</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SnfExpectationTransformerProduct&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Create a new value ``guard * 1.0 * tick(1)``.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SnfExpectationTransformerProduct</span><span class="p">(</span><span class="n">guard</span><span class="o">=</span><span class="n">guard</span><span class="p">,</span>
-                                                <span class="n">prob</span><span class="o">=</span><span class="n">FloatLitExpr</span><span class="p">(</span><span class="s2">&quot;1.0&quot;</span><span class="p">),</span>
+                                                <span class="n">prob</span><span class="o">=</span><span class="n">RealLitExpr</span><span class="p">(</span><span class="s2">&quot;1.0&quot;</span><span class="p">),</span>
                                                 <span class="n">subst</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                                 <span class="n">ticks</span><span class="o">=</span><span class="n">TickExpr</span><span class="p">(</span><span class="n">NatLitExpr</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span></div>
 
@@ -380,7 +378,7 @@
             <span class="n">subst</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span> <span class="n">Expr</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;SnfExpectationTransformerProduct&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Create a new value from the substitution.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SnfExpectationTransformerProduct</span><span class="p">(</span><span class="n">guard</span><span class="o">=</span><span class="n">BoolLitExpr</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
-                                                <span class="n">prob</span><span class="o">=</span><span class="n">FloatLitExpr</span><span class="p">(</span><span class="s2">&quot;1.0&quot;</span><span class="p">),</span>
+                                                <span class="n">prob</span><span class="o">=</span><span class="n">RealLitExpr</span><span class="p">(</span><span class="s2">&quot;1.0&quot;</span><span class="p">),</span>
                                                 <span class="n">subst</span><span class="o">=</span><span class="n">subst</span><span class="p">,</span>
                                                 <span class="n">ticks</span><span class="o">=</span><span class="n">TickExpr</span><span class="p">(</span><span class="n">NatLitExpr</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span></div>
 
@@ -388,7 +386,7 @@
     <span class="k">def</span> <span class="nf">from_ticks</span><span class="p">(</span><span class="n">ticks</span><span class="p">:</span> <span class="n">TickExpr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SnfExpectationTransformerProduct&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Create a new value from ticks.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SnfExpectationTransformerProduct</span><span class="p">(</span><span class="n">guard</span><span class="o">=</span><span class="n">BoolLitExpr</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
-                                                <span class="n">prob</span><span class="o">=</span><span class="n">FloatLitExpr</span><span class="p">(</span><span class="s2">&quot;1.0&quot;</span><span class="p">),</span>
+                                                <span class="n">prob</span><span class="o">=</span><span class="n">RealLitExpr</span><span class="p">(</span><span class="s2">&quot;1.0&quot;</span><span class="p">),</span>
                                                 <span class="n">subst</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                                 <span class="n">ticks</span><span class="o">=</span><span class="n">ticks</span><span class="p">)</span></div>
 
@@ -458,7 +456,7 @@
 <span class="sd">    .. doctest::</span>
 
 <span class="sd">        &gt;&gt;&gt; a = SnfExpectationTransformerProduct.from_iverson(BoolLitExpr(True))</span>
-<span class="sd">        &gt;&gt;&gt; b = SnfExpectationTransformerProduct.from_prob(FloatLitExpr(&quot;0.5&quot;))</span>
+<span class="sd">        &gt;&gt;&gt; b = SnfExpectationTransformerProduct.from_prob(RealLitExpr(&quot;0.5&quot;))</span>
 <span class="sd">        &gt;&gt;&gt; c = SnfExpectationTransformerProduct.from_subst({&quot;x&quot;: VarExpr(&quot;y&quot;)})</span>
 <span class="sd">        &gt;&gt;&gt; print(SnfExpectationTransformer([a, b, c]))</span>
 <span class="sd">        λ𝑋. [true] * 1.0 + [true] * 0.5 + [true] * 1.0 * (𝑋)[x/y]</span>
@@ -562,7 +560,8 @@
                 <span class="c1"># n] * 1/2 * ((𝑋)[r/0, x/x + 0] + tick(1))`.</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">rhs</span><span class="p">,</span> <span class="n">TickExpr</span><span class="p">):</span>
                     <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">lhs</span><span class="p">:</span>
-                        <span class="n">value</span><span class="o">.</span><span class="n">ticks</span> <span class="o">=</span> <span class="n">TickExpr</span><span class="p">(</span><span class="n">simplifying_plus</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">ticks</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">rhs</span><span class="o">.</span><span class="n">expr</span><span class="p">))</span>
+                        <span class="n">value</span><span class="o">.</span><span class="n">ticks</span> <span class="o">=</span> <span class="n">TickExpr</span><span class="p">(</span>
+                            <span class="n">simplifying_plus</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">ticks</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">rhs</span><span class="o">.</span><span class="n">expr</span><span class="p">))</span>
                     <span class="k">return</span> <span class="n">lhs</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">rhs</span> <span class="o">=</span> <span class="n">recurse</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">rhs</span><span class="p">)</span>
@@ -598,7 +597,7 @@
         <span class="n">expr_type</span> <span class="o">=</span> <span class="n">get_type</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr_type</span><span class="p">,</span> <span class="n">CheckFail</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">expr_type</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr_type</span><span class="p">,</span> <span class="p">(</span><span class="n">FloatType</span><span class="p">,</span> <span class="n">NatType</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr_type</span><span class="p">,</span> <span class="p">(</span><span class="n">RealType</span><span class="p">,</span> <span class="n">NatType</span><span class="p">)):</span>
             <span class="k">return</span> <span class="n">SnfExpectationTransformer</span><span class="o">.</span><span class="n">from_prob</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
 
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;unreachable&quot;</span><span class="p">)</span>
@@ -627,12 +626,12 @@
 <span class="sd">        &gt;&gt;&gt; print(normalize_expectation(program, expectation))</span>
 <span class="sd">        λ𝑋. [false] * 1.0 + [true] * 1.0</span>
 
-<span class="sd">        &gt;&gt;&gt; prob = FloatLitExpr(&quot;10&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; prob = RealLitExpr(&quot;10&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; print(normalize_expectation(program, BinopExpr(Binop.TIMES, prob, prob)))</span>
 <span class="sd">        λ𝑋. [true] * (10 * 10)</span>
 
 <span class="sd">        &gt;&gt;&gt; normalize_expectation(program, BinopExpr(Binop.TIMES, UnopExpr(Unop.IVERSON, VarExpr(&#39;x&#39;)), prob))</span>
-<span class="sd">        [SnfExpectationTransformerProduct(guard=VarExpr(&#39;x&#39;), prob=FloatLitExpr(&quot;10&quot;), subst=None, ticks=TickExpr(expr=NatLitExpr(0)))]</span>
+<span class="sd">        [SnfExpectationTransformerProduct(guard=VarExpr(&#39;x&#39;), prob=RealLitExpr(&quot;10&quot;), subst=None, ticks=TickExpr(expr=NatLitExpr(0)))]</span>
 
 <span class="sd">        &gt;&gt;&gt; expectation = parse_expectation(&quot;[c &lt; 3] * c&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; print(normalize_expectation(program, expectation))</span>
@@ -666,8 +665,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2021, Philipp Schröer.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+        &copy; Copyright 2022, Philipp Schröer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
     </p>
   </div>
 </footer>

@@ -5,17 +5,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>probably.pgcl.syntax &#8212; Probably  documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script>
     <script src="../../../_static/katex_autorenderer.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -24,10 +23,10 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:ital,wght@0,300;0,400;1,400&family=Source+Serif+Pro:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -306,13 +305,17 @@
 
 <span class="kn">from</span> <span class="nn">.ast</span> <span class="kn">import</span> <span class="p">(</span><span class="n">AsgnInstr</span><span class="p">,</span> <span class="n">Binop</span><span class="p">,</span> <span class="n">BinopExpr</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">Instr</span><span class="p">,</span> <span class="n">Program</span><span class="p">,</span> <span class="n">Unop</span><span class="p">,</span>
                   <span class="n">UnopExpr</span><span class="p">,</span> <span class="n">VarExpr</span><span class="p">,</span> <span class="n">WhileInstr</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.ast.walk</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Walk</span><span class="p">,</span> <span class="n">instr_exprs</span><span class="p">,</span> <span class="n">mut_expr_children</span><span class="p">,</span> <span class="n">walk_expr</span><span class="p">,</span>
+                       <span class="n">walk_instrs</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.check</span> <span class="kn">import</span> <span class="n">CheckFail</span>
-<span class="kn">from</span> <span class="nn">.walk</span> <span class="kn">import</span> <span class="n">Walk</span><span class="p">,</span> <span class="n">instr_exprs</span><span class="p">,</span> <span class="n">mut_expr_children</span><span class="p">,</span> <span class="n">walk_expr</span><span class="p">,</span> <span class="n">walk_instrs</span>
 
 
 <div class="viewcode-block" id="check_is_linear_program"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.syntax.check_is_linear_program">[docs]</a><span class="k">def</span> <span class="nf">check_is_linear_program</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CheckFail</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check if the given (well-typed) program is linear.</span>
+
+<span class="sd">    :param program: The program to check. It must not contain any constants</span>
+<span class="sd">            (see :py:mod:`probably.pgcl.substitute`).</span>
 
 <span class="sd">    .. doctest::</span>
 
@@ -330,48 +333,62 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">instr_ref</span> <span class="ow">in</span> <span class="n">walk_instrs</span><span class="p">(</span><span class="n">Walk</span><span class="o">.</span><span class="n">DOWN</span><span class="p">,</span> <span class="n">program</span><span class="o">.</span><span class="n">instructions</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">instr_exprs</span><span class="p">(</span><span class="n">instr_ref</span><span class="o">.</span><span class="n">val</span><span class="p">):</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="n">check_is_linear_expr</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">check_is_linear_expr</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">CheckFail</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">res</span>
     <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="check_is_linear_expr"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.syntax.check_is_linear_expr">[docs]</a><span class="k">def</span> <span class="nf">check_is_linear_expr</span><span class="p">(</span><span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CheckFail</span><span class="p">]:</span>
+<div class="viewcode-block" id="check_is_linear_expr"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.syntax.check_is_linear_expr">[docs]</a><span class="k">def</span> <span class="nf">check_is_linear_expr</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Program</span><span class="p">],</span>
+                         <span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CheckFail</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Linear expressions do not multiply variables with each other.</span>
 <span class="sd">    However, they may contain multiplication with constants or Iverson brackets.</span>
 <span class="sd">    Division is also not allowed in linear expressions.</span>
+
+<span class="sd">    :param context: The context in which the expression is to be evaluated. Literals that are</span>
+<span class="sd">            parameters according to this context are not considered variables. Pass None if</span>
+<span class="sd">            no context is required. If the context is not None, it must not contain any constants</span>
+<span class="sd">            (see :py:mod:`probably.pgcl.substitute`).</span>
+<span class="sd">    :param expr:</span>
 
 <span class="sd">    .. doctest::</span>
 
 <span class="sd">        &gt;&gt;&gt; from .ast import *</span>
 <span class="sd">        &gt;&gt;&gt; from .parser import parse_expectation</span>
 <span class="sd">        &gt;&gt;&gt; nat = NatLitExpr(10)</span>
-<span class="sd">        &gt;&gt;&gt; check_is_linear_expr(BinopExpr(Binop.TIMES, nat, nat))</span>
-<span class="sd">        &gt;&gt;&gt; check_is_linear_expr(BinopExpr(Binop.TIMES, nat, VarExpr(&#39;x&#39;)))</span>
-<span class="sd">        &gt;&gt;&gt; check_is_linear_expr(BinopExpr(Binop.TIMES, VarExpr(&#39;x&#39;), VarExpr(&#39;x&#39;)))</span>
+<span class="sd">        &gt;&gt;&gt; check_is_linear_expr(None, BinopExpr(Binop.TIMES, nat, nat))</span>
+<span class="sd">        &gt;&gt;&gt; check_is_linear_expr(None, BinopExpr(Binop.TIMES, nat, VarExpr(&#39;x&#39;)))</span>
+<span class="sd">        &gt;&gt;&gt; check_is_linear_expr(None, BinopExpr(Binop.TIMES, VarExpr(&#39;x&#39;), VarExpr(&#39;x&#39;)))</span>
 <span class="sd">        CheckFail(location=..., message=&#39;Is not a linear expression&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; check_is_linear_expr(parse_expectation(&quot;[x &lt; 6] * x&quot;))</span>
-<span class="sd">        &gt;&gt;&gt; check_is_linear_expr(parse_expectation(&quot;[x * x]&quot;))</span>
+<span class="sd">        &gt;&gt;&gt; check_is_linear_expr(None, parse_expectation(&quot;[x &lt; 6] * x&quot;))</span>
+<span class="sd">        &gt;&gt;&gt; check_is_linear_expr(None, parse_expectation(&quot;[x * x]&quot;))</span>
 <span class="sd">        CheckFail(location=..., message=&#39;Is not a linear expression&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; check_is_linear_expr(parse_expectation(&quot;x/x&quot;))</span>
+<span class="sd">        &gt;&gt;&gt; check_is_linear_expr(None, parse_expectation(&quot;x/x&quot;))</span>
 <span class="sd">        CheckFail(location=..., message=&#39;General division is not linear (division of constants is)&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">has_variable</span><span class="p">(</span><span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_has_variable</span><span class="p">(</span><span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="n">expr</span><span class="p">,</span> <span class="n">VarExpr</span>
+        <span class="p">)</span> <span class="ow">and</span> <span class="n">context</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">expr</span><span class="o">.</span><span class="n">var</span> <span class="ow">in</span> <span class="n">context</span><span class="o">.</span><span class="n">constants</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The expression must not contain constants. Found the constant &#39;</span><span class="si">{</span><span class="n">expr</span><span class="o">.</span><span class="n">var</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">UnopExpr</span><span class="p">)</span> <span class="ow">and</span> <span class="n">expr</span><span class="o">.</span><span class="n">operator</span> <span class="o">==</span> <span class="n">Unop</span><span class="o">.</span><span class="n">IVERSON</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">VarExpr</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">VarExpr</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">context</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">expr</span><span class="o">.</span><span class="n">var</span>
+                                          <span class="ow">not</span> <span class="ow">in</span> <span class="n">context</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">for</span> <span class="n">child_ref</span> <span class="ow">in</span> <span class="n">mut_expr_children</span><span class="p">(</span><span class="n">Mut</span><span class="o">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">expr</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="n">has_variable</span><span class="p">(</span><span class="n">child_ref</span><span class="o">.</span><span class="n">val</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">_has_variable</span><span class="p">(</span><span class="n">child_ref</span><span class="o">.</span><span class="n">val</span><span class="p">):</span>
                 <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">for</span> <span class="n">node_ref</span> <span class="ow">in</span> <span class="n">walk_expr</span><span class="p">(</span><span class="n">Walk</span><span class="o">.</span><span class="n">DOWN</span><span class="p">,</span> <span class="n">Mut</span><span class="o">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">expr</span><span class="p">)):</span>
         <span class="n">node</span> <span class="o">=</span> <span class="n">node_ref</span><span class="o">.</span><span class="n">val</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">BinopExpr</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">operator</span> <span class="o">==</span> <span class="n">Binop</span><span class="o">.</span><span class="n">TIMES</span> <span class="ow">and</span> <span class="n">has_variable</span><span class="p">(</span>
-                    <span class="n">node</span><span class="o">.</span><span class="n">lhs</span><span class="p">)</span> <span class="ow">and</span> <span class="n">has_variable</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">rhs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">operator</span> <span class="o">==</span> <span class="n">Binop</span><span class="o">.</span><span class="n">MODULO</span> <span class="ow">or</span> \
+                        <span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">operator</span> <span class="o">==</span> <span class="n">Binop</span><span class="o">.</span><span class="n">TIMES</span> <span class="ow">and</span> <span class="n">_has_variable</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">lhs</span><span class="p">)</span> <span class="ow">and</span> <span class="n">_has_variable</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">rhs</span><span class="p">)):</span>
                 <span class="k">return</span> <span class="n">CheckFail</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s2">&quot;Is not a linear expression&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">operator</span> <span class="o">==</span> <span class="n">Binop</span><span class="o">.</span><span class="n">DIVIDE</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">CheckFail</span><span class="p">(</span>
@@ -443,8 +460,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2021, Philipp Schröer.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+        &copy; Copyright 2022, Philipp Schröer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
     </p>
   </div>
 </footer>
