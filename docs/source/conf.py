@@ -62,3 +62,6 @@ intersphinx_mapping = {
 
 # nitpicky emits warnings for all broken links
 # nitpicky = True
+
+autodoc_type_aliases = {"Expr" : "probably.pgcl.ast.Expr", "Instr" : "probably.pgcl.ast.Instr", "Type" : "probably.pgcl.ast.Type",
+                        "Decl" : "probably.pgcl.ast.Decl", "DistrExpr" : "probably.pgcl.ast.DistrExpr", "Query" : "probably.pgcl.ast.Query"}

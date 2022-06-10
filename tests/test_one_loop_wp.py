@@ -3,8 +3,8 @@ Here we do a bunch of tests on a larger collection of linear programs, with focu
 """
 
 from probably.pgcl.compiler import parse_pgcl
-from probably.pgcl.wp import one_loop_wp_transformer
 from probably.pgcl.simplify import normalize_expectation_transformer
+from probably.pgcl.wp import one_loop_wp_transformer
 
 
 def test_branchy():

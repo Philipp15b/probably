@@ -1,6 +1,6 @@
 from probably.pgcl.compiler import parse_pgcl
-from probably.pgcl.wp import one_loop_wp_transformer
 from probably.pgcl.simplify import normalize_expectation_transformer
+from probably.pgcl.wp import one_loop_wp_transformer
 
 
 def test_ber_ert():

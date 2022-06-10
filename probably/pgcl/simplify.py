@@ -8,18 +8,17 @@ Your program has dumb expressions a toddler could simplify?
 This is the right place for you!
 """
 
-from typing import Dict, List, Union, Optional
+from typing import Dict, List, Optional, Union
 
 import attr
 
 from probably.util.ref import Mut
 
 from .ast import VarExpr  # pylint:disable=unused-import
-from .ast import (Binop, BinopExpr, BoolLitExpr, Expr, FloatLitExpr, FloatType,
-                  NatLitExpr, NatType, Program, SubstExpr, TickExpr, Unop,
-                  UnopExpr, Var, expr_str_parens)
+from .ast import (Binop, BinopExpr, BoolLitExpr, Expr, NatLitExpr, NatType,
+                  Program, RealLitExpr, RealType, SubstExpr, TickExpr, Unop,
+                  UnopExpr, Var, Walk, expr_str_parens, walk_expr)
 from .check import CheckFail, get_type
-from .walk import Walk, walk_expr
 from .wp import ExpectationTransformer
 
 
@@ -63,14 +62,14 @@ def simplifying_plus(lhs: Expr, rhs: Expr) -> Expr:
 
 def simplifying_times(lhs: Expr, rhs: Expr) -> Expr:
     """
-    Combine with ``Binop.TIMES``, but simplify when one operand is ``FloatLitExpr("1.0")``.
+    Combine with ``Binop.TIMES``, but simplify when one operand is ``RealLitExpr("1.0")``.
 
     .. doctest::
 
-        >>> simplifying_times(FloatLitExpr("1.0"), VarExpr('x'))
+        >>> simplifying_times(RealLitExpr("1.0"), VarExpr('x'))
         VarExpr('x')
     """
-    one = FloatLitExpr("1.0")
+    one = RealLitExpr("1.0")
     if lhs == one:
         return rhs
     if rhs == one:
@@ -84,10 +83,10 @@ def simplifying_subst(subst: Dict[Var, Expr], expr: Expr) -> Expr:
 
     .. doctest::
 
-        >>> simplifying_subst(dict(), FloatLitExpr("1.0"))
-        FloatLitExpr("1.0")
+        >>> simplifying_subst(dict(), RealLitExpr("1.0"))
+        RealLitExpr("1.0")
     """
-    if isinstance(expr, (BoolLitExpr, FloatLitExpr, NatLitExpr)):
+    if isinstance(expr, (BoolLitExpr, RealLitExpr, NatLitExpr)):
         return expr
     return SubstExpr(subst, expr)
 
@@ -121,13 +120,13 @@ class SnfExpectationTransformerProduct:
     .. doctest::
 
         >>> a = SnfExpectationTransformerProduct.from_iverson(BoolLitExpr(True))
-        >>> b = SnfExpectationTransformerProduct(guard=BoolLitExpr(True), prob=FloatLitExpr("5.0"), subst=None, ticks=TickExpr(NatLitExpr(1)))
-        >>> c = SnfExpectationTransformerProduct(guard=BoolLitExpr(False), prob=FloatLitExpr("2.0"), subst=None, ticks=TickExpr(NatLitExpr(5)))
+        >>> b = SnfExpectationTransformerProduct(guard=BoolLitExpr(True), prob=RealLitExpr("5.0"), subst=None, ticks=TickExpr(NatLitExpr(1)))
+        >>> c = SnfExpectationTransformerProduct(guard=BoolLitExpr(False), prob=RealLitExpr("2.0"), subst=None, ticks=TickExpr(NatLitExpr(5)))
         >>> print(a * b)
         [true] * 5.0 * tick(1)
         >>> print(a * b * c)
         [false] * (5.0 * 2.0) * tick(6)
-        >>> print(SnfExpectationTransformerProduct(guard=BoolLitExpr(True), prob=FloatLitExpr("2.0"), subst={"x": VarExpr("y")}, ticks=TickExpr(NatLitExpr(0))))
+        >>> print(SnfExpectationTransformerProduct(guard=BoolLitExpr(True), prob=RealLitExpr("2.0"), subst={"x": VarExpr("y")}, ticks=TickExpr(NatLitExpr(0))))
         [true] * 2.0 * (𝑋)[x/y]
     """
 
@@ -138,7 +137,7 @@ class SnfExpectationTransformerProduct:
     """
     The probability without any Iverson brackets or
     :class:`probably.pgcl.ast.TickExpr`. It has types
-    :class:`probably.pgcl.ast.FloatType` or :class:`probably.pgcl.ast.NatType`.
+    :class:`probably.pgcl.ast.RealType` or :class:`probably.pgcl.ast.NatType`.
     """
 
     subst: Optional[Dict[Var, Expr]] = attr.ib()
@@ -152,7 +151,7 @@ class SnfExpectationTransformerProduct:
     def from_iverson(guard: Expr) -> 'SnfExpectationTransformerProduct':
         """Create a new value ``guard * 1.0 * tick(1)``."""
         return SnfExpectationTransformerProduct(guard=guard,
-                                                prob=FloatLitExpr("1.0"),
+                                                prob=RealLitExpr("1.0"),
                                                 subst=None,
                                                 ticks=TickExpr(NatLitExpr(0)))
 
@@ -169,7 +168,7 @@ class SnfExpectationTransformerProduct:
             subst: Dict[Var, Expr]) -> 'SnfExpectationTransformerProduct':
         """Create a new value from the substitution."""
         return SnfExpectationTransformerProduct(guard=BoolLitExpr(True),
-                                                prob=FloatLitExpr("1.0"),
+                                                prob=RealLitExpr("1.0"),
                                                 subst=subst,
                                                 ticks=TickExpr(NatLitExpr(0)))
 
@@ -177,7 +176,7 @@ class SnfExpectationTransformerProduct:
     def from_ticks(ticks: TickExpr) -> 'SnfExpectationTransformerProduct':
         """Create a new value from ticks."""
         return SnfExpectationTransformerProduct(guard=BoolLitExpr(True),
-                                                prob=FloatLitExpr("1.0"),
+                                                prob=RealLitExpr("1.0"),
                                                 subst=None,
                                                 ticks=ticks)
 
@@ -247,7 +246,7 @@ class SnfExpectationTransformer:
     .. doctest::
 
         >>> a = SnfExpectationTransformerProduct.from_iverson(BoolLitExpr(True))
-        >>> b = SnfExpectationTransformerProduct.from_prob(FloatLitExpr("0.5"))
+        >>> b = SnfExpectationTransformerProduct.from_prob(RealLitExpr("0.5"))
         >>> c = SnfExpectationTransformerProduct.from_subst({"x": VarExpr("y")})
         >>> print(SnfExpectationTransformer([a, b, c]))
         λ𝑋. [true] * 1.0 + [true] * 0.5 + [true] * 1.0 * (𝑋)[x/y]
@@ -351,7 +350,8 @@ def normalize_expectation_transformer(
                 # n] * 1/2 * ((𝑋)[r/0, x/x + 0] + tick(1))`.
                 if isinstance(expr.rhs, TickExpr):
                     for value in lhs:
-                        value.ticks = TickExpr(simplifying_plus(value.ticks.expr, expr.rhs.expr))
+                        value.ticks = TickExpr(
+                            simplifying_plus(value.ticks.expr, expr.rhs.expr))
                     return lhs
                 else:
                     rhs = recurse(expr.rhs)
@@ -387,7 +387,7 @@ def normalize_expectation_transformer(
         expr_type = get_type(program, expr, check=False)
         if isinstance(expr_type, CheckFail):
             return expr_type
-        if isinstance(expr_type, (FloatType, NatType)):
+        if isinstance(expr_type, (RealType, NatType)):
             return SnfExpectationTransformer.from_prob(expr)
 
         raise Exception("unreachable")
@@ -416,12 +416,12 @@ def normalize_expectation(
         >>> print(normalize_expectation(program, expectation))
         λ𝑋. [false] * 1.0 + [true] * 1.0
 
-        >>> prob = FloatLitExpr("10")
+        >>> prob = RealLitExpr("10")
         >>> print(normalize_expectation(program, BinopExpr(Binop.TIMES, prob, prob)))
         λ𝑋. [true] * (10 * 10)
 
         >>> normalize_expectation(program, BinopExpr(Binop.TIMES, UnopExpr(Unop.IVERSON, VarExpr('x')), prob))
-        [SnfExpectationTransformerProduct(guard=VarExpr('x'), prob=FloatLitExpr("10"), subst=None, ticks=TickExpr(expr=NatLitExpr(0)))]
+        [SnfExpectationTransformerProduct(guard=VarExpr('x'), prob=RealLitExpr("10"), subst=None, ticks=TickExpr(expr=NatLitExpr(0)))]
 
         >>> expectation = parse_expectation("[c < 3] * c")
         >>> print(normalize_expectation(program, expectation))
