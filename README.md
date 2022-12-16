@@ -65,4 +65,4 @@ Tests also produce a coverage report. It can be found in the generated `htmlcov`
 
 **Lint:** Run `pylint` with `make lint`.
 
-**Formatting:** We use the [`yapf`](https://github.com/google/yapf) formatter: `yapf --recursive -i probably/` and `isort probably/`.
+**Formatting:** We use the [`yapf`](https://github.com/google/yapf) formatter: `yapf --recursive -i probably/` and `isort probably/`, or simply `make format` to run both.
