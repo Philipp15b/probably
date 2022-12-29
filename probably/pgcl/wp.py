@@ -81,16 +81,18 @@ compute the :class:`LoopExpectationTransformer`.
 """
 import functools
 from copy import deepcopy
+from fractions import Fraction
 from typing import Dict, List, Sequence, Union
 
 import attr
 
+from probably.pgcl.ast.expressions import FunctionCallExpr, NatLitExpr
 from probably.util.ref import Mut
 
 from .ast import (AsgnInstr, Binop, BinopExpr, CategoricalExpr, ChoiceInstr,
-                  DUniformExpr, Expr, IfInstr, Instr, Program, RealLitExpr,
-                  SkipInstr, SubstExpr, TickExpr, TickInstr, Unop, UnopExpr,
-                  Var, VarExpr, WhileInstr)
+                  Expr, IfInstr, Instr, Program, RealLitExpr, SkipInstr,
+                  SubstExpr, TickExpr, TickInstr, Unop, UnopExpr, Var, VarExpr,
+                  WhileInstr)
 from .ast.walk import Walk, walk_expr
 from .substitute import substitute_expr
 from .syntax import check_is_one_big_loop
@@ -164,8 +166,20 @@ def loopfree_wp(instr: Union[Instr, Sequence[Instr]],
         return BinopExpr(Binop.PLUS, true, false)
 
     if isinstance(instr, AsgnInstr):
-        if isinstance(instr.rhs, (DUniformExpr, CategoricalExpr)):
-            distribution = instr.rhs.distribution()
+        if isinstance(instr.rhs, CategoricalExpr) or isinstance(
+                instr.rhs,
+                FunctionCallExpr) and instr.rhs.function in {'unif', 'unif_d'}:
+            if isinstance(instr.rhs, CategoricalExpr):
+                distribution = instr.rhs.distribution()
+            else:
+                assert isinstance(instr.rhs.params[0][0], NatLitExpr)
+                assert isinstance(instr.rhs.params[0][1], NatLitExpr)
+                start: int = instr.rhs.params[0][0].value
+                end: int = instr.rhs.params[0][1].value
+                distribution = list(
+                    zip([RealLitExpr(Fraction(1, end - start + 1))] *
+                        (end - start + 1),
+                        [NatLitExpr(i) for i in range(start, end + 1)]))
             branches = [
                 BinopExpr(
                     Binop.TIMES, prob,
