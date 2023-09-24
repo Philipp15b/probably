@@ -114,7 +114,7 @@ def is_int(expr: Expr, program: Program):
                 program.parameters[expr.var], NatType):
             return True
         if expr.var in program.constants and isinstance(
-                program.constants[expr.var].value, NatLitExpr):
+                program.constants[expr.var], NatLitExpr):
             return True
     if isinstance(expr, UnopExpr):
         return is_int(expr.expr, program)
