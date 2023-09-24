@@ -33,7 +33,7 @@ def translate_to_prism(program: Program) -> str:
     prism_program = "dtmc\n"
     # pCGL constants are interpreted as PRISM constants
     for (var, value) in program.constants.items():
-        prism_program += f"const {var} = {expression_prism(value)};\n"
+        prism_program += f"const {var} = {expression_prism(value, program)};\n"
     prism_program += "module program\n"
     # Parameters and variables are PRISM variables
     for (var, typ) in list(program.parameters.items()) + list(
@@ -59,6 +59,6 @@ def translate_to_prism(program: Program) -> str:
     prism_program += "ter : bool init false;\n"
 
     for block in graph:
-        prism_program += block_prism(block)
+        prism_program += block_prism(block, program)
     prism_program += "endmodule\n"
     return prism_program
