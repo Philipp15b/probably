@@ -147,7 +147,11 @@ def expression_prism(expr: Expr) -> str:
         elif expr.operator == Binop.TIMES:
             return f"({lhs}) * ({rhs})"
         elif expr.operator == Binop.MODULO:
-            return f"({lhs}) * ({rhs})"
+            return f"mod({lhs}, {rhs})"
+        elif expr.operator == Binop.POWER:
+            return f"pow({lhs}, {rhs})"
+        elif expr.operator == Binop.DIVIDE:
+            return f"{lhs} / {rhs}"
         raise PrismTranslatorException("Operator not implemented:", expr)
     elif isinstance(expr, SubstExpr):
         raise PrismTranslatorException(
