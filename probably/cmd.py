@@ -19,23 +19,30 @@ import probably.pgcl.compiler as pgcl
 from probably.pgcl.check import CheckFail
 from probably.pgcl.syntax import check_is_linear_program
 from probably.pgcl.wp import general_wp_transformer
+from probably.prism.backend import translate_to_prism
 
 
 @click.command()
-@click.argument('input', type=click.File('r'))
+@click.argument("input", type=click.File('r'))
+@click.option("--prism", is_flag=True, default=False)
 # pylint: disable=redefined-builtin
-def main(input: IO):
+def main(input: IO, prism: bool):
     """
     Compile the given program and print some information about it.
     """
     program_source = input.read()
-    print("Program source:")
-    print(program_source)
 
     program = pgcl.compile_pgcl(program_source)
     if isinstance(program, CheckFail):
         print("Error:", program)
         return
+
+    if prism:
+        print(translate_to_prism(program))
+        return
+
+    print("Program source:")
+    print(program_source)
 
     print("Program instructions:")
     for instr in program.instructions:
