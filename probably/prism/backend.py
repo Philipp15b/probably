@@ -39,7 +39,7 @@ def translate_to_prism(program: Program) -> str:
     for (var, typ) in list(program.parameters.items()) + list(
             program.variables.items()):
         if isinstance(typ, NatType) and typ.bounds is not None:
-            prism_program += f"{var} : {typ.bounds};\n"
+            prism_program += f"{var} : [({typ.bounds.lower})..({typ.bounds.upper})];\n"
         else:
             prism_program += f"{var} : {type_prism(typ)};\n"
 
@@ -50,7 +50,7 @@ def translate_to_prism(program: Program) -> str:
         raise PrismTranslatorException(
             "Don't declare a variable called ppc, that's needed by the PRISM translator."
         )
-    prism_program += f"ppc : int init {graph.entry_id};\n"
+    prism_program += f"ppc : [0..{len(graph)}] init {graph.entry_id};\n"
     # Initialize terminator execution bool
     if "ppc" in [x.var for x in program.declarations]:
         raise PrismTranslatorException(
