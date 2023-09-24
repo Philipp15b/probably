@@ -134,6 +134,10 @@ def expression_prism(expr: Expr) -> str:
             return f"({lhs}) <= ({rhs})"
         elif expr.operator == Binop.LT:
             return f"({lhs}) < ({rhs})"
+        elif expr.operator == Binop.GEQ:
+            return f"({lhs}) <= ({rhs})"
+        elif expr.operator == Binop.GT:
+            return f"({lhs}) < ({rhs})"
         elif expr.operator == Binop.EQ:
             return f"({lhs}) = ({rhs})"
         elif expr.operator == Binop.PLUS:
@@ -142,6 +146,9 @@ def expression_prism(expr: Expr) -> str:
             return f"({lhs}) - ({rhs})"
         elif expr.operator == Binop.TIMES:
             return f"({lhs}) * ({rhs})"
+        elif expr.operator == Binop.MODULO:
+            return f"({lhs}) * ({rhs})"
+        raise PrismTranslatorException("Operator not implemented:", expr)
     elif isinstance(expr, SubstExpr):
         raise PrismTranslatorException(
             "Substitution expression not implemented:", expr)
