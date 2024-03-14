@@ -3,6 +3,7 @@ Here we do a bunch of tests on a larger collection of linear programs, with focu
 """
 
 from probably.pgcl.compiler import parse_pgcl
+from probably.pgcl.parser import parse_expectation
 from probably.pgcl.simplify import normalize_expectation_transformer
 from probably.pgcl.wp import one_loop_wp_transformer
 
@@ -302,3 +303,23 @@ def test_zero_conf_parameterized():
     assert str(
         snf
     ) == 'λ𝑋. [((count < maxCount) & (free = 0)) & (0 = 1)] * (0.5 * 0.8) * (𝑋)[answerReceived/0, free/1, count/0] + [((count < maxCount) & (free = 0)) & (0 = 1)] * ((1.0 - 0.5) * 0.8) * (𝑋)[answerReceived/0, free/0, count/0] + [((count < maxCount) & (free = 0)) & not (0 = 1)] * 0.8 * (𝑋)[answerReceived/0, count/count + 1] + [((count < maxCount) & (free = 0)) & (1 = 1)] * (0.5 * (1.0 - 0.8)) * (𝑋)[answerReceived/1, free/1, count/0] + [((count < maxCount) & (free = 0)) & (1 = 1)] * ((1.0 - 0.5) * (1.0 - 0.8)) * (𝑋)[answerReceived/1, free/0, count/0] + [((count < maxCount) & (free = 0)) & not (1 = 1)] * (1.0 - 0.8) * (𝑋)[answerReceived/1, count/count + 1]'
+
+
+def test_fcall():
+    """
+    Here we apply the transformer to a post and check that the application returns the correct result.
+
+    There was a bug where the 'apply' code would method do the substitutions wrong if 𝑋 occurred multiple times in the transformer.
+    """
+
+    program = parse_pgcl(
+        """while (x < n) {\n    r := 0 : 1/2 + 1 : 1/2;\n    x := x + r;\n}""")
+    tf = one_loop_wp_transformer(program, program.instructions)
+    assert str(
+        tf
+    ) == "λ𝐹. lfp 𝑋. [x < n] * ((1/2 * ((𝑋)[r/0, x/x + 0])) + (1/2 * ((𝑋)[r/1, x/x + 1]))) + [not (x < n)] * 𝐹"
+
+    e = parse_expectation('x+r')
+    res = tf.body.apply(e)
+    assert str(
+        res) == '[x < n] * ((1/2 * ((x + 0) + 0)) + (1/2 * ((x + 1) + 1)))'

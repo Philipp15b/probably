@@ -244,6 +244,10 @@ class ExpectationTransformer:
 
         **Calling this method will change this object!**
 
+        If ``substitute`` is set to ``False``, then the ``expectation`` will not
+        be copied, but the same reference will be reused. Take care to
+        ``deepcopy`` the result before running any further substitutions!
+
         .. doctest::
 
             >>> from .parser import parse_pgcl
@@ -273,6 +277,11 @@ class ExpectationTransformer:
         for expr_ref in walk_expr(Walk.DOWN, self._expectation_ref):
             expr = expr_ref.val
             if isinstance(expr, VarExpr) and expr.var == self.variable:
+                # if we're substituting later, make sure that the expectation
+                # only has only a single reference to it so that the
+                # substitutions are correct.
+                if substitute:
+                    expectation = deepcopy(expectation)
                 expr_ref.val = expectation
         # Apply all remaining substitutions for convenience.
         if substitute:
