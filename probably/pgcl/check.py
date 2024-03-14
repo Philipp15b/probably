@@ -158,7 +158,8 @@ def get_type(program: Program,
 
         if check and expr.operator in [
                 Binop.LEQ, Binop.LT, Binop.GEQ, Binop.GT, Binop.EQ, Binop.PLUS,
-                Binop.MINUS, Binop.TIMES, Binop.MODULO, Binop.POWER, Binop.DIVIDE
+                Binop.MINUS, Binop.TIMES, Binop.MODULO, Binop.POWER,
+                Binop.DIVIDE
         ]:
             rhs_typ = get_type(program, expr.rhs, check=check)
             if isinstance(rhs_typ, CheckFail):
@@ -177,7 +178,8 @@ def get_type(program: Program,
 
         # binops that take numeric operands and return a numeric value
         if expr.operator in [
-                Binop.PLUS, Binop.MINUS, Binop.TIMES, Binop.MODULO, Binop.POWER, Binop.DIVIDE
+                Binop.PLUS, Binop.MINUS, Binop.TIMES, Binop.MODULO,
+                Binop.POWER, Binop.DIVIDE
         ]:
             # intentionally lose the bounds on NatType (see NatType documentation)
             if isinstance(lhs_typ, NatType) and lhs_typ.bounds is not None:
