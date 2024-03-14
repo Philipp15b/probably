@@ -45,6 +45,11 @@ template_path = ['_templates']
 html_sidebars = {'**': ['simpletoctree.html']}
 html_extra_path = [".nojekyll"]
 
+# Do not show Python objects in the TOC tree, we have our own headings for
+# everything. Not because we wanted to, but because this is a new feature in
+# Sphinx that we didn't have when most of the documentation was written.
+toc_object_entries = False
+
 autodoc_default_options = {'members': True, 'undoc-members': True}
 autodoc_member_order = "bysource"
 
