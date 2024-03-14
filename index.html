@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Probably Documentation &#8212; Probably  documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" />
-    <link rel="stylesheet" type="text/css" href="_static/katex-math.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script>
-    <script src="_static/katex_autorenderer.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css?v=0bf093e7" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <link rel="stylesheet" type="text/css" href="_static/katex-math.css?v=91adb8b6" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/katex.min.js?v=48ec3933"></script>
+    <script src="_static/auto-render.min.js?v=8b9f325c"></script>
+    <script src="_static/katex_autorenderer.js?v=bebc588a"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="probably.pgcl" href="pgcl.html" />
@@ -210,7 +209,7 @@
     <div class="body col-md-9 content" role="main">
       
   <section id="probably-documentation">
-<h1>Probably Documentation<a class="headerlink" href="#probably-documentation" title="Permalink to this headline">¶</a></h1>
+<h1>Probably Documentation<a class="headerlink" href="#probably-documentation" title="Link to this heading">¶</a></h1>
 <p><strong>Probably</strong> is a Python package for parsing, type-checking, and analyzing probabilistic programs written in the pGCL language.</p>
 <p>For more information, visit <a class="reference external" href="https://github.com/Philipp15b/probably">https://github.com/Philipp15b/probably</a>.</p>
 <p>Features:</p>
@@ -226,23 +225,19 @@
 </ul>
 <hr class="docutils" />
 <p><dl class="field-list">
-<dt class="field-odd">Branch</dt>
+<dt class="field-odd">Branch<span class="colon">:</span></dt>
 <dd class="field-odd"><em>master</em></dd>
-<dt class="field-even">Commit</dt>
-<dd class="field-even"><p><a class="reference external" href="https://github.com/Philipp15b/probably/commit/f6d09ed0d4c0fffd7b46fd7d310c239b469dcee4">f6d09ed</a></p>
+<dt class="field-even">Commit<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://github.com/Philipp15b/probably/commit/d092b2b9b1ecc7cceb4548f0cbdff7b5fe32a408">d092b2b</a></p>
 </dd>
 </dl>
 </p>
-<ul>
-<li><p><strong>Brand new (#5)</strong><span> by </span><em>LKlinke</em><span> at </span><em>2022-06-10 13:04:53</em></p>
-<p>Fix typechecker error for expressions that contain /
-
-Co-authored-by: Legotier &lt;legotier1999&#64;gmail.com&gt;</p>
-</li>
+<ul class="simple">
+<li><p><strong>lint: add more exceptions for newer version</strong><span> by </span><em>Philipp Schröer</em><span> at </span><em>2024-03-14 21:00:17</em></p></li>
 </ul>
 <hr class="docutils" />
 <section id="api-documentation">
-<h2>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h2>
+<h2>API Documentation<a class="headerlink" href="#api-documentation" title="Link to this heading">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>You want a quickstart? Jump over to the <a class="reference internal" href="pgcl.html"><span class="doc">the pGCL module documentation</span></a>!</p>
@@ -293,19 +288,19 @@ Co-authored-by: Legotier &lt;legotier1999&#64;gmail.com&gt;</p>
 </div>
 </section>
 <section id="module-probably.cmd">
-<span id="command-line-interface"></span><h2>Command-Line Interface<a class="headerlink" href="#module-probably.cmd" title="Permalink to this headline">¶</a></h2>
+<span id="command-line-interface"></span><h2>Command-Line Interface<a class="headerlink" href="#module-probably.cmd" title="Link to this heading">¶</a></h2>
 <p>Probably also offers a simple command-line interface for quick program inspection.</p>
 <p>If you use <cite>poetry</cite> and do not have probably installed globally, you can use <cite>poetry run probably INPUT</cite>.</p>
 <section id="probably">
-<h3>probably<a class="headerlink" href="#probably" title="Permalink to this headline">¶</a></h3>
+<h3>probably<a class="headerlink" href="#probably" title="Link to this heading">¶</a></h3>
 <p>Compile the given program and print some information about it.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>probably <span class="o">[</span>OPTIONS<span class="o">]</span> INPUT
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>probably<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>INPUT
 </pre></div>
 </div>
 <p class="rubric">Arguments</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-probably-arg-INPUT">
-<span id="cmdoption-probably-arg-input"></span><span class="sig-name descname"><span class="pre">INPUT</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-probably-arg-INPUT" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">INPUT</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-probably-arg-INPUT" title="Link to this definition">¶</a></dt>
 <dd><p>Required argument</p>
 </dd></dl>
 
@@ -332,8 +327,8 @@ Co-authored-by: Legotier &lt;legotier1999&#64;gmail.com&gt;</p>
       
     </p>
     <p>
-        &copy; Copyright 2022, Philipp Schröer.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
+        &copy; Copyright 2024, Philipp Schröer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br/>
     </p>
   </div>
 </footer>

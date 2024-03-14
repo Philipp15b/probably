@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>probably.pysmt.context &#8212; Probably  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css" />
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script>
-    <script src="../../../_static/katex_autorenderer.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css?v=0bf093e7" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css?v=91adb8b6" />
+    <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/katex.min.js?v=48ec3933"></script>
+    <script src="../../../_static/auto-render.min.js?v=8b9f325c"></script>
+    <script src="../../../_static/katex_autorenderer.js?v=bebc588a"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
     
@@ -240,9 +239,11 @@
     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;unreachable&quot;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="TranslationContext"><a class="viewcode-back" href="../../../pysmt.html#probably.pysmt.context.TranslationContext">[docs]</a><span class="nd">@attr</span><span class="o">.</span><span class="n">s</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="viewcode-block" id="TranslationContext">
+<a class="viewcode-back" href="../../../pysmt.html#probably.pysmt.context.TranslationContext">[docs]</a>
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">TranslationContext</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Context used for translation of pGCL parts.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -262,9 +263,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">infinity</span> <span class="o">=</span> <span class="n">infinity</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">id_subst</span> <span class="o">=</span> <span class="n">id_subst</span>
 
-<div class="viewcode-block" id="TranslationContext.from_program"><a class="viewcode-back" href="../../../pysmt.html#probably.pysmt.context.TranslationContext.from_program">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="TranslationContext.from_program">
+<a class="viewcode-back" href="../../../pysmt.html#probably.pysmt.context.TranslationContext.from_program">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_program</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TranslationContext&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a new TranslationContext from a pGCL program&#39;s declared</span>
 <span class="sd">        variables.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -272,7 +275,9 @@
             <span class="n">var</span><span class="p">:</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">_translate_type</span><span class="p">(</span><span class="n">typ</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">typ</span> <span class="ow">in</span> <span class="n">program</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">}</span>
-        <span class="k">return</span> <span class="n">TranslationContext</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">TranslationContext</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span></div>
+</div>
+
 </pre></div>
 
     </div>
@@ -289,8 +294,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2022, Philipp Schröer.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
+        &copy; Copyright 2024, Philipp Schröer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br/>
     </p>
   </div>
 </footer>

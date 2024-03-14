@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>probably.pgcl.check &#8212; Probably  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css" />
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script>
-    <script src="../../../_static/katex_autorenderer.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css?v=0bf093e7" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css?v=91adb8b6" />
+    <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/katex.min.js?v=48ec3933"></script>
+    <script src="../../../_static/auto-render.min.js?v=8b9f325c"></script>
+    <script src="../../../_static/katex_autorenderer.js?v=bebc588a"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
     
@@ -236,30 +235,40 @@
 <span class="n">_T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;_T&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="CheckFail"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.CheckFail">[docs]</a><span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
+<div class="viewcode-block" id="CheckFail">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.CheckFail">[docs]</a>
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
 <span class="k">class</span> <span class="nc">CheckFail</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A check failed with an error message and an optional location.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">location</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Node</span><span class="p">]</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
     <span class="n">message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
 
-<div class="viewcode-block" id="CheckFail.expected_type_got"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.CheckFail.expected_type_got">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="CheckFail.expected_type_got">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.CheckFail.expected_type_got">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">expected_type_got</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">expected</span><span class="p">:</span> <span class="n">Type</span><span class="p">,</span>
                           <span class="n">got</span><span class="p">:</span> <span class="n">Type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;CheckFail&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">CheckFail</span><span class="p">(</span><span class="n">node</span><span class="p">,</span>
                          <span class="sa">f</span><span class="s1">&#39;Expected value of type </span><span class="si">{</span><span class="n">expected</span><span class="si">}</span><span class="s1">, got </span><span class="si">{</span><span class="n">got</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="CheckFail.expected_numeric_got"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.CheckFail.expected_numeric_got">[docs]</a>    <span class="nd">@staticmethod</span>
+
+<div class="viewcode-block" id="CheckFail.expected_numeric_got">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.CheckFail.expected_numeric_got">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">expected_numeric_got</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">Node</span><span class="p">,</span> <span class="n">got</span><span class="p">:</span> <span class="n">Type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;CheckFail&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">CheckFail</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Expected numeric value, got </span><span class="si">{</span><span class="n">got</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="CheckFail.fmap"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.CheckFail.fmap">[docs]</a>    <span class="nd">@staticmethod</span>
+
+<div class="viewcode-block" id="CheckFail.fmap">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.CheckFail.fmap">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">fmap</span><span class="p">(</span>
         <span class="n">source</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">_T</span><span class="p">,</span>
                                <span class="s1">&#39;CheckFail&#39;</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s1">&#39;CheckFail&#39;</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">_T</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Extract an error from an iterable.</span>
 
 <span class="sd">        .. doctest::</span>
@@ -274,13 +283,17 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">CheckFail</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">step</span>
             <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">output</span></div></div>
+        <span class="k">return</span> <span class="n">output</span></div>
+</div>
 
 
-<div class="viewcode-block" id="get_type"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.get_type">[docs]</a><span class="k">def</span> <span class="nf">get_type</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">,</span>
+
+<div class="viewcode-block" id="get_type">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.get_type">[docs]</a>
+<span class="k">def</span> <span class="nf">get_type</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">,</span>
              <span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">,</span>
              <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Type</span><span class="p">,</span> <span class="n">CheckFail</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the type of the expression or expectation.</span>
 
 <span class="sd">    Set `check` to `True` to force checking correctness of all subexpressions, even if that is not necessary to determine the given expression&#39;s type.</span>
@@ -368,7 +381,8 @@
 
         <span class="k">if</span> <span class="n">check</span> <span class="ow">and</span> <span class="n">expr</span><span class="o">.</span><span class="n">operator</span> <span class="ow">in</span> <span class="p">[</span>
                 <span class="n">Binop</span><span class="o">.</span><span class="n">LEQ</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">LT</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">GEQ</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">GT</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">EQ</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">PLUS</span><span class="p">,</span>
-                <span class="n">Binop</span><span class="o">.</span><span class="n">MINUS</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">TIMES</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">MODULO</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">POWER</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">DIVIDE</span>
+                <span class="n">Binop</span><span class="o">.</span><span class="n">MINUS</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">TIMES</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">MODULO</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">POWER</span><span class="p">,</span>
+                <span class="n">Binop</span><span class="o">.</span><span class="n">DIVIDE</span>
         <span class="p">]:</span>
             <span class="n">rhs_typ</span> <span class="o">=</span> <span class="n">get_type</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">rhs</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="n">check</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rhs_typ</span><span class="p">,</span> <span class="n">CheckFail</span><span class="p">):</span>
@@ -387,7 +401,8 @@
 
         <span class="c1"># binops that take numeric operands and return a numeric value</span>
         <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">operator</span> <span class="ow">in</span> <span class="p">[</span>
-                <span class="n">Binop</span><span class="o">.</span><span class="n">PLUS</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">MINUS</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">TIMES</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">MODULO</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">POWER</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">DIVIDE</span>
+                <span class="n">Binop</span><span class="o">.</span><span class="n">PLUS</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">MINUS</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">TIMES</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">MODULO</span><span class="p">,</span>
+                <span class="n">Binop</span><span class="o">.</span><span class="n">POWER</span><span class="p">,</span> <span class="n">Binop</span><span class="o">.</span><span class="n">DIVIDE</span>
         <span class="p">]:</span>
             <span class="c1"># intentionally lose the bounds on NatType (see NatType documentation)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lhs_typ</span><span class="p">,</span> <span class="n">NatType</span><span class="p">)</span> <span class="ow">and</span> <span class="n">lhs_typ</span><span class="o">.</span><span class="n">bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -420,6 +435,7 @@
         <span class="k">return</span> <span class="n">typ</span>
 
     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;unreachable&quot;</span><span class="p">)</span></div>
+
 
 
 <span class="k">def</span> <span class="nf">_check_distribution_arguments</span><span class="p">(</span>
@@ -487,8 +503,10 @@
     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;unreachable&quot;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="is_compatible"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.is_compatible">[docs]</a><span class="k">def</span> <span class="nf">is_compatible</span><span class="p">(</span><span class="n">lhs</span><span class="p">:</span> <span class="n">Type</span><span class="p">,</span> <span class="n">rhs</span><span class="p">:</span> <span class="n">Type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="is_compatible">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.is_compatible">[docs]</a>
+<span class="k">def</span> <span class="nf">is_compatible</span><span class="p">(</span><span class="n">lhs</span><span class="p">:</span> <span class="n">Type</span><span class="p">,</span> <span class="n">rhs</span><span class="p">:</span> <span class="n">Type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check if the right-hand side type is compatible with the left-hand side type.</span>
 
 <span class="sd">    This function essentially defines the implicit type coercions of the pGCL language.</span>
@@ -521,8 +539,9 @@
     <span class="k">return</span> <span class="n">lhs</span> <span class="o">==</span> <span class="n">rhs</span></div>
 
 
+
 <span class="k">def</span> <span class="nf">_check_constant_declarations</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CheckFail</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check that constants are defined before they are used.</span>
 <span class="sd">    Also check that constants only contain other constants.</span>
 
@@ -557,7 +576,7 @@
 
 
 <span class="k">def</span> <span class="nf">_check_declaration_list</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CheckFail</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check that all variables/constants are defined at most once.</span>
 
 <span class="sd">    .. doctest::</span>
@@ -587,8 +606,10 @@
 
 
 <span class="c1"># pylint: disable = too-many-statements</span>
-<div class="viewcode-block" id="check_instr"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.check_instr">[docs]</a><span class="k">def</span> <span class="nf">check_instr</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">,</span> <span class="n">instr</span><span class="p">:</span> <span class="n">Instr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CheckFail</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="check_instr">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.check_instr">[docs]</a>
+<span class="k">def</span> <span class="nf">check_instr</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">,</span> <span class="n">instr</span><span class="p">:</span> <span class="n">Instr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CheckFail</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check a single instruction for type-safety.</span>
 
 <span class="sd">    .. doctest::</span>
@@ -736,11 +757,14 @@
     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;unreachable&quot;</span><span class="p">)</span></div>
 
 
+
 <span class="c1"># pylint: enable = too-many-statements</span>
 
 
-<div class="viewcode-block" id="check_program"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.check_program">[docs]</a><span class="k">def</span> <span class="nf">check_program</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CheckFail</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Check a program for type-safety.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="check_program">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.check_program">[docs]</a>
+<span class="k">def</span> <span class="nf">check_program</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CheckFail</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check a program for type-safety.&quot;&quot;&quot;</span>
     <span class="n">check_result</span> <span class="o">=</span> <span class="n">_check_constant_declarations</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">check_result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">check_result</span>
@@ -750,8 +774,11 @@
     <span class="k">return</span> <span class="n">_check_instrs</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">program</span><span class="o">.</span><span class="n">instructions</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="check_expression"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.check_expression">[docs]</a><span class="k">def</span> <span class="nf">check_expression</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CheckFail</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="check_expression">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.check_expression">[docs]</a>
+<span class="k">def</span> <span class="nf">check_expression</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CheckFail</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check an expression for type-safety.</span>
 
 <span class="sd">    .. doctest::</span>
@@ -769,12 +796,16 @@
     <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="check_expectation"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.check_expectation">[docs]</a><span class="k">def</span> <span class="nf">check_expectation</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CheckFail</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Check an expectation for type-safety.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="check_expectation">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.check.check_expectation">[docs]</a>
+<span class="k">def</span> <span class="nf">check_expectation</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CheckFail</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check an expectation for type-safety.&quot;&quot;&quot;</span>
     <span class="n">expr_type</span> <span class="o">=</span> <span class="n">get_type</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr_type</span><span class="p">,</span> <span class="n">CheckFail</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">expr_type</span>
     <span class="k">return</span> <span class="kc">None</span></div>
+
 </pre></div>
 
     </div>
@@ -791,8 +822,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2022, Philipp Schröer.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
+        &copy; Copyright 2024, Philipp Schröer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br/>
     </p>
   </div>
 </footer>

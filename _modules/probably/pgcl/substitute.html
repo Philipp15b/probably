@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>probably.pgcl.substitute &#8212; Probably  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css" />
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script>
-    <script src="../../../_static/katex_autorenderer.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css?v=0bf093e7" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css?v=91adb8b6" />
+    <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/katex.min.js?v=48ec3933"></script>
+    <script src="../../../_static/auto-render.min.js?v=8b9f325c"></script>
+    <script src="../../../_static/katex_autorenderer.js?v=bebc588a"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
     
@@ -315,8 +314,10 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;BoundExpr(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s1">)&#39;</span>
 
 
-<div class="viewcode-block" id="_Binder"><a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Binder">[docs]</a><span class="k">class</span> <span class="nc">_Binder</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="_Binder">
+<a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Binder">[docs]</a>
+<span class="k">class</span> <span class="nc">_Binder</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    All substitutions (the `values` in the `subst` dict) are assigned a numeric identifier.</span>
 <span class="sd">    The binder manages those.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -327,8 +328,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_bound</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_deepcopy</span> <span class="o">=</span> <span class="n">deepcopy</span>
 
-<div class="viewcode-block" id="_Binder.bind"><a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Binder.bind">[docs]</a>    <span class="k">def</span> <span class="nf">bind</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_BoundExpr</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="_Binder.bind">
+<a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Binder.bind">[docs]</a>
+    <span class="k">def</span> <span class="nf">bind</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_BoundExpr</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add the given expression to the binder, return a new :class:`_BoundExpr`</span>
 <span class="sd">        that points to the expression in the binder.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -336,8 +339,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_bound</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_BoundExpr</span><span class="p">(</span><span class="n">bound_index</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="_Binder.resolve"><a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Binder.resolve">[docs]</a>    <span class="k">def</span> <span class="nf">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="_Binder.resolve">
+<a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Binder.resolve">[docs]</a>
+    <span class="k">def</span> <span class="nf">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        In the internal list of bound expressions, replace all</span>
 <span class="sd">        :class:`_BoundExpr` by the the bound expressions.</span>
 
@@ -360,8 +366,11 @@
                     <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">subexpr_ref</span><span class="o">.</span><span class="n">val</span><span class="p">,</span> <span class="n">_BoundExpr</span><span class="p">)</span>
             <span class="k">assert</span> <span class="n">expr</span> <span class="ow">is</span> <span class="n">expr_ref</span><span class="o">.</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;expression refs must be stable&quot;</span></div>
 
-<div class="viewcode-block" id="_Binder.lookup"><a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Binder.lookup">[docs]</a>    <span class="k">def</span> <span class="nf">lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bound</span><span class="p">:</span> <span class="n">_BoundExpr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="_Binder.lookup">
+<a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Binder.lookup">[docs]</a>
+    <span class="k">def</span> <span class="nf">lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bound</span><span class="p">:</span> <span class="n">_BoundExpr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a :class:`_BoundExpr`, return the associated expression.</span>
 
 <span class="sd">        _Deepcopies_ the expression if ``deepcopy`` is set to ``True``.</span>
@@ -369,11 +378,15 @@
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bound</span><span class="p">[</span><span class="n">bound</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deepcopy</span><span class="p">:</span>
             <span class="n">res</span> <span class="o">=</span> <span class="n">copylib</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">res</span></div></div>
+        <span class="k">return</span> <span class="n">res</span></div>
+</div>
 
 
-<div class="viewcode-block" id="_Subst"><a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Subst">[docs]</a><span class="k">class</span> <span class="nc">_Subst</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="_Subst">
+<a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Subst">[docs]</a>
+<span class="k">class</span> <span class="nc">_Subst</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Data structure for current substitutions to be applied.</span>
 
 <span class="sd">    * It holds a mapping for the substitutions itself (Var/BoundExpr to BoundExpr),</span>
@@ -390,17 +403,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_subst</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">subst</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">subst</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_symbolic</span> <span class="o">=</span> <span class="n">symbolic</span>
 
-<div class="viewcode-block" id="_Subst.add_bound"><a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Subst.add_bound">[docs]</a>    <span class="k">def</span> <span class="nf">add_bound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binder</span><span class="p">:</span> <span class="n">_Binder</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span> <span class="n">_BoundExpr</span><span class="p">],</span>
+<div class="viewcode-block" id="_Subst.add_bound">
+<a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Subst.add_bound">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_bound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binder</span><span class="p">:</span> <span class="n">_Binder</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span> <span class="n">_BoundExpr</span><span class="p">],</span>
                   <span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Bind the expression using ``binder``, then add a new substitution that</span>
 <span class="sd">        replaces ``var`` by the newly created bound expression.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">bound_expr</span> <span class="o">=</span> <span class="n">binder</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_subst</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">bound_expr</span></div>
 
-<div class="viewcode-block" id="_Subst.apply"><a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Subst.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_expr</span><span class="p">:</span> <span class="n">VarExpr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="_Subst.apply">
+<a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Subst.apply">[docs]</a>
+    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_expr</span><span class="p">:</span> <span class="n">VarExpr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Apply the substitutions to the given variable expression. Symbolic</span>
 <span class="sd">        variables are replaced by new substitution expressions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -412,8 +430,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">var_expr</span></div>
 
+
     <span class="k">def</span> <span class="nf">_mk_subst_expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubstExpr</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a substitution expression around `body`.</span>
 <span class="sd">        Used for symbolic variables.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -421,16 +440,22 @@
         <span class="n">subst_cast</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span> <span class="n">Expr</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subst</span>  <span class="c1"># type:ignore</span>
         <span class="k">return</span> <span class="n">SubstExpr</span><span class="p">(</span><span class="n">subst_cast</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
 
-<div class="viewcode-block" id="_Subst.copy"><a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Subst.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;_Subst&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="_Subst.copy">
+<a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._Subst.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;_Subst&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make a new copy of this substitution dictionary, for use in branching</span>
 <span class="sd">        expressions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">_Subst</span><span class="p">(</span><span class="n">subst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_subst</span><span class="p">,</span> <span class="n">symbolic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbolic</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">_Subst</span><span class="p">(</span><span class="n">subst</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_subst</span><span class="p">,</span> <span class="n">symbolic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbolic</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="_bind_substs"><a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._bind_substs">[docs]</a><span class="k">def</span> <span class="nf">_bind_substs</span><span class="p">(</span><span class="n">binder</span><span class="p">:</span> <span class="n">_Binder</span><span class="p">,</span> <span class="n">subst</span><span class="p">:</span> <span class="n">_Subst</span><span class="p">,</span> <span class="n">expr_ref</span><span class="p">:</span> <span class="n">Mut</span><span class="p">[</span><span class="n">Expr</span><span class="p">]):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="_bind_substs">
+<a class="viewcode-back" href="../../../substitute_internals.html#probably.pgcl.substitute._bind_substs">[docs]</a>
+<span class="k">def</span> <span class="nf">_bind_substs</span><span class="p">(</span><span class="n">binder</span><span class="p">:</span> <span class="n">_Binder</span><span class="p">,</span> <span class="n">subst</span><span class="p">:</span> <span class="n">_Subst</span><span class="p">,</span> <span class="n">expr_ref</span><span class="p">:</span> <span class="n">Mut</span><span class="p">[</span><span class="n">Expr</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Walk the `expr_ref` and replace all right-hand sides of each :class:`SubstExpr` by a locally bound :class:`_BoundExpr`.</span>
 
 
@@ -484,6 +509,7 @@
         <span class="n">_bind_substs</span><span class="p">(</span><span class="n">binder</span><span class="p">,</span> <span class="n">subst</span><span class="p">,</span> <span class="n">child_expr_ref</span><span class="p">)</span></div>
 
 
+
 <span class="k">def</span> <span class="nf">_resolve_bound_exprs</span><span class="p">(</span><span class="n">binder</span><span class="p">:</span> <span class="n">_Binder</span><span class="p">,</span> <span class="n">expr_ref</span><span class="p">:</span> <span class="n">Mut</span><span class="p">[</span><span class="n">Expr</span><span class="p">]):</span>
     <span class="k">for</span> <span class="n">child_expr_ref</span> <span class="ow">in</span> <span class="n">walk_expr</span><span class="p">(</span><span class="n">Walk</span><span class="o">.</span><span class="n">UP</span><span class="p">,</span> <span class="n">expr_ref</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">child_expr_ref</span><span class="o">.</span><span class="n">val</span><span class="p">,</span> <span class="n">_BoundExpr</span><span class="p">):</span>
@@ -496,11 +522,13 @@
                 <span class="n">_resolve_bound_exprs</span><span class="p">(</span><span class="n">binder</span><span class="p">,</span> <span class="n">subst_expr_ref</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="substitute_expr"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.substitute.substitute_expr">[docs]</a><span class="k">def</span> <span class="nf">substitute_expr</span><span class="p">(</span><span class="n">expr_ref</span><span class="p">:</span> <span class="n">Mut</span><span class="p">[</span><span class="n">Expr</span><span class="p">],</span>
+<div class="viewcode-block" id="substitute_expr">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.substitute.substitute_expr">[docs]</a>
+<span class="k">def</span> <span class="nf">substitute_expr</span><span class="p">(</span><span class="n">expr_ref</span><span class="p">:</span> <span class="n">Mut</span><span class="p">[</span><span class="n">Expr</span><span class="p">],</span>
                     <span class="o">*</span><span class="p">,</span>
                     <span class="n">symbolic</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FrozenSet</span><span class="p">[</span><span class="n">Var</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                     <span class="n">deepcopy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Apply substitutions in this expression/expectation.</span>
 <span class="sd">    After execution, the `expr_ref` contains no :class:`SubstExpr` anywhere except directly around `symbolic` variables.</span>
 
@@ -517,11 +545,14 @@
     <span class="n">_resolve_bound_exprs</span><span class="p">(</span><span class="n">binder</span><span class="p">,</span> <span class="n">expr_ref</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="substitute_constants_expr"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.substitute.substitute_constants_expr">[docs]</a><span class="k">def</span> <span class="nf">substitute_constants_expr</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">,</span>
+
+<div class="viewcode-block" id="substitute_constants_expr">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.substitute.substitute_constants_expr">[docs]</a>
+<span class="k">def</span> <span class="nf">substitute_constants_expr</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">,</span>
                               <span class="n">expr_ref</span><span class="p">:</span> <span class="n">Mut</span><span class="p">[</span><span class="n">Expr</span><span class="p">],</span>
                               <span class="o">*</span><span class="p">,</span>
                               <span class="n">symbolic</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FrozenSet</span><span class="p">[</span><span class="n">Var</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Substitute constants in this expression/expectation.</span>
 
 <span class="sd">    Args:</span>
@@ -533,10 +564,13 @@
     <span class="n">substitute_expr</span><span class="p">(</span><span class="n">expr_ref</span><span class="p">,</span> <span class="n">symbolic</span><span class="o">=</span><span class="n">symbolic</span><span class="p">,</span> <span class="n">deepcopy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="substitute_constants"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.substitute.substitute_constants">[docs]</a><span class="k">def</span> <span class="nf">substitute_constants</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">,</span>
+
+<div class="viewcode-block" id="substitute_constants">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.substitute.substitute_constants">[docs]</a>
+<span class="k">def</span> <span class="nf">substitute_constants</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">,</span>
                          <span class="o">*</span><span class="p">,</span>
                          <span class="n">symbolic</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FrozenSet</span><span class="p">[</span><span class="n">Var</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Substitute constants in this program.</span>
 
 <span class="sd">    .. doctest::</span>
@@ -557,6 +591,7 @@
     <span class="k">for</span> <span class="n">instr_ref</span> <span class="ow">in</span> <span class="n">walk_instrs</span><span class="p">(</span><span class="n">Walk</span><span class="o">.</span><span class="n">DOWN</span><span class="p">,</span> <span class="n">program</span><span class="o">.</span><span class="n">instructions</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">expr_ref</span> <span class="ow">in</span> <span class="n">mut_instr_exprs</span><span class="p">(</span><span class="n">instr_ref</span><span class="o">.</span><span class="n">val</span><span class="p">):</span>
             <span class="n">substitute_constants_expr</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">expr_ref</span><span class="p">,</span> <span class="n">symbolic</span><span class="o">=</span><span class="n">symbolic</span><span class="p">)</span></div>
+
 </pre></div>
 
     </div>
@@ -573,8 +608,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2022, Philipp Schröer.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
+        &copy; Copyright 2024, Philipp Schröer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br/>
     </p>
   </div>
 </footer>

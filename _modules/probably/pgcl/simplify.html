@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>probably.pgcl.simplify &#8212; Probably  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css" />
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script>
-    <script src="../../../_static/katex_autorenderer.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css?v=0bf093e7" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css?v=91adb8b6" />
+    <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/katex.min.js?v=48ec3933"></script>
+    <script src="../../../_static/auto-render.min.js?v=8b9f325c"></script>
+    <script src="../../../_static/katex_autorenderer.js?v=bebc588a"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
     
@@ -232,8 +231,10 @@
 <span class="kn">from</span> <span class="nn">.wp</span> <span class="kn">import</span> <span class="n">ExpectationTransformer</span>
 
 
-<div class="viewcode-block" id="simplifying_and"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.simplifying_and">[docs]</a><span class="k">def</span> <span class="nf">simplifying_and</span><span class="p">(</span><span class="n">lhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">rhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="simplifying_and">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.simplifying_and">[docs]</a>
+<span class="k">def</span> <span class="nf">simplifying_and</span><span class="p">(</span><span class="n">lhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">rhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Combine with `Binop.AND`, but simplify when one operand is `BoolLitExpr(True)`.</span>
 
 <span class="sd">    .. doctest::</span>
@@ -248,8 +249,11 @@
     <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">AND</span><span class="p">,</span> <span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="simplifying_plus"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.simplifying_plus">[docs]</a><span class="k">def</span> <span class="nf">simplifying_plus</span><span class="p">(</span><span class="n">lhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">rhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="simplifying_plus">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.simplifying_plus">[docs]</a>
+<span class="k">def</span> <span class="nf">simplifying_plus</span><span class="p">(</span><span class="n">lhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">rhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Combine with ``Binop.PLUS``, but simplify when one operand is</span>
 <span class="sd">    ``NatLitExpr(0)`` or both operands are ``NatLitExpr``.</span>
 
@@ -270,8 +274,11 @@
     <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">PLUS</span><span class="p">,</span> <span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="simplifying_times"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.simplifying_times">[docs]</a><span class="k">def</span> <span class="nf">simplifying_times</span><span class="p">(</span><span class="n">lhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">rhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="simplifying_times">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.simplifying_times">[docs]</a>
+<span class="k">def</span> <span class="nf">simplifying_times</span><span class="p">(</span><span class="n">lhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">rhs</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Combine with ``Binop.TIMES``, but simplify when one operand is ``RealLitExpr(&quot;1.0&quot;)``.</span>
 
 <span class="sd">    .. doctest::</span>
@@ -287,8 +294,11 @@
     <span class="k">return</span> <span class="n">BinopExpr</span><span class="p">(</span><span class="n">Binop</span><span class="o">.</span><span class="n">TIMES</span><span class="p">,</span> <span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="simplifying_subst"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.simplifying_subst">[docs]</a><span class="k">def</span> <span class="nf">simplifying_subst</span><span class="p">(</span><span class="n">subst</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span> <span class="n">Expr</span><span class="p">],</span> <span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="simplifying_subst">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.simplifying_subst">[docs]</a>
+<span class="k">def</span> <span class="nf">simplifying_subst</span><span class="p">(</span><span class="n">subst</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span> <span class="n">Expr</span><span class="p">],</span> <span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Only create a ``SubstExpr`` around `expr` if `expr` is not a simple literal.</span>
 
 <span class="sd">    .. doctest::</span>
@@ -301,8 +311,11 @@
     <span class="k">return</span> <span class="n">SubstExpr</span><span class="p">(</span><span class="n">subst</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="simplifying_neg"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.simplifying_neg">[docs]</a><span class="k">def</span> <span class="nf">simplifying_neg</span><span class="p">(</span><span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="simplifying_neg">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.simplifying_neg">[docs]</a>
+<span class="k">def</span> <span class="nf">simplifying_neg</span><span class="p">(</span><span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Expr</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Negate the given Boolean expression. If we already have a negation, unwrap it.</span>
 
 <span class="sd">    .. doctest::</span>
@@ -317,9 +330,12 @@
     <span class="k">return</span> <span class="n">UnopExpr</span><span class="p">(</span><span class="n">Unop</span><span class="o">.</span><span class="n">NEG</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="SnfExpectationTransformerProduct"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct">[docs]</a><span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
+
+<div class="viewcode-block" id="SnfExpectationTransformerProduct">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct">[docs]</a>
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
 <span class="k">class</span> <span class="nc">SnfExpectationTransformerProduct</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A :class:`SnfExpectationTransformer` represents a list of</span>
 <span class="sd">    :class:`SnfExpectationTransformerProduct`.</span>
 
@@ -341,59 +357,73 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">guard</span><span class="p">:</span> <span class="n">Expr</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
-    <span class="sd">&quot;&quot;&quot;The boolean guard expression.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The boolean guard expression.&quot;&quot;&quot;</span>
 
     <span class="n">prob</span><span class="p">:</span> <span class="n">Expr</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The probability without any Iverson brackets or</span>
 <span class="sd">    :class:`probably.pgcl.ast.TickExpr`. It has types</span>
 <span class="sd">    :class:`probably.pgcl.ast.RealType` or :class:`probably.pgcl.ast.NatType`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">subst</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span> <span class="n">Expr</span><span class="p">]]</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Representing the (optional) post-expectation and substitutions applied to it.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">ticks</span><span class="p">:</span> <span class="n">TickExpr</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
-    <span class="sd">&quot;&quot;&quot;Sum of ticks in this part.&quot;&quot;&quot;</span>
-<div class="viewcode-block" id="SnfExpectationTransformerProduct.from_iverson"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.from_iverson">[docs]</a>    <span class="nd">@staticmethod</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sum of ticks in this part.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="SnfExpectationTransformerProduct.from_iverson">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.from_iverson">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_iverson</span><span class="p">(</span><span class="n">guard</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SnfExpectationTransformerProduct&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a new value ``guard * 1.0 * tick(1)``.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new value ``guard * 1.0 * tick(1)``.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SnfExpectationTransformerProduct</span><span class="p">(</span><span class="n">guard</span><span class="o">=</span><span class="n">guard</span><span class="p">,</span>
                                                 <span class="n">prob</span><span class="o">=</span><span class="n">RealLitExpr</span><span class="p">(</span><span class="s2">&quot;1.0&quot;</span><span class="p">),</span>
                                                 <span class="n">subst</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                                 <span class="n">ticks</span><span class="o">=</span><span class="n">TickExpr</span><span class="p">(</span><span class="n">NatLitExpr</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span></div>
 
-<div class="viewcode-block" id="SnfExpectationTransformerProduct.from_prob"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.from_prob">[docs]</a>    <span class="nd">@staticmethod</span>
+
+<div class="viewcode-block" id="SnfExpectationTransformerProduct.from_prob">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.from_prob">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_prob</span><span class="p">(</span><span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SnfExpectationTransformerProduct&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a new value from just the probability.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new value from just the probability.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SnfExpectationTransformerProduct</span><span class="p">(</span><span class="n">guard</span><span class="o">=</span><span class="n">BoolLitExpr</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
                                                 <span class="n">prob</span><span class="o">=</span><span class="n">expr</span><span class="p">,</span>
                                                 <span class="n">subst</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                                 <span class="n">ticks</span><span class="o">=</span><span class="n">TickExpr</span><span class="p">(</span><span class="n">NatLitExpr</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span></div>
 
-<div class="viewcode-block" id="SnfExpectationTransformerProduct.from_subst"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.from_subst">[docs]</a>    <span class="nd">@staticmethod</span>
+
+<div class="viewcode-block" id="SnfExpectationTransformerProduct.from_subst">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.from_subst">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_subst</span><span class="p">(</span>
             <span class="n">subst</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span> <span class="n">Expr</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;SnfExpectationTransformerProduct&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a new value from the substitution.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new value from the substitution.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SnfExpectationTransformerProduct</span><span class="p">(</span><span class="n">guard</span><span class="o">=</span><span class="n">BoolLitExpr</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
                                                 <span class="n">prob</span><span class="o">=</span><span class="n">RealLitExpr</span><span class="p">(</span><span class="s2">&quot;1.0&quot;</span><span class="p">),</span>
                                                 <span class="n">subst</span><span class="o">=</span><span class="n">subst</span><span class="p">,</span>
                                                 <span class="n">ticks</span><span class="o">=</span><span class="n">TickExpr</span><span class="p">(</span><span class="n">NatLitExpr</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span></div>
 
-<div class="viewcode-block" id="SnfExpectationTransformerProduct.from_ticks"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.from_ticks">[docs]</a>    <span class="nd">@staticmethod</span>
+
+<div class="viewcode-block" id="SnfExpectationTransformerProduct.from_ticks">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.from_ticks">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_ticks</span><span class="p">(</span><span class="n">ticks</span><span class="p">:</span> <span class="n">TickExpr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SnfExpectationTransformerProduct&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a new value from ticks.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new value from ticks.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SnfExpectationTransformerProduct</span><span class="p">(</span><span class="n">guard</span><span class="o">=</span><span class="n">BoolLitExpr</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
                                                 <span class="n">prob</span><span class="o">=</span><span class="n">RealLitExpr</span><span class="p">(</span><span class="s2">&quot;1.0&quot;</span><span class="p">),</span>
                                                 <span class="n">subst</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                                 <span class="n">ticks</span><span class="o">=</span><span class="n">ticks</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SnfExpectationTransformerProduct.substitute"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.substitute">[docs]</a>    <span class="k">def</span> <span class="nf">substitute</span><span class="p">(</span>
+
+<div class="viewcode-block" id="SnfExpectationTransformerProduct.substitute">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformerProduct.substitute">[docs]</a>
+    <span class="k">def</span> <span class="nf">substitute</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">subst</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span>
                               <span class="n">Expr</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;SnfExpectationTransformerProduct&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Apply the substitution to this value.</span>
 
 <span class="sd">        This object&#39;s :data:`subst` must be empty!</span>
@@ -404,6 +434,7 @@
             <span class="n">prob</span><span class="o">=</span><span class="n">SubstExpr</span><span class="p">(</span><span class="n">subst</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob</span><span class="p">),</span>
             <span class="n">subst</span><span class="o">=</span><span class="n">subst</span><span class="p">,</span>
             <span class="n">ticks</span><span class="o">=</span><span class="n">TickExpr</span><span class="p">(</span><span class="n">simplifying_subst</span><span class="p">(</span><span class="n">subst</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ticks</span><span class="o">.</span><span class="n">expr</span><span class="p">)))</span></div>
+
 
     <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s1">&#39;SnfExpectationTransformerProduct&#39;</span>
@@ -437,9 +468,12 @@
         <span class="k">return</span> <span class="s2">&quot; * &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">terms</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="SnfExpectationTransformer"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer">[docs]</a><span class="nd">@attr</span><span class="o">.</span><span class="n">s</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SnfExpectationTransformer">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer">[docs]</a>
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SnfExpectationTransformer</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An expectation transformer</span>
 <span class="sd">    (:class:`probably.pgcl.wp.ExpectationTransformer`) is in *summation normal</span>
 <span class="sd">    form (SNF)* if it is a sum of products</span>
@@ -474,35 +508,50 @@
                 <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">UnopExpr</span><span class="p">)</span>
                             <span class="ow">and</span> <span class="n">child</span><span class="o">.</span><span class="n">operator</span> <span class="o">==</span> <span class="n">Unop</span><span class="o">.</span><span class="n">IVERSON</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SnfExpectationTransformer.from_iverson"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.from_iverson">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="SnfExpectationTransformer.from_iverson">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.from_iverson">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_iverson</span><span class="p">(</span><span class="n">guard</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SnfExpectationTransformer&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a new value ``guard * 1.0 * tick(1)``.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new value ``guard * 1.0 * tick(1)``.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SnfExpectationTransformer</span><span class="p">(</span>
             <span class="p">[</span><span class="n">SnfExpectationTransformerProduct</span><span class="o">.</span><span class="n">from_iverson</span><span class="p">(</span><span class="n">guard</span><span class="p">)])</span></div>
 
-<div class="viewcode-block" id="SnfExpectationTransformer.from_prob"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.from_prob">[docs]</a>    <span class="nd">@staticmethod</span>
+
+<div class="viewcode-block" id="SnfExpectationTransformer.from_prob">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.from_prob">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_prob</span><span class="p">(</span><span class="n">expectation</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SnfExpectationTransformer&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a new value with just the probability.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new value with just the probability.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SnfExpectationTransformer</span><span class="p">(</span>
             <span class="p">[</span><span class="n">SnfExpectationTransformerProduct</span><span class="o">.</span><span class="n">from_prob</span><span class="p">(</span><span class="n">expectation</span><span class="p">)])</span></div>
 
-<div class="viewcode-block" id="SnfExpectationTransformer.from_subst"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.from_subst">[docs]</a>    <span class="nd">@staticmethod</span>
+
+<div class="viewcode-block" id="SnfExpectationTransformer.from_subst">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.from_subst">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_subst</span><span class="p">(</span><span class="n">subst</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span> <span class="n">Expr</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;SnfExpectationTransformer&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a new value with just the substitution.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new value with just the substitution.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SnfExpectationTransformer</span><span class="p">(</span>
             <span class="p">[</span><span class="n">SnfExpectationTransformerProduct</span><span class="o">.</span><span class="n">from_subst</span><span class="p">(</span><span class="n">subst</span><span class="p">)])</span></div>
 
-<div class="viewcode-block" id="SnfExpectationTransformer.from_ticks"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.from_ticks">[docs]</a>    <span class="nd">@staticmethod</span>
+
+<div class="viewcode-block" id="SnfExpectationTransformer.from_ticks">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.from_ticks">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_ticks</span><span class="p">(</span><span class="n">ticks</span><span class="p">:</span> <span class="n">TickExpr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SnfExpectationTransformer&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a new value with just the ticks value.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new value with just the ticks value.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SnfExpectationTransformer</span><span class="p">(</span>
             <span class="p">[</span><span class="n">SnfExpectationTransformerProduct</span><span class="o">.</span><span class="n">from_ticks</span><span class="p">(</span><span class="n">ticks</span><span class="p">)])</span></div>
 
-<div class="viewcode-block" id="SnfExpectationTransformer.substitute"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.substitute">[docs]</a>    <span class="k">def</span> <span class="nf">substitute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subst</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span>
+
+<div class="viewcode-block" id="SnfExpectationTransformer.substitute">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.SnfExpectationTransformer.substitute">[docs]</a>
+    <span class="k">def</span> <span class="nf">substitute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subst</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span>
                                      <span class="n">Expr</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;SnfExpectationTransformer&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Apply the subtitution to this expectation.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply the subtitution to this expectation.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SnfExpectationTransformer</span><span class="p">(</span>
             <span class="p">[</span><span class="n">value</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="n">subst</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">])</span></div>
+
 
     <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span>
@@ -529,10 +578,13 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;λ𝑋. </span><span class="si">{</span><span class="n">terms</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
 
-<div class="viewcode-block" id="normalize_expectation_transformer"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.normalize_expectation_transformer">[docs]</a><span class="k">def</span> <span class="nf">normalize_expectation_transformer</span><span class="p">(</span>
+
+<div class="viewcode-block" id="normalize_expectation_transformer">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.normalize_expectation_transformer">[docs]</a>
+<span class="k">def</span> <span class="nf">normalize_expectation_transformer</span><span class="p">(</span>
     <span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">,</span> <span class="n">expectation_transformer</span><span class="p">:</span> <span class="n">ExpectationTransformer</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">SnfExpectationTransformer</span><span class="p">,</span> <span class="n">CheckFail</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a well-typed expectation transformer, return a</span>
 <span class="sd">    :class:`SnfExpectationTransformer`, i.e. an expectation transformer in</span>
 <span class="sd">    *summation normal form* (SNF).</span>
@@ -606,10 +658,13 @@
     <span class="k">return</span> <span class="n">recurse</span><span class="p">(</span><span class="n">expectation_transformer</span><span class="o">.</span><span class="n">expectation</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="normalize_expectation"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.normalize_expectation">[docs]</a><span class="k">def</span> <span class="nf">normalize_expectation</span><span class="p">(</span>
+
+<div class="viewcode-block" id="normalize_expectation">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.simplify.normalize_expectation">[docs]</a>
+<span class="k">def</span> <span class="nf">normalize_expectation</span><span class="p">(</span>
         <span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">,</span>
         <span class="n">expectation</span><span class="p">:</span> <span class="n">Expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">SnfExpectationTransformer</span><span class="p">,</span> <span class="n">CheckFail</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Specialized version of :func:`normalize_expectation_transformer`.</span>
 
 <span class="sd">    Translate this expectation into summation normal form. The result is a</span>
@@ -649,6 +704,7 @@
     <span class="k">assert</span> <span class="n">variable</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">program</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span> <span class="s2">&quot;can&#39;t use 𝑋 as a variable name&quot;</span>
     <span class="n">transformer</span> <span class="o">=</span> <span class="n">ExpectationTransformer</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">expectation</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">normalize_expectation_transformer</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">transformer</span><span class="p">)</span></div>
+
 </pre></div>
 
     </div>
@@ -665,8 +721,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2022, Philipp Schröer.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
+        &copy; Copyright 2024, Philipp Schröer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br/>
     </p>
   </div>
 </footer>

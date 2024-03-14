@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>probably.pgcl.cfg &#8212; Probably  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css" />
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script>
-    <script src="../../../_static/katex_autorenderer.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css?v=0bf093e7" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/katex-math.css?v=91adb8b6" />
+    <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/katex.min.js?v=48ec3933"></script>
+    <script src="../../../_static/auto-render.min.js?v=8b9f325c"></script>
+    <script src="../../../_static/katex_autorenderer.js?v=bebc588a"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
     
@@ -270,8 +269,10 @@
     <span class="n">dot</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;source/_generated/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="TerminatorKind"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.TerminatorKind">[docs]</a><span class="k">class</span> <span class="nc">TerminatorKind</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TerminatorKind">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.TerminatorKind">[docs]</a>
+<span class="k">class</span> <span class="nc">TerminatorKind</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Whether the :class:`Terminator` branches on a Boolean condition or throws a</span>
 <span class="sd">    die with a probability given by an expression.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -279,9 +280,12 @@
     <span class="n">PROBABILISTIC</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="Terminator"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator">[docs]</a><span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
+
+<div class="viewcode-block" id="Terminator">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator">[docs]</a>
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
 <span class="k">class</span> <span class="nc">Terminator</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A :class:`BasicBlock` is terminated by a *terminator*, which says where to</span>
 <span class="sd">    go next after executing all assignment statements.</span>
 
@@ -290,29 +294,38 @@
 
     <span class="n">LEAF</span><span class="p">:</span> <span class="s1">&#39;Terminator&#39;</span>
 
-<div class="viewcode-block" id="Terminator.goto"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator.goto">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Terminator.goto">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator.goto">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">goto</span><span class="p">(</span><span class="n">ident</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;Terminator&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Always go to the given block.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Terminator</span><span class="p">(</span><span class="n">TerminatorKind</span><span class="o">.</span><span class="n">BOOLEAN</span><span class="p">,</span> <span class="n">BoolLitExpr</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="n">ident</span><span class="p">,</span>
                           <span class="n">ident</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Terminator.branch"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator.branch">[docs]</a>    <span class="nd">@staticmethod</span>
+
+<div class="viewcode-block" id="Terminator.branch">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator.branch">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">branch</span><span class="p">(</span><span class="n">cond</span><span class="p">:</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">if_true</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">],</span>
                <span class="n">if_false</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;Terminator&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Construct a Boolean branching terminator.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Terminator</span><span class="p">(</span><span class="n">TerminatorKind</span><span class="o">.</span><span class="n">BOOLEAN</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">if_true</span><span class="p">,</span> <span class="n">if_false</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Terminator.choice"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator.choice">[docs]</a>    <span class="nd">@staticmethod</span>
+
+<div class="viewcode-block" id="Terminator.choice">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator.choice">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">choice</span><span class="p">(</span><span class="n">expr</span><span class="p">:</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">lhs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">],</span>
                <span class="n">rhs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;Terminator&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Construct a probabilistic choice terminator.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Terminator</span><span class="p">(</span><span class="n">TerminatorKind</span><span class="o">.</span><span class="n">PROBABILISTIC</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span></div>
+
 
     <span class="n">kind</span><span class="p">:</span> <span class="n">TerminatorKind</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
     <span class="n">condition</span><span class="p">:</span> <span class="n">Expr</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
@@ -321,22 +334,27 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">successors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a list of successors of terminator.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">if_true</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">if_false</span><span class="p">]))</span>
 
-<div class="viewcode-block" id="Terminator.is_goto"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator.is_goto">[docs]</a>    <span class="k">def</span> <span class="nf">is_goto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Terminator.is_goto">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator.is_goto">[docs]</a>
+    <span class="k">def</span> <span class="nf">is_goto</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Whether the condition is constant `True` or both successors are the</span>
 <span class="sd">        same.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">condition</span> <span class="o">==</span> <span class="n">BoolLitExpr</span><span class="p">(</span>
             <span class="kc">True</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">if_true</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">if_false</span></div>
 
-<div class="viewcode-block" id="Terminator.substitute"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator.substitute">[docs]</a>    <span class="k">def</span> <span class="nf">substitute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subst</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">],</span>
+
+<div class="viewcode-block" id="Terminator.substitute">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator.substitute">[docs]</a>
+    <span class="k">def</span> <span class="nf">substitute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subst</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">],</span>
                                      <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">]]):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Apply the substitution to this terminator&#39;s successors.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="bp">self</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Terminator</span><span class="o">.</span><span class="n">LEAF</span>
@@ -345,8 +363,11 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">if_false</span> <span class="ow">in</span> <span class="n">subst</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">if_false</span> <span class="o">=</span> <span class="n">subst</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">if_false</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Terminator.flip"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator.flip">[docs]</a>    <span class="k">def</span> <span class="nf">flip</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Terminator.flip">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.Terminator.flip">[docs]</a>
+    <span class="k">def</span> <span class="nf">flip</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Flip the condition (by negation using</span>
 <span class="sd">        :func:`probably.pgcl.simplify.simplifying_neg`) and switch both branches</span>
 <span class="sd">        of this terminator. The operation does not change the semantics of the</span>
@@ -355,6 +376,7 @@
         <span class="k">assert</span> <span class="bp">self</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Terminator</span><span class="o">.</span><span class="n">LEAF</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">condition</span> <span class="o">=</span> <span class="n">simplifying_neg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">condition</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">if_true</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">if_false</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">if_false</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">if_true</span></div>
+
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">TerminatorKind</span><span class="o">.</span><span class="n">BOOLEAN</span><span class="p">:</span>
@@ -366,12 +388,15 @@
             <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;choice (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">condition</span><span class="si">}</span><span class="s2">) </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">if_true</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">if_false</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
 
+
 <span class="n">Terminator</span><span class="o">.</span><span class="n">LEAF</span> <span class="o">=</span> <span class="n">Terminator</span><span class="p">(</span><span class="n">TerminatorKind</span><span class="o">.</span><span class="n">BOOLEAN</span><span class="p">,</span> <span class="n">BoolLitExpr</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="kc">None</span><span class="p">,</span>
                              <span class="kc">None</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="BlockType"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.BlockType">[docs]</a><span class="k">class</span> <span class="nc">BlockType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BlockType">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.BlockType">[docs]</a>
+<span class="k">class</span> <span class="nc">BlockType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A :class:`BasicBlock` has an attached marker type that is used for</span>
 <span class="sd">    back-conversion from a control-flow graph to a structured program, for</span>
 <span class="sd">    pretty-printing the graph, and for debugging.</span>
@@ -387,9 +412,12 @@
     <span class="n">TRAMPOLINE</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="BasicBlock"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.BasicBlock">[docs]</a><span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
+
+<div class="viewcode-block" id="BasicBlock">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.BasicBlock">[docs]</a>
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
 <span class="k">class</span> <span class="nc">BasicBlock</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A *basic block* in the control-flow graph consists of a series of</span>
 <span class="sd">    (unconditional) assignments that are executed in sequence, followed by a</span>
 <span class="sd">    :class:`Terminator` that says where to go next (based on some condition).</span>
@@ -399,26 +427,34 @@
     <span class="n">assignments</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span> <span class="n">Expr</span><span class="p">]]</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
     <span class="n">terminator</span><span class="p">:</span> <span class="n">Terminator</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
 
-<div class="viewcode-block" id="BasicBlock.is_trap"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.BasicBlock.is_trap">[docs]</a>    <span class="k">def</span> <span class="nf">is_trap</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="BasicBlock.is_trap">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.BasicBlock.is_trap">[docs]</a>
+    <span class="k">def</span> <span class="nf">is_trap</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">terminator</span><span class="o">.</span><span class="n">is_goto</span><span class="p">(</span>
         <span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">terminator</span><span class="o">.</span><span class="n">if_true</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ident</span></div>
+
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2"> := </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span><span class="p">]</span> <span class="o">+</span>
                          <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">terminator</span><span class="p">)])</span></div>
 
 
-<div class="viewcode-block" id="ControlFlowGraph"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.ControlFlowGraph">[docs]</a><span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
+
+<div class="viewcode-block" id="ControlFlowGraph">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.ControlFlowGraph">[docs]</a>
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
 <span class="k">class</span> <span class="nc">ControlFlowGraph</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The control-flow graph consists of an indexed list of :class:`BasicBlock`.</span>
 
 <span class="sd">    The :meth:`render_dot` and :meth:`to_networkx` methods can be very useful</span>
 <span class="sd">    for debugging and visualization of control-flow graphs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="ControlFlowGraph.from_instructions"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.ControlFlowGraph.from_instructions">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="ControlFlowGraph.from_instructions">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.ControlFlowGraph.from_instructions">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_instructions</span><span class="p">(</span><span class="n">instructions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Instr</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;ControlFlowGraph&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Convert the given list of instructions to the corresponding control-flow</span>
 <span class="sd">        graph. The successor of the final generated basic blocks is set to ``None``.</span>
 
@@ -444,17 +480,21 @@
         <span class="n">graph</span><span class="o">.</span><span class="n">entry_id</span> <span class="o">=</span> <span class="n">start_id</span>
         <span class="k">return</span> <span class="n">graph</span></div>
 
+
     <span class="n">entry_id</span><span class="p">:</span> <span class="n">BasicBlockId</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
     <span class="n">_basic_blocks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BasicBlock</span><span class="p">]</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
 
-<div class="viewcode-block" id="ControlFlowGraph.fresh_block"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.ControlFlowGraph.fresh_block">[docs]</a>    <span class="k">def</span> <span class="nf">fresh_block</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasicBlock</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ControlFlowGraph.fresh_block">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.ControlFlowGraph.fresh_block">[docs]</a>
+    <span class="k">def</span> <span class="nf">fresh_block</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasicBlock</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a new, empty basic block to the graph of type `forward`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ident</span> <span class="o">=</span> <span class="n">BasicBlockId</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_basic_blocks</span><span class="p">))</span>
         <span class="n">block</span> <span class="o">=</span> <span class="n">BasicBlock</span><span class="p">(</span><span class="n">BlockType</span><span class="o">.</span><span class="n">FORWARD</span><span class="p">,</span> <span class="n">ident</span><span class="p">,</span> <span class="p">[],</span> <span class="n">Terminator</span><span class="o">.</span><span class="n">LEAF</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_basic_blocks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">block</span></div>
+
 
     <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_basic_blocks</span><span class="p">)</span>
@@ -465,11 +505,13 @@
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_basic_blocks</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ControlFlowGraph.substitute"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.ControlFlowGraph.substitute">[docs]</a>    <span class="k">def</span> <span class="nf">substitute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<div class="viewcode-block" id="ControlFlowGraph.substitute">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.ControlFlowGraph.substitute">[docs]</a>
+    <span class="k">def</span> <span class="nf">substitute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                    <span class="n">subst</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">]],</span>
                    <span class="o">*</span><span class="p">,</span>
                    <span class="n">blocks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Apply the substitutions to all blocks in `blocks` (or all blocks if</span>
 <span class="sd">        `blocks` is `None`).</span>
 
@@ -484,8 +526,11 @@
             <span class="k">assert</span> <span class="n">new_entry_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">entry_id</span> <span class="o">=</span> <span class="n">new_entry_id</span></div>
 
-<div class="viewcode-block" id="ControlFlowGraph.to_networkx"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.ControlFlowGraph.to_networkx">[docs]</a>    <span class="k">def</span> <span class="nf">to_networkx</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ControlFlowGraph.to_networkx">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.ControlFlowGraph.to_networkx">[docs]</a>
+    <span class="k">def</span> <span class="nf">to_networkx</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a NetworkX :py:class:`networkx.DiGraph` from this control-flow</span>
 <span class="sd">        graph for further analysis.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -498,8 +543,11 @@
         <span class="n">g</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entry_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">g</span></div>
 
-<div class="viewcode-block" id="ControlFlowGraph.render_dot"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.ControlFlowGraph.render_dot">[docs]</a>    <span class="k">def</span> <span class="nf">render_dot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gv</span><span class="o">.</span><span class="n">Digraph</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ControlFlowGraph.render_dot">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.ControlFlowGraph.render_dot">[docs]</a>
+    <span class="k">def</span> <span class="nf">render_dot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gv</span><span class="o">.</span><span class="n">Digraph</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Render this control-flow graph as a GraphViz</span>
 <span class="sd">        :py:class:`graphviz.Digraph`.</span>
 
@@ -544,7 +592,9 @@
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">successors</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                     <span class="n">edge_color</span> <span class="o">=</span> <span class="s2">&quot;#35C9A2&quot;</span> <span class="k">if</span> <span class="n">succ</span> <span class="o">==</span> <span class="n">term</span><span class="o">.</span><span class="n">if_true</span> <span class="k">else</span> <span class="s2">&quot;#cf0000&quot;</span>
                 <span class="n">dot</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">ident</span><span class="p">),</span> <span class="n">succ_ident</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">edge_color</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">dot</span></div></div>
+        <span class="k">return</span> <span class="n">dot</span></div>
+</div>
+
 
 
 <span class="k">def</span> <span class="nf">_cfg_add_instruction</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span> <span class="n">ControlFlowGraph</span><span class="p">,</span> <span class="n">instruction</span><span class="p">:</span> <span class="n">Instr</span><span class="p">,</span>
@@ -583,7 +633,7 @@
 <span class="k">def</span> <span class="nf">_cfg_add_instructions</span><span class="p">(</span>
         <span class="n">graph</span><span class="p">:</span> <span class="n">ControlFlowGraph</span><span class="p">,</span> <span class="n">instructions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Instr</span><span class="p">],</span>
         <span class="n">next_block</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a list of instructiosn to the graph and return the ID of the next block.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span>
@@ -611,9 +661,11 @@
     <span class="n">_write_docs_graphviz</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">render_dot</span><span class="p">(),</span> <span class="s2">&quot;cfg-jumptable2&quot;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="JumpTable"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.JumpTable">[docs]</a><span class="nd">@attr</span><span class="o">.</span><span class="n">s</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="viewcode-block" id="JumpTable">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.JumpTable">[docs]</a>
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">JumpTable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    To implement :func:`one_big_loop`, we cannot allow non-local gotos. Instead,</span>
 <span class="sd">    we build a jump table that branches on a variable.</span>
 
@@ -661,8 +713,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">error_id</span> <span class="o">=</span> <span class="n">error</span><span class="o">.</span><span class="n">ident</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_jumps</span> <span class="o">=</span> <span class="p">[]</span>
 
-<div class="viewcode-block" id="JumpTable.trampoline"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.JumpTable.trampoline">[docs]</a>    <span class="k">def</span> <span class="nf">trampoline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasicBlockId</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="JumpTable.trampoline">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.JumpTable.trampoline">[docs]</a>
+    <span class="k">def</span> <span class="nf">trampoline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasicBlockId</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the block id for a new trampoline that sets the program counter</span>
 <span class="sd">        appropiately and then jumps to the jump table entry basic block.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -674,8 +728,11 @@
         <span class="n">block</span><span class="o">.</span><span class="n">terminator</span> <span class="o">=</span> <span class="n">Terminator</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entry_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">block</span><span class="o">.</span><span class="n">ident</span></div>
 
-<div class="viewcode-block" id="JumpTable.finalize"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.JumpTable.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="JumpTable.finalize">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.JumpTable.finalize">[docs]</a>
+    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Insert all jumps into the graph.</span>
 
 <span class="sd">        The generated jump table intentially only uses strict equality checks</span>
@@ -698,7 +755,9 @@
                 <span class="n">next_cond_block_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_id</span>
             <span class="n">cond_block</span><span class="o">.</span><span class="n">terminator</span> <span class="o">=</span> <span class="n">Terminator</span><span class="o">.</span><span class="n">branch</span><span class="p">(</span><span class="n">eq_pc</span><span class="p">,</span> <span class="n">jump_target</span><span class="p">,</span>
                                                       <span class="n">next_cond_block_id</span><span class="p">)</span>
-            <span class="n">cond_block</span> <span class="o">=</span> <span class="n">next_cond_block</span></div></div>
+            <span class="n">cond_block</span> <span class="o">=</span> <span class="n">next_cond_block</span></div>
+</div>
+
 
 
 <span class="k">def</span> <span class="nf">_write_docs_one_big_loop</span><span class="p">():</span>
@@ -716,8 +775,10 @@
     <span class="n">_write_docs_graphviz</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">render_dot</span><span class="p">(),</span> <span class="s2">&quot;cfg-one-big-loop2&quot;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="one_big_loop"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.one_big_loop">[docs]</a><span class="k">def</span> <span class="nf">one_big_loop</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span> <span class="n">ControlFlowGraph</span><span class="p">,</span> <span class="n">pc_var</span><span class="p">:</span> <span class="n">Var</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="one_big_loop">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.one_big_loop">[docs]</a>
+<span class="k">def</span> <span class="nf">one_big_loop</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span> <span class="n">ControlFlowGraph</span><span class="p">,</span> <span class="n">pc_var</span><span class="p">:</span> <span class="n">Var</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a control-flow graph from a pGCL program with arbitrarily nested</span>
 <span class="sd">    loops, modify the graph in such a way that there is only one big loop that</span>
 <span class="sd">    branches to states of the loop. Use ``pc_var`` as the variable name for the</span>
@@ -810,11 +871,14 @@
     <span class="n">jump_table_entry</span><span class="o">.</span><span class="n">terminator</span><span class="o">.</span><span class="n">flip</span><span class="p">()</span></div>
 
 
+
 <span class="n">_DominanceFrontiers</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">]]</span>
 
 
-<div class="viewcode-block" id="reduce_cfg_to_instrs"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.reduce_cfg_to_instrs">[docs]</a><span class="k">def</span> <span class="nf">reduce_cfg_to_instrs</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span> <span class="n">ControlFlowGraph</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Instr</span><span class="p">]:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="reduce_cfg_to_instrs">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.reduce_cfg_to_instrs">[docs]</a>
+<span class="k">def</span> <span class="nf">reduce_cfg_to_instrs</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span> <span class="n">ControlFlowGraph</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Instr</span><span class="p">]:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reduce a control-flow graph to a program (i.e. list of instructions). The</span>
 <span class="sd">    given graph must have the same shape as one generated by</span>
 <span class="sd">    :meth:`ControlFlowGraph.from_instructions`. This is the case for graphs</span>
@@ -923,9 +987,12 @@
     <span class="k">return</span> <span class="n">region</span><span class="o">.</span><span class="n">instrs</span></div>
 
 
-<div class="viewcode-block" id="_Region"><a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._Region">[docs]</a><span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
+
+<div class="viewcode-block" id="_Region">
+<a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._Region">[docs]</a>
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
 <span class="k">class</span> <span class="nc">_Region</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A region is like a basic block, but it contains general program statements</span>
 <span class="sd">    instead of only assignments and has</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -934,31 +1001,46 @@
     <span class="n">instrs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Instr</span><span class="p">]</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
     <span class="n">successor_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">]</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
 
-<div class="viewcode-block" id="_Region.initial"><a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._Region.initial">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="_Region.initial">
+<a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._Region.initial">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">initial</span><span class="p">(</span><span class="n">initial_block_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;_Region&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_Region</span><span class="p">(</span><span class="n">initial_block_id</span><span class="p">,</span> <span class="p">[],</span> <span class="n">initial_block_id</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="_Region.child"><a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._Region.child">[docs]</a>    <span class="nd">@staticmethod</span>
+
+<div class="viewcode-block" id="_Region.child">
+<a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._Region.child">[docs]</a>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">child</span><span class="p">(</span><span class="n">parent_id</span><span class="p">:</span> <span class="n">BasicBlockId</span><span class="p">,</span>
               <span class="n">block_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;_Region&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_Region</span><span class="p">(</span><span class="n">parent_id</span><span class="p">,</span> <span class="p">[],</span> <span class="n">block_id</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="_Region.dominates_successor"><a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._Region.dominates_successor">[docs]</a>    <span class="k">def</span> <span class="nf">dominates_successor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frontiers</span><span class="p">:</span> <span class="n">_DominanceFrontiers</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+
+<div class="viewcode-block" id="_Region.dominates_successor">
+<a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._Region.dominates_successor">[docs]</a>
+    <span class="k">def</span> <span class="nf">dominates_successor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frontiers</span><span class="p">:</span> <span class="n">_DominanceFrontiers</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">dominator_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">successor_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">frontiers</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dominator_id</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="_Region.add_block"><a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._Region.add_block">[docs]</a>    <span class="k">def</span> <span class="nf">add_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block</span><span class="p">:</span> <span class="n">BasicBlock</span><span class="p">,</span> <span class="n">instrs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Instr</span><span class="p">],</span>
+
+<div class="viewcode-block" id="_Region.add_block">
+<a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._Region.add_block">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block</span><span class="p">:</span> <span class="n">BasicBlock</span><span class="p">,</span> <span class="n">instrs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Instr</span><span class="p">],</span>
                   <span class="n">successor_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BasicBlockId</span><span class="p">]):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dominator_id</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">ident</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">instrs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
             <span class="p">(</span><span class="n">AsgnInstr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span> <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">rhs</span> <span class="ow">in</span> <span class="n">block</span><span class="o">.</span><span class="n">assignments</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">instrs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">instrs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">successor_id</span> <span class="o">=</span> <span class="n">successor_id</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">successor_id</span> <span class="o">=</span> <span class="n">successor_id</span></div>
+</div>
 
 
-<div class="viewcode-block" id="_expand_region"><a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._expand_region">[docs]</a><span class="k">def</span> <span class="nf">_expand_region</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span> <span class="n">ControlFlowGraph</span><span class="p">,</span> <span class="n">frontiers</span><span class="p">:</span> <span class="n">_DominanceFrontiers</span><span class="p">,</span>
+
+<div class="viewcode-block" id="_expand_region">
+<a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._expand_region">[docs]</a>
+<span class="k">def</span> <span class="nf">_expand_region</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span> <span class="n">ControlFlowGraph</span><span class="p">,</span> <span class="n">frontiers</span><span class="p">:</span> <span class="n">_DominanceFrontiers</span><span class="p">,</span>
                    <span class="n">region</span><span class="p">:</span> <span class="n">_Region</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    See :func:`reduce_cfg_to_instrs`. Given a control-flow graph for a program,</span>
 <span class="sd">    the dominance frontiers and a block id, create a block (i.e. list of</span>
 <span class="sd">    instructions) where each statement in the block dominates the next</span>
@@ -1000,9 +1082,12 @@
                     <span class="k">break</span></div>
 
 
-<div class="viewcode-block" id="_join_regions"><a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._join_regions">[docs]</a><span class="k">def</span> <span class="nf">_join_regions</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span> <span class="n">ControlFlowGraph</span><span class="p">,</span> <span class="n">region1</span><span class="p">:</span> <span class="n">_Region</span><span class="p">,</span>
+
+<div class="viewcode-block" id="_join_regions">
+<a class="viewcode-back" href="../../../cfg_internals.html#probably.pgcl.cfg._join_regions">[docs]</a>
+<span class="k">def</span> <span class="nf">_join_regions</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span> <span class="n">ControlFlowGraph</span><span class="p">,</span> <span class="n">region1</span><span class="p">:</span> <span class="n">_Region</span><span class="p">,</span>
                   <span class="n">region2</span><span class="p">:</span> <span class="n">_Region</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    For if instructions, both branches must continue with the same block. Let&#39;s</span>
 <span class="sd">    call this block the *join point*. For programs generated using</span>
 <span class="sd">    :meth:`ControlFlowGraph.from_instructions`, this will be the case. However,</span>
@@ -1040,8 +1125,11 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="program_one_big_loop"><a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.program_one_big_loop">[docs]</a><span class="k">def</span> <span class="nf">program_one_big_loop</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">,</span> <span class="n">pc_var</span><span class="p">:</span> <span class="n">Var</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Program</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="program_one_big_loop">
+<a class="viewcode-back" href="../../../pgcl.html#probably.pgcl.cfg.program_one_big_loop">[docs]</a>
+<span class="k">def</span> <span class="nf">program_one_big_loop</span><span class="p">(</span><span class="n">program</span><span class="p">:</span> <span class="n">Program</span><span class="p">,</span> <span class="n">pc_var</span><span class="p">:</span> <span class="n">Var</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Program</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Apply :func:`one_big_loop` to the CFG generated from the given instructions</span>
 <span class="sd">    (using :meth:`ControlFlowGraph.from_instructions`), and convert back to a</span>
 <span class="sd">    list of instructions using :func:`reduce_cfg_to_instrs`.</span>
@@ -1059,6 +1147,7 @@
     <span class="n">one_big_loop</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">pc_var</span><span class="p">)</span>
     <span class="n">res</span><span class="o">.</span><span class="n">instructions</span> <span class="o">=</span> <span class="n">reduce_cfg_to_instrs</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">res</span></div>
+
 </pre></div>
 
     </div>
@@ -1075,8 +1164,8 @@
       
     </p>
     <p>
-        &copy; Copyright 2022, Philipp Schröer.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
+        &copy; Copyright 2024, Philipp Schröer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br/>
     </p>
   </div>
 </footer>
