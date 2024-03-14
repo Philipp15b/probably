@@ -3,7 +3,7 @@ ignore=
 load-plugins=
 
 [MESSAGES CONTROL]
-disable=missing-docstring,line-too-long,too-few-public-methods,unused-wildcard-import,no-else-return,too-many-return-statements,too-many-branches,wildcard-import
+disable=missing-docstring,line-too-long,too-few-public-methods,unused-wildcard-import,no-else-return,too-many-return-statements,too-many-branches,wildcard-import,broad-exception-raised
 
 [VARIABLES]
 init-import=no
@@ -12,7 +12,7 @@ init-import=no
 ignored-modules=
 
 [BASIC]
-good-names=T,i,t,op,fn,R,M,ii,g,pc,tf,n,p
+good-names=T,i,t,op,fn,R,M,ii,g,pc,tf,n,p,Type
 
 [FORMAT]
 max-line-length=120
