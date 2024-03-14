@@ -48,5 +48,5 @@ def main(input: IO):
         print(f"\t{res}")
     else:
         print("Program is linear.")
-        print("\Weakest pre-expectation transformer:",
+        print("Weakest pre-expectation transformer:",
               str(general_wp_transformer(program)))
