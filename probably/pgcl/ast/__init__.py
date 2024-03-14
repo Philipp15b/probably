@@ -118,7 +118,7 @@ Otherwise use corresponding Union types instead.
 """
 
 from .ast import Node, Var
-from .declarations import ConstDecl, Decl, ParameterDecl, VarDecl
+from .declarations import DeclClass, ConstDecl, Decl, ParameterDecl, VarDecl
 from .expressions import (BernoulliExpr, BinomialExpr, Binop, BinopExpr,
                           BoolLitExpr, CategoricalExpr, CUniformExpr,
                           DistrExpr, DUniformExpr, Expr, ExprClass,
@@ -131,5 +131,5 @@ from .instructions import (AsgnInstr, ChoiceInstr, ExpectationInstr, IfInstr,
                            PrintInstr, ProbabilityQueryInstr, Query, SkipInstr,
                            TickInstr, WhileInstr)
 from .program import Program
-from .types import BoolType, Bounds, NatType, RealType, Type
+from .types import TypeClass, BoolType, Bounds, NatType, RealType, Type
 from .walk import *
